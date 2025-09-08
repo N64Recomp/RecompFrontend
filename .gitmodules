@@ -1,0 +1,9 @@
+[submodule "lib/N64ModernRuntime"]
+	path = lib/N64ModernRuntime
+	url = git@github.com:N64Recomp/N64ModernRuntime.git
+[submodule "lib/lunasvg"]
+	path = lib/lunasvg
+	url = git@github.com:sammycage/lunasvg.git
+[submodule "lib/RmlUi"]
+	path = lib/RmlUi
+	url = git@github.com:mikke89/RmlUi.git

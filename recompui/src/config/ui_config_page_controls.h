@@ -1,0 +1,128 @@
+#pragma once
+
+#include "elements/ui_config_page.h"
+#include "recompinput/recompinput.h"
+#include "recompinput/input_binding.h"
+#include "elements/ui_icon_button.h"
+#include "elements/ui_binding_button.h"
+#include "elements/ui_pill_button.h"
+#include "elements/ui_toggle.h"
+#include "elements/ui_modal.h"
+#include "composites/ui_player_card.h"
+
+namespace recompui {
+
+struct GameInputContext {
+    std::string name;
+    std::string description;
+    recompinput::GameInput input_id;
+    bool clearable;
+};
+
+using BindingList = std::vector<recompinput::InputField>;
+// Receives which GameInput to be bound to, and the index of the binding that was clicked
+using on_bind_click_callback = std::function<void(recompinput::GameInput, int)>;
+// Player index, GameInput to be bound to, and the index of the binding that is being assigned
+using on_player_bind_callback = std::function<void(int, recompinput::GameInput, int)>;
+
+using on_clear_or_reset_callback = std::function<void(recompinput::GameInput, bool)>;
+
+// One single row of a game input mapping
+class GameInputRow : public Element {
+protected:
+    recompinput::GameInput input_id;
+    BindingList bindings;
+
+    int active_binding_index = -1;
+    bool is_binding = false;
+
+    std::vector<BindingButton*> binding_buttons = {};
+
+    Style active_style;
+    std::function<void()> on_hover_callback;
+
+    virtual void process_event(const Event &e) override;
+    std::string_view get_type_name() override { return "GameInputRow"; }
+public:
+    GameInputRow(
+        Element *parent,
+        GameInputContext *input_ctx,
+        std::function<void()> on_hover_callback,
+        on_bind_click_callback on_bind_click,
+        on_clear_or_reset_callback on_clear_or_reset
+    );
+    virtual ~GameInputRow();
+    void update_bindings(BindingList &new_bindings);
+    recompinput::GameInput get_input_id() const { return input_id; }
+};
+
+using PlayerBindings = std::map<recompinput::GameInput, BindingList>;
+
+class ConfigPageControls : public ConfigPage {
+protected:
+    // for tracking forced updates to entire page (major changes like player reassignment or singleplayer mode)
+    int last_update_index = 0;
+    int update_index = 0;
+
+    int selected_player = 0;
+    int selected_profile_index = -1;
+    int num_players;
+
+    bool multiplayer_enabled;
+    bool multiplayer_view_mappings;
+
+    bool single_player_show_keyboard_mappings = false;
+
+    bool awaiting_binding = false;
+
+    std::vector<GameInputContext> game_input_contexts;
+    PlayerBindings game_input_bindings;
+
+    std::vector<PlayerCard*> player_cards;
+    std::vector<GameInputRow*> game_input_rows;
+    Toggle *keyboard_toggle;
+    Element *description_container = nullptr;
+    on_player_bind_callback on_player_bind;
+    Element *nav_up_element = nullptr;
+    Element *first_nav_element = nullptr;
+
+    virtual void process_event(const Event &e) override;
+    std::string_view get_type_name() override { return "ConfigPageControls"; }
+private:
+    void on_option_hover(uint8_t index);
+    void on_bind_click(recompinput::GameInput game_input, int input_index);
+    void on_clear_or_reset_game_input(
+        recompinput::GameInput game_input,
+        bool reset = false
+    );
+
+    void on_select_player_profile(int player_index, int profile_index);
+    void on_edit_player_profile(int player_index);
+
+    void render_all();
+
+    void render_header();
+    void render_body();
+    void render_body_players();
+    void render_body_mappings();
+    void render_control_mappings();
+    void render_footer();
+
+    recompinput::InputDevice get_player_input_device();
+public:
+    ConfigPageControls(
+        Element *parent,
+        int num_players,
+        std::vector<GameInputContext> game_input_contexts
+    );
+    virtual ~ConfigPageControls();
+    
+    void force_update();
+
+    void update_control_mappings();
+    void set_selected_player(int player);
+};
+
+extern ConfigPageControls *controls_page;
+
+} // namespace recompui

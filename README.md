@@ -1,0 +1,129 @@
+# Building
+
+## changes needed
+
+- structure
+  - so many `warning: extra qualification` warnings... i was trying to make it obvious what was specifically exposed in the library, causes a huge warning dump
+  - remove hardcoded path to parent repo libraries
+  - add necessary included libraries
+  - handle anything with `TODO: Forced game includes`
+    - `ui_api_events` -> `patches/ui_funcs.h`
+    - `ui_renderer` -> headers for InterfaceVS/InterfacePS
+- assets
+  - need to provide default assets with ability to override
+- `recompui`
+  - `include/recompui/recompui.h`
+    - audit exposed funcs, potentially only include functions a base project might need? then the rest could go somewhere else
+    - `ConfigTabId` isn't real, remove references
+  - `ui_element`
+    - new nav system
+      - all methods should be moved. everything is at the top from the initial dev that i had meant to refactor (first 431 lines lol)
+      - a lot of logic is something that is specific to the root document. might make sense to create a recompui document class? unfortunately there is a lot of recursion and use of methods on elements themselves. still, ANY root context should be able to support this
+      - wise, maybe you wanna just handle this refactor lol
+    - nav system prints need to be removed
+  - `renderer`
+    - remove hardcoded
+  - `ui_config`
+    - need confirmation prompt when attempt to leave unapplied config
+    - add quit button to header right
+    - add close button to header right
+    - need `create_mods_tab` function
+    - need `create_sound_tab` function
+    - open config modal to specific tab (maybe `config_modal->open_to_tab()`)
+    - higher level (e.g. safe) way of queuing the config modal opening in general.
+  - `ui_modal`
+    - `TabContext->can_close` needs to provide context if this cancels the modal from closing or just something like tab navigation
+    - split to `TabbedModal`
+    - `MenuAction` events
+      - back menu action should support a callback (like if it closes the modal, `TabbedModal` focuses on active tab)
+      - all menu actions should maybe support a callback? (tab left/right for TabbedModal, Toggle might not be good to expose here...)
+      - ability to show controls hints
+        - Tricky part: `MenuAction::Apply` handled elsewhere. maybe need special way of adding ctrl hints to root doc?
+      - ability to open to tab by tab id
+  - `ui_state`
+    - needs to ditch old config still.
+    - should have base rcss for setting rcss ONLY globals
+      - audit global settings that should be removed (font, h1/h2/h3, input.text, )
+      - input.radio 0 width?
+      - scrollbar settings
+    - should not load `Suplexmentary Comic NC`, maybe others?
+    - too much input handling?
+      - `check_menu_button_pressed` identity crisis. makes more sense in `profiles.cpp`, can just be `check_mapped_game_input_press` or something similar
+      - `cont_button_to_key`
+      - `cont_axis_to_key`
+      - `draw_hook` is a lot.
+      - controller button repeats (should only be direction nav anyways)
+    - bit of a dumping ground of helper/exposed funcs that could be better categorized
+  - `ui_theme`
+    - should be able to provide a font
+      - path + name need to be set on the `body` so default inheritance uses it
+      - `body` should use theme's `set_typography(theme::Typography::Body)`
+    - need setters for border settings
+  - `ui_prompt`
+    - takes `return_element_id`, instead should store current focused element?
+  - `ui_launcher`
+    - needs to exist lol
+    - default launcher, can provide background maybe other simple controls
+    - launcher menu list composite component
+      - what we have now by default
+      - customizable styles for each list item
+      - handles only showing open rom before rom is detected
+    - provide your own launcher with a recompui context
+  - `ui_assign_players_modal`
+    - should probably open and instantiate in a more integrated way. has risk of not being in a valid context
+  - `ui_mod_menu`
+    - config should open a new `Modal` with `ConfigPageOptionsMenu`
+  - `ui_config_page`
+    - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
+  - `ui_config_sub_menu`
+    - remove
+  - `ui_config_option`
+    - rename options. just find/replace `RenameMe_Config` with `Config`
+    - verify can remove `enable_focus`
+    - bool option doesn't set hover/focus cb
+  - `ui_config_page_options_menu` (maybe `ui_mod_menu`)
+    - detect texture pack options and handle (`is_texture_pack_enable_config_option`)
+    - remove legacy nav funcs
+  - `ui_config_page_controls`
+    - Needs to use `game_input_contexts` descriptions on row hover
+    - Needs to hide (or disable?) menu controls for keyboard
+    - Should check `recompinput::players` if single player mode is active (`multiplayer_enabled`)
+  - `ui_config_tab_controls`
+    - `create_controls_tab` hardcodes descriptions when adding the available GameInput inputs, and also determines whether or not an input should be able to be cleared, and doesn't specify if its only changeable on controller (see `input_types`)
+  - `ui_select`
+    - i think i forgor to add indication of which element in the dropdown is the current
+    - need to test for new navigation system conflicts
+    - 
+- `recompinput`
+  - `input_types`
+    - should be able to customize `game_input_names`
+    - should have `descriptions` for `ui_config_tab_controls` (expose for customization)
+    - should be able to designate which `GameInput`s can't be changed on keyboard
+    - should be able to designate which `GameInput`s can't be cleared on controller
+  - `input_mapping`
+    - `default_n64_mappings_controller` and `default_n64_mappings_keyboard` should have helpers for overridding
+  - `input_state`
+    - `controller_states` seems like it could have a better link with `profiles`' `controllers` vector. both are used for tracking which controllers are plugged/unplugged so a global controller registry would be a good simplification I think.
+    - whole file feels off to me, like its trying to do too much or that some stuff could be separated
+  - `input_events`
+    - toggle menu only considers inputs from profile "0"
+      - single cont mode should not care
+  - `players`
+    - concept of players and profiles are disjointed, maybe thats okay? controller reconnects should attempt to preserve the last player's profile
+  - `profiles`
+    - does a lot of controller management that doesn't make much sense
+
+## before public wishlist
+
+- new config types
+  - Enum sub-variant: dropdown
+  - Color picker
+    - important cus a lot of people are using hex which means it doesn't have controller support
+- mod recompui components
+  - new nav system support (very important imo)
+  - new button variants
+  - icon button
+  - `ui_select` `Select` element
+  - expose Typography enum + `Style::set_typography` func
+  - `PillButton`
+  - expose more Style methods

@@ -1,0 +1,48 @@
+#include "recompui/config.h"
+#include "recompinput/players.h"
+#include "elements/ui_element.h"
+#include "ui_config_page_controls.h"
+
+namespace recompui {
+
+static std::vector<struct GameInputContext> game_input_contexts = {};
+
+void config::controls::add_game_input(
+    const std::string &name,
+    const std::string &description,
+    recompinput::GameInput input_id,
+    bool clearable
+) {
+    game_input_contexts.push_back(GameInputContext{
+        name,
+        description,
+        input_id,
+        clearable
+    });
+}
+
+void config::create_controls_tab(const std::string &name) {
+    for (int i = 0; i < static_cast<int>(recompinput::GameInput::COUNT); i++) {
+        recompinput::GameInput input = static_cast<recompinput::GameInput>(i);
+        config::controls::add_game_input(
+            recompinput::get_game_input_name(input),
+            "Description for " + recompinput::get_game_input_name(input) + " input.",
+            input,
+            !(input == recompinput::GameInput::TOGGLE_MENU || input == recompinput::GameInput::ACCEPT_MENU)
+        );
+    }
+
+    config::create_tab(
+        name,
+        config::controls::id,
+        [](ContextId context, Element* parent) {
+            context.create_element<ConfigPageControls>(
+                parent,
+                recompinput::players::get_max_number_of_players(),
+                game_input_contexts
+            );
+        }
+    );
+}
+
+} // namespace recompui
