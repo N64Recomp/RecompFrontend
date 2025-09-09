@@ -1,7 +1,9 @@
 #include "recompui/config.h"
 #include "recompinput/players.h"
+#include "recompinput/profiles.h"
 #include "elements/ui_element.h"
 #include "ui_config_page_controls.h"
+#include "librecomp/game.hpp"
 
 namespace recompui {
 
@@ -41,6 +43,11 @@ void config::create_controls_tab(const std::string &name) {
                 recompinput::players::get_max_number_of_players(),
                 game_input_contexts
             );
+        },
+        nullptr,
+        []() {
+            // Save the current control mappings when closing the controls tab.
+            recompinput::profiles::save_controls_config(recomp::get_config_path() / (config::controls::id + ".json"));
         }
     );
 }

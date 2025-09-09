@@ -17,6 +17,10 @@ file(GLOB RML_ELEMENTS_CXX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/rml_elements/
 file(GLOB RML_HACKS_CXX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/rml_hacks/*.cpp)
 file(GLOB UTIL_CXX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/util/*.cpp)
 
+if (APPLE)
+    set(UTIL_CXX_SOURCES ${UTIL_CXX_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/src/util/support_apple.mm)
+endif()
+
 # Define the library
 add_library(recompui STATIC
     ${API_CXX_SOURCES}
@@ -30,6 +34,7 @@ add_library(recompui STATIC
     ${RML_HACKS_CXX_SOURCES}
     ${UTIL_CXX_SOURCES}
 )
+
 # ${PROJECT_SOURCE_DIR}/../lib/RmlUi/Backends/RmlUi_Platform_SDL.cpp
 
 SET(LUNASVG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)

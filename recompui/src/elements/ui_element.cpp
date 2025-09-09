@@ -664,7 +664,6 @@ void Element::ProcessEvent(Rml::Event &event) {
                     break;
                 case Rml::Input::KeyIdentifier::KI_DOWN:
                     handle_event(Event::navigate_event(NavDirection::Down));
-                    printf("Navigate down\n");
                     break;
             }
         }

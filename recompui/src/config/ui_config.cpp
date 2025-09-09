@@ -1,6 +1,9 @@
 #include "recompui/config.h"
 #include "elements/ui_modal.h"
 #include "ui_config_page_options_menu.h"
+#include "recompinput/profiles.h"
+#include "util/file.h"
+#include "librecomp/game.hpp"
 
 static std::vector<std::pair<std::string, recomp::config::Config>> configs;
 
@@ -83,6 +86,8 @@ namespace recompui {
         for (auto &[id, config] : configs) {
             config.load_config();
         }
+
+        recompinput::profiles::load_controls_config(recomp::get_config_path() / (config::controls::id + ".json"));
 
         loaded_configs = true;
     }

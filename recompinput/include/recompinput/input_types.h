@@ -76,6 +76,15 @@ namespace recompinput {
         auto operator<=>(const InputField& rhs) const = default;
     };
 
+    inline void to_json(nlohmann::json& j, const InputField& field) {
+        j = nlohmann::json{ {"input_type", field.input_type}, {"input_id", field.input_id} };
+    }
+
+    inline void from_json(const nlohmann::json& j, InputField& field) {
+        j.at("input_type").get_to(field.input_type);
+        j.at("input_id").get_to(field.input_id);
+    }
+
     // Represents the types of mapping/profiles that can be done.
     enum class InputDevice {
         Controller,

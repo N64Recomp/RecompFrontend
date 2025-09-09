@@ -1,4 +1,8 @@
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
 #include "recompinput/profiles.h"
+#include "./json.h"
 #include "xxHash/xxh3.h"
 
 // Arrays that hold the mappings for every input for keyboard and controller respectively.
@@ -45,7 +49,7 @@ static const std::array n64_button_values = {
 };
 #undef DEFINE_INPUT
 
-
+using json = nlohmann::json;
 
 namespace recompinput {
     // Due to an RmlUi limitation this can't be const. Ideally it would return a const reference or even just a straight up copy.
@@ -400,6 +404,163 @@ namespace recompinput {
         *buttons_out = cur_buttons;
         *x_out = std::clamp(cur_x, -1.0f, 1.0f);
         *y_out = std::clamp(cur_y, -1.0f, 1.0f);
+
+        return true;
+    }
+
+    static void add_input_bindings(json& out, int profile_index, GameInput input) {
+        const std::string& input_name = recompinput::get_game_input_enum_name(input);
+        json& out_array = out[input_name];
+        out_array = json::array();
+        for (size_t binding_index = 0; binding_index < recompinput::num_bindings_per_input; binding_index++) {
+            out_array[binding_index] = profiles::get_input_binding(profile_index, input, binding_index);
+        }
+    }
+
+    bool profiles::save_controls_config(const std::filesystem::path& path) {
+        int profile_count = profiles::get_input_profile_count();
+        int controller_count = profiles::get_controller_count();
+        json config_json{};
+        config_json["version"] = profiles::controls_config_version;
+        config_json["profiles"] = std::vector<json>(profile_count);
+        config_json["controllers"] = std::vector<json>(controller_count);
+
+        json &profiles = config_json["profiles"];
+        for (int i = 0; i < profile_count; i++) {
+            json &profile = profiles[i];
+            profile["key"] = profiles::get_input_profile_key(i);
+            profile["name"] = profiles::get_input_profile_name(i);
+            profile["device"] = profiles::get_input_profile_device(i);
+            profile["custom"] = profiles::is_input_profile_custom(i);
+            profile["mappings"] = json();
+            
+            for (int j = 0; j < (int)(GameInput::COUNT); j++) {
+                add_input_bindings(profile["mappings"], i, static_cast<GameInput>(j));
+            }
+        }
+
+        json &controllers = config_json["controllers"];
+        for (int i = 0; i < controller_count; i++) {
+            json &controller = controllers[i];
+            controller["guid"] = profiles::get_controller_guid(i);
+            controller["profile"] = profiles::get_input_profile_key(profiles::get_controller_profile_index(i));
+        }
+
+        return recompinput::save_json_with_backups(path, config_json);
+    }
+
+    static void assign_mapping(int profile_index, GameInput input, const std::vector<InputField>& value) {
+        for (size_t binding_index = 0; binding_index < std::min(value.size(), recompinput::num_bindings_per_input); binding_index++) {
+            profiles::set_input_binding(profile_index, input, binding_index, value[binding_index]);
+        }
+    }
+
+    // same as assign_mapping, except will clear unassigned bindings if not in value
+    static void assign_mapping_complete(int profile_index, GameInput input, const std::vector<InputField>& value) {
+        for (size_t binding_index = 0; binding_index < recompinput::num_bindings_per_input; binding_index++) {
+            if (binding_index >= value.size()) {
+                profiles::set_input_binding(profile_index, input, binding_index, InputField{});
+            } else {
+                profiles::set_input_binding(profile_index, input, binding_index, value[binding_index]);
+            }
+        }
+    }
+
+    static void assign_all_mappings(int profile_index, InputDevice device) {
+        for (size_t i = 0; i < recompinput::num_game_inputs; i++) {
+            GameInput cur_input = static_cast<GameInput>(i);
+            assign_mapping_complete(profile_index, cur_input, recompinput::get_default_mapping_for_input(device, cur_input));
+        }
+    }
+
+    static bool load_input_device_from_json(const json& config_json, int profile_index, InputDevice device, const std::string& key) {
+        // Check if the json object for the given key exists.
+        auto find_it = config_json.find(key);
+        if (find_it == config_json.end()) {
+            return false;
+        }
+
+        const json& mappings_json = *find_it;
+
+        for (size_t i = 0; i < recompinput::num_game_inputs; i++) {
+            GameInput cur_input = static_cast<GameInput>(i);
+            const std::string& input_name = recompinput::get_game_input_enum_name(cur_input);
+
+            // Check if the json object for the given input exists and that it's an array.
+            auto find_input_it = mappings_json.find(input_name);
+            if (find_input_it == mappings_json.end() || !find_input_it->is_array()) {
+                assign_mapping(
+                    profile_index,
+                    cur_input,
+                    recompinput::get_default_mapping_for_input(device, cur_input)
+                );
+                continue;
+            }
+            const json& input_json = *find_input_it;
+
+            // Deserialize all the bindings from the json array (up to the max number of bindings per input).
+            for (size_t binding_index = 0; binding_index < std::min(recompinput::num_bindings_per_input, input_json.size()); binding_index++) {
+                InputField cur_field{};
+                recompinput::from_json(input_json[binding_index], cur_field);
+                profiles::set_input_binding(profile_index, cur_input, binding_index, cur_field);
+            }
+        }
+
+        return true;
+    }
+
+    bool profiles::load_controls_config(const std::filesystem::path& path) {
+        json config_json{};
+        if (!recompinput::read_json_with_backups(path, config_json)) {
+            return false;
+        }
+
+        auto version_it = config_json.find("version");
+        if (version_it != config_json.end()) {
+            auto profiles = config_json.find("profiles");
+            if (profiles == config_json.end() || !profiles->is_array()) {
+                return false;
+            }
+
+            for (const json &profile : *profiles) {
+                std::string key = profile.value("key", std::string());
+                std::string name = profile.value("name", std::string());
+                InputDevice device = profile.value("device", InputDevice::COUNT);
+                bool custom = profile.value("custom", false);
+                if (!key.empty() && !name.empty() && device != InputDevice::COUNT) {
+                    int profile_index = profiles::add_input_profile(key, name, device, custom);
+                    if (!load_input_device_from_json(profile, profile_index, device, "mappings")) {
+                        assign_all_mappings(profile_index, device);
+                    }
+                }
+            }
+
+            auto controllers = config_json.find("controllers");
+            if (controllers == config_json.end() || !controllers->is_array()) {
+                return false;
+            }
+
+            for (const json &controller : *controllers) {
+                auto guid = controller.find("guid");
+                auto profile = controller.find("profile");
+                if (guid != controller.end() && guid->is_object() && profile != controller.end() && profile->is_string()) {
+                    int profile_index = profiles::get_input_profile_by_key(*profile);
+                    if (profile_index >= 0) {
+                        profiles::add_controller(*guid, profile_index);
+                    }
+                }
+            }
+        }
+        else {
+            // Version 1 of the format only had bindings for Player 1 on the root element.
+            if (!load_input_device_from_json(config_json, profiles::get_sp_keyboard_profile_index(), InputDevice::Keyboard, "keyboard")) {
+                assign_all_mappings(profiles::get_sp_keyboard_profile_index(), InputDevice::Keyboard);
+            }
+
+            if (!load_input_device_from_json(config_json, profiles::get_sp_controller_profile_index(), InputDevice::Controller, "controller")) {
+                assign_all_mappings(profiles::get_sp_controller_profile_index(), InputDevice::Controller);
+            }
+        }
 
         return true;
     }

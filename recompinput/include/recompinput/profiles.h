@@ -1,7 +1,10 @@
 #ifndef __RECOMP_INPUT_PROFILES_H__
 #define __RECOMP_INPUT_PROFILES_H__
 
+#include <filesystem>
 #include "recompinput.h"
+#include "json/json.hpp"
+
 
 namespace recompinput {
     struct ControllerGUID {
@@ -13,7 +16,21 @@ namespace recompinput {
         int crc16{};
     };
 
+    inline void to_json(nlohmann::json& j, const ControllerGUID& guid) {
+        j = nlohmann::json{ {"serial", guid.serial}, {"vendor", guid.vendor}, {"product", guid.product}, {"version", guid.version}, {"crc16", guid.crc16} };
+    }
+
+    inline void from_json(const nlohmann::json& j, ControllerGUID& guid) {
+        j.at("serial").get_to(guid.serial);
+        j.at("vendor").get_to(guid.vendor);
+        j.at("product").get_to(guid.product);
+        j.at("version").get_to(guid.version);
+        j.at("crc16").get_to(guid.crc16);
+    }
+
     namespace profiles {
+        constexpr int controls_config_version = 3;
+
         recompinput::InputField& get_input_binding(int profile_index, GameInput input, size_t binding_index);
         void set_input_binding(int profile_index, recompinput::GameInput input, size_t binding_index, recompinput::InputField value);
         void clear_input_binding(int profile_index, GameInput input);
@@ -44,6 +61,9 @@ namespace recompinput {
         int get_mp_keyboard_profile_index(int player_index);
         std::string get_string_from_controller_guid(ControllerGUID guid);
         bool get_n64_input(int player_index, uint16_t* buttons_out, float* x_out, float* y_out);
+
+        bool load_controls_config(const std::filesystem::path& path);
+        bool save_controls_config(const std::filesystem::path& path);
     }
 }
 
