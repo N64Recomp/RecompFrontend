@@ -18,6 +18,7 @@
 
 #include "recompui/recompui.h"
 #include "recompui/config.h"
+#include "recompui/program_config.h"
 #include "recompinput/recompinput.h"
 #include "recompinput/profiles.h"
 
@@ -29,7 +30,6 @@
 #include "renderer/ui_renderer.h"
 #include "rml_hacks/ui_rml_hacks.hpp"
 #include "rml_elements/ui_rml_elements.h"
-#include "util/program_config.h"
 #include "util/file.h"
 
 static std::atomic_bool cursor_enabled = true;

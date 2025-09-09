@@ -4,7 +4,7 @@
 #include "nfd.h"
 #include "RmlUi/Core.h"
 
-#include "./program_config.h"
+#include "recompui/program_config.h"
 
 #include <filesystem>
 #include <fstream>
