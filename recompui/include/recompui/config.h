@@ -66,6 +66,17 @@ namespace recompui {
             void toggle_fullscreen();
         }
 
+        namespace sound {
+            inline const std::string id = "sound";
+            inline const std::string tab_name = "Sound";
+
+            namespace options {
+                inline const std::string main_volume = "main_volume";
+            }
+
+            double get_main_volume();
+        }
+
         /**
          * @brief Adds a new tab to the config modal, and creates and returns a `Config` for you to add options to.
          * 
@@ -93,6 +104,7 @@ namespace recompui {
         recomp::config::Config &create_general_tab(const std::string &name = config::general::tab_name);
         void create_controls_tab(const std::string &name = config::controls::tab_name);
         recomp::config::Config &create_graphics_tab(const std::string &name = config::graphics::tab_name);
+        recomp::config::Config &create_sound_tab(const std::string &name = config::sound::tab_name);
 
         // Must be called after all tabs have been created.
         // This loads all of the user's config files from disk.
@@ -108,6 +120,7 @@ namespace recompui {
         recomp::config::Config &get_config(const std::string &id);
         recomp::config::Config &get_general_config();
         recomp::config::Config &get_graphics_config();
+        recomp::config::Config &get_sound_config();
 
         // Internal use only.
         void init_modal();
