@@ -510,6 +510,8 @@ namespace recompinput {
     }
 
     bool profiles::load_controls_config(const std::filesystem::path& path) {
+        profiles::initialize_input_bindings();
+
         json config_json{};
         if (!recompinput::read_json_with_backups(path, config_json)) {
             return false;
