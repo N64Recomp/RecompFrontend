@@ -14,17 +14,17 @@ namespace config {
     }
 
     template <typename T = uint32_t>
-    T get_config_number_value(const std::string& option_id) {
+    T get_sound_config_number_value(const std::string& option_id) {
         return static_cast<T>(std::get<double>(get_sound_config().get_option_value(option_id)));
     }
 
     double sound::get_main_volume() {
-        return get_config_number_value<double>(sound::options::main_volume);
+        return get_sound_config_number_value<double>(sound::options::main_volume);
     }
 
     recomp::config::Config &create_sound_tab(const std::string &name) {
         created_sound_config = true;
-        recomp::config::Config &config = recompui::config::create_config_tab(sound::id, name, true);
+        recomp::config::Config &config = recompui::config::create_config_tab(name, sound::id, true);
 
         config.add_percent_number_option(
             sound::options::main_volume,

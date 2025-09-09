@@ -76,6 +76,7 @@ namespace recompui {
             std::function<void()> on_close = nullptr
         );
         void set_selected_tab(int tab_index);
+        void set_selected_tab(const std::string &id);
 
         ConfigHeaderFooter *get_header() { return header; }
         Element *get_body() { return body; }

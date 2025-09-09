@@ -1,6 +1,7 @@
 ﻿#include "ui_mod_menu.h"
 #include "ui_utils.h"
-#include "recompui.h"
+#include "recompui/recompui.h"
+#include "recompui/config.h"
 #include "util/file.h"
 #include "renderer.h"
 
@@ -520,7 +521,7 @@ void ModMenu::mod_configure_requested() {
         prev_context.open();
         
         // Hide the config menu and show the sub menu.
-        recompui::hide_context(recompui::get_config_context_id());
+        recompui::hide_context(recompui::config::get_config_context_id());
         recompui::show_context(sub_menu_context, "");
     }
 }
@@ -593,11 +594,6 @@ void ModMenu::create_mod_list() {
     else {
         install_mods_button->set_nav_manual(NavDirection::Up, mod_tab_id);
     }
-
-    Rml::ElementTabSet* tabset = recompui::get_config_tabset();
-    if (tabset && tabset->GetActiveTab() == recompui::config_tab_to_index(ConfigTabId::Mods)) {
-        recompui::set_config_tabset_mod_nav();
-    }       
 
     // Add one extra spacer at the bottom.
     ModEntrySpacer *spacer = context.create_element<ModEntrySpacer>(list_scroll_container);
@@ -734,7 +730,7 @@ recompui::ModMenu* mod_menu;
 
 void update_mod_list(bool scan_mods) {
     if (mod_menu) {
-        recompui::ContextId ui_context = recompui::get_config_context_id();
+        recompui::ContextId ui_context = recompui::config::get_config_context_id();
         bool opened = ui_context.open_if_not_already();
 
         mod_menu->set_mods_dirty(scan_mods);
@@ -748,35 +744,13 @@ void update_mod_list(bool scan_mods) {
 
 void process_game_started() {
     if (mod_menu) {
-        recompui::ContextId ui_context = recompui::get_config_context_id();
+        recompui::ContextId ui_context = recompui::config::get_config_context_id();
         bool opened = ui_context.open_if_not_already();
 
         mod_menu->queue_update();
 
         if (opened) {
             ui_context.close();
-        }
-    }
-}
-
-void set_config_tabset_mod_nav() {
-    if (mod_menu) {
-        Rml::ElementTabSet* tabset = recompui::get_config_tabset();
-        Rml::Element* tabs = recompui::get_child_by_tag(tabset, "tabs");
-        if (tabs != nullptr) {
-            size_t num_children = tabs->GetNumChildren();
-            Element* first_mod_entry = mod_menu->get_first_mod_entry();
-            if (first_mod_entry != nullptr) {
-                std::string id = "#" + first_mod_entry->get_id();
-                for (size_t i = 0; i < num_children; i++) {
-                    tabs->GetChild(i)->SetProperty(Rml::PropertyId::NavDown, Rml::Property{ id, Rml::Unit::STRING });
-                }
-            }
-            else {
-                for (size_t i = 0; i < num_children; i++) {
-                    tabs->GetChild(i)->SetProperty(Rml::PropertyId::NavDown, Rml::Style::Nav::Auto);
-                }
-            }
         }
     }
 }

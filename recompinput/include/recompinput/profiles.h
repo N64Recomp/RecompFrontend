@@ -2,6 +2,7 @@
 #define __RECOMP_INPUT_PROFILES_H__
 
 #include <filesystem>
+#include <string>
 #include "recompinput.h"
 #include "json/json.hpp"
 

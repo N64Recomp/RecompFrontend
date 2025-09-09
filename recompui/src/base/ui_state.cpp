@@ -190,7 +190,6 @@ class UIState {
     Rml::Element* prev_focused = nullptr;
     bool mouse_is_active_changed = false;
     std::unique_ptr<recompui::MenuController> launcher_menu_controller{};
-    std::unique_ptr<recompui::MenuController> config_menu_controller{};
     std::vector<ContextDetails> shown_contexts{};
 public:
     bool mouse_is_active_initialized = false;
@@ -199,7 +198,6 @@ public:
     bool await_stick_return_x = false;
     bool await_stick_return_y = false;
     int last_active_mouse_position[2] = {0, 0};
-    std::unique_ptr<recompui::MenuController> config_controller;
     std::unique_ptr<recompui::MenuController> launcher_controller;
     std::unique_ptr<SystemInterface_SDL> system_interface;
     recompui::RmlRenderInterface_RT64 render_interface;
@@ -213,14 +211,12 @@ public:
 
     UIState(SDL_Window* window, RT64::RenderInterface* interface, RT64::RenderDevice* device) {
         launcher_menu_controller = recompui::create_launcher_menu();
-        config_menu_controller = recompui::create_config_menu();
 
         system_interface = std::make_unique<SystemInterface_SDL>();
         system_interface->SetWindow(window);
         render_interface.init(interface, device);
 
         launcher_menu_controller->register_events(event_listener_instancer);
-        config_menu_controller->register_events(event_listener_instancer);
 
         Rml::SetSystemInterface(system_interface.get());
         Rml::SetRenderInterface(render_interface.get_rml_interface());
@@ -238,7 +234,6 @@ public:
         
         context = Rml::CreateContext("main", Rml::Vector2i(width, height));
         launcher_menu_controller->make_bindings(context);
-        config_menu_controller->make_bindings(context);
 
         Rml::Debugger::Initialise(context);
         {
@@ -266,7 +261,6 @@ public:
     void create_menus() {
         recompui::init_styling(recompui::file::get_asset_path("recomp.rcss"));
         launcher_menu_controller->load_document();
-        config_menu_controller->load_document();
         recompui::init_prompt_context();
         recompui::init_assign_players_modal();
         recompui::config::init_modal();
@@ -636,7 +630,7 @@ void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* s
     bool cont_interacted = false;
     bool kb_interacted = false;
 
-    bool config_was_open = recompui::is_context_shown(recompui::get_config_context_id()) || recompui::is_context_shown(recompui::get_config_sub_menu_context_id());
+    bool config_was_open = recompui::is_context_shown(recompui::config::get_config_context_id()) || recompui::is_context_shown(recompui::get_config_sub_menu_context_id());
 
     using clock = std::chrono::system_clock;
 
@@ -797,7 +791,7 @@ void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* s
             }
 
             if (open_config) {
-                recompui::show_context(recompui::get_config_context_id(), "");
+                recompui::show_context(recompui::config::get_config_context_id(), "");
             }
         }
     } // end dequeue event loop

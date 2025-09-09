@@ -117,11 +117,11 @@ if (WIN32)
     add_compile_definitions(NOMINMAX)
 endif()
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/../../N64ModernRuntime/thirdparty/miniz ${CMAKE_CURRENT_BINARY_DIR}/miniz)
+# add_subdirectory(${PROJECT_SOURCE_DIR}/../../N64ModernRuntime/thirdparty/miniz ${CMAKE_CURRENT_BINARY_DIR}/miniz)
 
 target_link_libraries(recompui PUBLIC
-    # RmlUi::Core
-    # RmlUi::Debugger
-    # lunasvg
+    RmlUi::Core
+    RmlUi::Debugger
+    lunasvg
     miniz
 )

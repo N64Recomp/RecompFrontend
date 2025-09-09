@@ -126,4 +126,19 @@ namespace recompui {
         config_modal->set_selected_tab(0);
         config_modal->modal_root_context.close();
     }
+
+    ContextId config::get_config_context_id() {
+        if (config_modal == nullptr) {
+            throw std::runtime_error("Config modal has not been initialized.");
+        }
+        return config_modal->modal_root_context;
+    }
+
+    void config::set_tab(const std::string &id) {
+        if (config_modal == nullptr) {
+            throw std::runtime_error("No tab with ID '" + id + "' has been added to the config modal.");
+        }
+
+        config_modal->set_selected_tab(id);
+    }
 }

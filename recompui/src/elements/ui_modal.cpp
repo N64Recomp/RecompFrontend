@@ -215,6 +215,17 @@ void Modal::set_selected_tab(int tab_index) {
     }
 }
 
+void Modal::set_selected_tab(const std::string &id) {
+    if (tabs != nullptr) {
+        for (int i = 0; i < tab_contexts.size(); i++) {
+            if (tab_contexts[i].id == id) {
+                tabs->set_active_tab(i, true);
+                break;
+            }
+        }
+    }
+}
+
 void Modal::initialize_tab(TabContext &tab_context) {
     ContextId context = get_current_context();
     if (tabs == nullptr) {

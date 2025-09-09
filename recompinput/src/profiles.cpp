@@ -1,6 +1,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <string>
 #include "recompinput/profiles.h"
 #include "./json.h"
 #include "xxHash/xxh3.h"
@@ -311,11 +312,11 @@ namespace recompinput {
         return profiles::get_controller_profile_index(controller_index);
     }
 
-    std::string get_mp_keyboard_profile_key(int player_index) {
+    std::string profiles::get_mp_keyboard_profile_key(int player_index) {
         return keyboard_mp_profile_key + std::to_string(player_index);
     }
 
-    std::string get_mp_keyboard_profile_name(int player_index) {
+    std::string profiles::get_mp_keyboard_profile_name(int player_index) {
         return keyboard_mp_profile_name + "(Player " + std::to_string(player_index + 1) + ")";
     }
 

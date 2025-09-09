@@ -113,7 +113,7 @@ void AssignPlayersModal::process_event(const Event &e) {
         return;
     }
     if (e.type == EventType::Update) {
-        if (player_elements.empty() || player_elements.size() != recompinput::players::get_number_of_assigned_players()) {
+        if (player_elements.empty() || player_elements.size() != recompinput::players::get_max_number_of_players()) {
             create_player_elements();
         }
 
@@ -152,7 +152,7 @@ void AssignPlayersModal::create_player_elements() {
     player_elements.clear();
     recompui::ContextId context = get_current_context();
 
-    for (int i = 0; i < recompinput::players::get_number_of_assigned_players(); i++) {
+    for (int i = 0; i < recompinput::players::get_max_number_of_players(); i++) {
         PlayerCard* player_element = context.create_element<PlayerCard>(player_elements_wrapper, i, true);
         player_elements.push_back(player_element);
     }

@@ -239,7 +239,7 @@ namespace recompui {
         recomp::config::Config &config::create_graphics_tab(const std::string &name) {
             created_graphics_config = true;
 
-            recomp::config::Config &config = recompui::config::create_config_tab(graphics::id, name, true);
+            recomp::config::Config &config = recompui::config::create_config_tab(name, graphics::id, true);
             config.set_save_callback(apply_graphics_config);
             config.set_load_callback(apply_graphics_config);
 

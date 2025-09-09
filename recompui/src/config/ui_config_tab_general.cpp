@@ -14,46 +14,46 @@ namespace config {
     }
 
     template <typename T = uint32_t>
-    T get_config_enum_value(const std::string& option_id) {
+    T get_general_config_enum_value(const std::string& option_id) {
         return static_cast<T>(std::get<uint32_t>(get_general_config().get_option_value(option_id)));
     }
 
     template <typename T = uint32_t>
-    T get_config_number_value(const std::string& option_id) {
+    T get_general_config_number_value(const std::string& option_id) {
         return static_cast<T>(std::get<double>(get_general_config().get_option_value(option_id)));
     }
 
-    bool get_config_bool_value(const std::string& option_id) {
+    bool get_general_config_bool_value(const std::string& option_id) {
         return std::get<bool>(get_general_config().get_option_value(option_id));
     }
 
     double general::get_rumble_strength() {
-        return get_config_number_value<double>(general::options::rumble_strength);
+        return get_general_config_number_value<double>(general::options::rumble_strength);
     }
     
     double general::get_gyro_sensitivity() {
-        return get_config_number_value<double>(general::options::gyro_sensitivity);
+        return get_general_config_number_value<double>(general::options::gyro_sensitivity);
     }
     
     double general::get_mouse_sensitivity() {
-        return get_config_number_value<double>(general::options::mouse_sensitivity);
+        return get_general_config_number_value<double>(general::options::mouse_sensitivity);
     }
     
     double general::get_joystick_deadzone() {
-        return get_config_number_value<double>(general::options::joystick_deadzone);
+        return get_general_config_number_value<double>(general::options::joystick_deadzone);
     }
     
     bool general::get_background_input_mode_enabled() {
-        return get_config_bool_value(general::options::background_input_mode);
+        return get_general_config_bool_value(general::options::background_input_mode);
     }
     
     bool general::get_debug_mode_enabled() {
-        return get_config_bool_value(general::options::debug_mode);
+        return get_general_config_bool_value(general::options::debug_mode);
     }
 
     recomp::config::Config &create_general_tab(const std::string &name) {
         created_general_config = true;
-        recomp::config::Config &config = recompui::config::create_config_tab(general::id, name, true);
+        recomp::config::Config &config = recompui::config::create_config_tab(name, general::id, true);
 
         config.add_bool_option(
             general::options::debug_mode,

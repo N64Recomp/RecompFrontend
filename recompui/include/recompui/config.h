@@ -77,6 +77,11 @@ namespace recompui {
             double get_main_volume();
         }
 
+        namespace mods {
+            inline const std::string id = "mods";
+            inline const std::string tab_name = "Mods";
+        }
+
         /**
          * @brief Adds a new tab to the config modal, and creates and returns a `Config` for you to add options to.
          * 
@@ -105,6 +110,7 @@ namespace recompui {
         void create_controls_tab(const std::string &name = config::controls::tab_name);
         recomp::config::Config &create_graphics_tab(const std::string &name = config::graphics::tab_name);
         recomp::config::Config &create_sound_tab(const std::string &name = config::sound::tab_name);
+        void create_mods_tab(const std::string &name = config::mods::tab_name);
 
         // Must be called after all tabs have been created.
         // This loads all of the user's config files from disk.
@@ -113,8 +119,12 @@ namespace recompui {
         // Sets a tab with the given ID to be hidden or visible. Can be used for debug tabs, or hidden configs.
         void set_tab_visible(const std::string &id, bool is_visible);
 
+        void set_tab(const std::string &id);
+
         // The config modal instance. nullptr until created with init_modal() internally.
         extern recompui::Modal *config_modal;
+
+        ContextId get_config_context_id();
 
         // Get any added config by ID.
         recomp::config::Config &get_config(const std::string &id);

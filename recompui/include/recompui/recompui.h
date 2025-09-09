@@ -36,7 +36,6 @@ namespace recompui {
     };
 
     std::unique_ptr<MenuController> create_launcher_menu();
-    std::unique_ptr<MenuController> create_config_menu();
 
     using event_handler_t = void(const std::string& param, Rml::Event&);
 
@@ -56,24 +55,7 @@ namespace recompui {
     ContextId try_close_current_context();
 
     ContextId get_launcher_context_id();
-    ContextId get_config_context_id();
     ContextId get_config_sub_menu_context_id();
-
-    enum class ConfigTabId {
-        General,
-        Controls,
-        Graphics,
-        Sound,
-        Mods,
-        Debug,
-    };
-
-    void set_config_tab(ConfigTabId tab);
-    int config_tab_to_index(ConfigTabId tab);
-    Rml::ElementTabSet* get_config_tabset();
-    Rml::Element* get_mod_tab();
-    void set_config_tabset_mod_nav();
-    void focus_mod_configure_button();
 
     void init_styling(const std::filesystem::path& rcss_file);
     void init_prompt_context();
