@@ -1,13 +1,7 @@
 #include "librecomp/config.hpp"
 #include "recompui/config.h"
 
-static bool initialized_config = false;
-
 namespace recompui {
-using Config = recomp::config::Config;
-using ConfigOption = recomp::config::ConfigOption;
-using ConfigOptionBool = recomp::config::ConfigOptionBool;
-using ConfigOptionNumber = recomp::config::ConfigOptionNumber;
 
 static bool created_general_config = false;
 
