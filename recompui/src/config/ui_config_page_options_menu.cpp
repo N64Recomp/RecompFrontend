@@ -136,6 +136,10 @@ void ConfigPageOptionsMenu::render_confirmation_footer() {
     apply_button = context.create_element<Button>(footer->get_right(), "Apply", ButtonStyle::Secondary);
     apply_button->set_enabled(false);
     apply_button->set_as_primary_focus();
+    apply_button->add_pressed_callback([this]() {
+        this->config->save_config();
+        this->apply_button->set_enabled(this->config->is_dirty());
+    });
 }
 
 void ConfigPageOptionsMenu::on_set_option_value(const std::string &option_id, recomp::config::ConfigValueVariant value) {

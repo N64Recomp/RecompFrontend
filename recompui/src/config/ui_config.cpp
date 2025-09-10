@@ -62,17 +62,19 @@ namespace recompui {
             // Can close
             [id]() {
                 recomp::config::Config &config = config::get_config(id);
-                if (!config.requires_confirmation || !config.is_dirty()) {
-                    return true;
+                if (config.requires_confirmation && config.is_dirty()) {
+                    // TODO: Prompt the user to confirm/cancel changes.
+                    return false;
                 }
 
-                // TODO: Prompt the user to confirm/cancel changes.
-                return false;
+                return true;
             },
             // On close
             [id]() {
                 recomp::config::Config &config = config::get_config(id);
-                config.save_config();
+                if (!config.requires_confirmation) {
+                    config.save_config();
+                }
             }
         );
         return new_config;
@@ -140,5 +142,21 @@ namespace recompui {
         }
 
         config_modal->set_selected_tab(id);
+    }
+
+    void config::open() {
+        if (config_modal == nullptr) {
+            throw std::runtime_error("Config modal has not been initialized.");
+        }
+
+        config_modal->open();
+    }
+
+    bool config::close() {
+        if (config_modal == nullptr) {
+            throw std::runtime_error("Config modal has not been initialized.");
+        }
+
+        return config_modal->close();
     }
 }

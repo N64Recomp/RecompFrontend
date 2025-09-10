@@ -117,12 +117,12 @@ void Modal::open() {
     }
 }
 
-void Modal::close() {
+bool Modal::close() {
     if (current_tab_index < tab_contexts.size() && current_tab_index >= 0) {
         if (tab_contexts[current_tab_index].can_close()) {
             tab_contexts[current_tab_index].on_close();
         } else {
-            return;
+            return false;
         }
     }
 
@@ -136,6 +136,8 @@ void Modal::close() {
     if (on_close_callback != nullptr) {
         on_close_callback();
     }
+
+    return true;
 }
 
 void Modal::process_event(const Event &e) {

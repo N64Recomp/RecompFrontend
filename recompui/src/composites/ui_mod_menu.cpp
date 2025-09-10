@@ -521,7 +521,7 @@ void ModMenu::mod_configure_requested() {
         prev_context.open();
         
         // Hide the config menu and show the sub menu.
-        recompui::hide_context(recompui::config::get_config_context_id());
+        recompui::config::close();
         recompui::show_context(sub_menu_context, "");
     }
 }

@@ -120,6 +120,8 @@ namespace recompui {
         void set_tab_visible(const std::string &id, bool is_visible);
 
         void set_tab(const std::string &id);
+        void open();
+        bool close();
 
         // The config modal instance. nullptr until created with init_modal() internally.
         extern recompui::Modal *config_modal;

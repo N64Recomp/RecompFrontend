@@ -791,7 +791,7 @@ void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* s
             }
 
             if (open_config) {
-                recompui::show_context(recompui::config::get_config_context_id(), "");
+                recompui::config::open();
             }
         }
     } // end dequeue event loop

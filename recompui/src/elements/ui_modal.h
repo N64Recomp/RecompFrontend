@@ -64,7 +64,7 @@ namespace recompui {
         static Modal *create_modal(ModalType modal_type = ModalType::Fullscreen);
         virtual ~Modal();
         void open();
-        void close();
+        bool close();
         bool is_open_now() const { return is_open; }
 
         void add_tab(TabContext &&tab_context);

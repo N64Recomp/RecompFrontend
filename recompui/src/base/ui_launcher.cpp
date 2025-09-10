@@ -87,21 +87,21 @@ public:
             [](const std::string& param, Rml::Event& event) {
                 recompui::config::set_tab(recompui::config::controls::id);
                 recompui::hide_all_contexts();
-                recompui::show_context(recompui::config::get_config_context_id(), "");
+                recompui::config::open();
             }
         );
         recompui::register_event(listener, "open_settings",
             [](const std::string& param, Rml::Event& event) {
                 recompui::config::set_tab(recompui::config::general::id);
                 recompui::hide_all_contexts();
-                recompui::show_context(recompui::config::get_config_context_id(), "");
+                recompui::config::open();
             }
         );
         recompui::register_event(listener, "open_mods",
             [](const std::string &param, Rml::Event &event) {
                 recompui::config::set_tab(recompui::config::mods::id);
                 recompui::hide_all_contexts();
-                recompui::show_context(recompui::config::get_config_context_id(), "");
+                recompui::config::open();
             }
         );
         recompui::register_event(listener, "exit_game",

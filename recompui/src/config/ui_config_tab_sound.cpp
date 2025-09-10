@@ -24,7 +24,7 @@ namespace config {
 
     recomp::config::Config &create_sound_tab(const std::string &name) {
         created_sound_config = true;
-        recomp::config::Config &config = recompui::config::create_config_tab(name, sound::id, true);
+        recomp::config::Config &config = recompui::config::create_config_tab(name, sound::id, false);
 
         config.add_percent_number_option(
             sound::options::main_volume,

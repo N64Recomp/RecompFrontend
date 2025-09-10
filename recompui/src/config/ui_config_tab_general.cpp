@@ -53,7 +53,7 @@ namespace config {
 
     recomp::config::Config &create_general_tab(const std::string &name) {
         created_general_config = true;
-        recomp::config::Config &config = recompui::config::create_config_tab(name, general::id, true);
+        recomp::config::Config &config = recompui::config::create_config_tab(name, general::id, false);
 
         config.add_bool_option(
             general::options::debug_mode,

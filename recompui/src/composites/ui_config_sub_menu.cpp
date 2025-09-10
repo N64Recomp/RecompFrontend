@@ -131,11 +131,10 @@ ConfigOptionRadio::ConfigOptionRadio(Element *parent, uint32_t value, const std:
 
 void ConfigSubMenu::back_button_pressed() {
     // Hide the config sub menu and show the config menu.
-    ContextId config_context = recompui::config::get_config_context_id();
     ContextId sub_menu_context = recompui::get_config_sub_menu_context_id();
 
     recompui::hide_context(sub_menu_context);
-    recompui::show_context(config_context, "");
+    recompui::config::open();
     // TODO focus on configure button and reimplement
     // recompui::focus_mod_configure_button();
 }
