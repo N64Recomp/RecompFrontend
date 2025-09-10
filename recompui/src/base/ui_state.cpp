@@ -51,6 +51,16 @@ void recompui::open_quit_game_prompt() {
     );
 }
 
+static std::string primary_font = "";
+void recompui::register_primary_font(const std::string& font_filename) {
+    primary_font = font_filename;
+}
+
+static std::vector<std::string> extra_fonts;
+void recompui::register_extra_font(const std::string& font_filename) {
+    extra_fonts.push_back(font_filename);
+}
+
 bool recompui::get_cursor_visible() {
     return cursor_enabled.load();
 }
@@ -246,7 +256,6 @@ public:
                 {"LatoLatin-Italic.ttf", false},
                 {"LatoLatin-Bold.ttf", false},
                 {"LatoLatin-BoldItalic.ttf", false},
-                {"Suplexmentary Comic NC.ttf", false},
                 {"NotoEmoji-Regular.ttf", true},
                 {"promptfont/promptfont.ttf", false},
             };
@@ -254,6 +263,18 @@ public:
             for (const FontFace& face : font_faces) {
                 auto font = recompui::file::get_asset_path(face.filename);
                 Rml::LoadFontFace(font.string(), face.fallback_face);
+            }
+
+            if (primary_font.empty()) {
+                throw std::runtime_error("No primary font was registered with recompui::register_primary_font");
+            }
+
+            auto primary_font_path = recompui::file::get_asset_path(primary_font.c_str());
+            Rml::LoadFontFace(primary_font_path.string(), false);
+
+            for (const auto& extra_font : extra_fonts) {
+                auto extra_font_path = recompui::file::get_asset_path(extra_font.c_str());
+                Rml::LoadFontFace(extra_font_path.string(), false);
             }
         }
     }

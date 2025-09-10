@@ -24,6 +24,12 @@ namespace Rml {
 }
 
 namespace recompui {
+    // Required! Make sure to set the font-family in your rcss to this font's family.
+    // the font-family will typically will not be in the filename.
+    void register_primary_font(const std::string& font_filename);
+    // Any extra fonts to load after the primary font.
+    void register_extra_font(const std::string& font_filename);
+
     class UiEventListenerInstancer;
 
     // TODO remove this once the UI has been ported over to the new system.
