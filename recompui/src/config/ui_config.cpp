@@ -130,7 +130,11 @@ namespace recompui {
         auto header_right = config_modal->get_header()->get_right();
         auto quit_button = config_modal->modal_root_context.create_element<IconButton>(header_right, "icons/Quit.svg", ButtonStyle::Basic);
         quit_button->add_pressed_callback([]() {
-            recompui::open_quit_game_prompt();
+            if (ultramodern::is_game_started()) {
+                recompui::open_quit_game_prompt();
+            } else {
+                ultramodern::quit();
+            }
         });
         auto close_button = config_modal->modal_root_context.create_element<IconButton>(header_right, "icons/X.svg", ButtonStyle::Basic);
         close_button->add_pressed_callback([]() {
