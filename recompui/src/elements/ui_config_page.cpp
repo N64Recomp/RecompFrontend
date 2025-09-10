@@ -14,6 +14,7 @@ namespace recompui {
         el->set_height_auto();
         el->set_flex_basis_auto();
         el->set_gap(8.0f);
+        el->set_as_navigation_container(NavigationType::Horizontal);
     }
 
     ConfigHeaderFooter::ConfigHeaderFooter(Element *parent, bool is_header) : Element(parent, 0, "div", false) {
@@ -24,6 +25,7 @@ namespace recompui {
         set_justify_content(JustifyContent::SpaceBetween);
         set_width(100.0f, Unit::Percent);
         set_height_auto();
+        set_as_navigation_container(NavigationType::Horizontal);
 
         set_padding_top(headerFooterPaddingVert);
         set_padding_bottom(headerFooterPaddingVert);
