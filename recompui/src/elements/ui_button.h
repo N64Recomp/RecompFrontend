@@ -30,6 +30,7 @@ namespace recompui {
         Style disabled_style;
         Style hover_disabled_style;
         std::list<std::function<void()>> pressed_callbacks;
+        Element *label = nullptr;
 
         // Element overrides.
         virtual void process_event(const Event &e) override;
@@ -42,6 +43,7 @@ namespace recompui {
         Style* get_disabled_style() { return &disabled_style; }
         Style* get_hover_disabled_style() { return &hover_disabled_style; }
         void apply_button_style(ButtonStyle new_style);
+        virtual void set_text(std::string_view text) override;
     private:
         void apply_theme_style(recompui::theme::color color, bool is_basic = false);
     };

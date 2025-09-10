@@ -54,15 +54,15 @@ namespace recompui {
 
         switch (size) {
             case ButtonSize::Small: {
-                auto label = context.create_element<Label>(this, text, LabelStyle::Annotation);
+                label = context.create_element<Label>(this, text, LabelStyle::Annotation);
                 break;
             }
             case ButtonSize::Medium:
-                context.create_element<Label>(this, text, LabelStyle::Small);
+                label = context.create_element<Label>(this, text, LabelStyle::Small);
                 break;
             case ButtonSize::Large:
             default:
-                context.create_element<Label>(this, text, LabelStyle::Normal);
+                label = context.create_element<Label>(this, text, LabelStyle::Normal);
                 break;
         }
 
@@ -178,5 +178,9 @@ namespace recompui {
         add_style(&focus_style, focus_state);
         add_style(&disabled_style, disabled_state);
         add_style(&hover_disabled_style, { hover_state, disabled_state });
+    }
+
+    void Button::set_text(std::string_view text) {
+        label->set_text(text);
     }
 };

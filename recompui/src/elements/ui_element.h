@@ -118,7 +118,7 @@ public:
     Element get_element_with_tag_name(std::string_view tag_name);
     void set_enabled(bool enabled);
     bool is_enabled() const;
-    void set_text(std::string_view text);
+    virtual void set_text(std::string_view text);
     // Only use if you can ensure text is directly from a trusted source. Sets inner rml contents which can create new elements.
     void set_text_unsafe(std::string_view text);
     std::string get_input_text();
