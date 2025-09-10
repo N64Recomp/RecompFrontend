@@ -107,30 +107,18 @@ void recompui::init_prompt_context() {
     
     prompt_state.prompt_controls->set_display(Display::Flex);
     prompt_state.prompt_controls->set_flex_direction(FlexDirection::Row);
-    prompt_state.prompt_controls->set_justify_content(JustifyContent::Center);
-    prompt_state.prompt_controls->set_padding_top(24, Unit::Dp);
-    prompt_state.prompt_controls->set_padding_bottom(24, Unit::Dp);
-    prompt_state.prompt_controls->set_padding_left(12, Unit::Dp);
-    prompt_state.prompt_controls->set_padding_right(12, Unit::Dp);
+    prompt_state.prompt_controls->set_justify_content(JustifyContent::SpaceBetween);
+    prompt_state.prompt_controls->set_align_items(AlignItems::Center);
+    prompt_state.prompt_controls->set_padding(24, Unit::Dp);
     prompt_state.prompt_controls->set_border_top_width(theme::border::width, Unit::Dp);
     prompt_state.prompt_controls->set_border_top_color(theme::color::BorderSoft);
 
     prompt_state.confirm_button = context.create_element<Button>(prompt_state.prompt_controls, "", ButtonStyle::Success);
     prompt_state.confirm_button->set_min_width(185.0f, Unit::Dp);
-    prompt_state.confirm_button->set_margin_top(0);
-    prompt_state.confirm_button->set_margin_bottom(0);
-    prompt_state.confirm_button->set_margin_left(12, Unit::Dp);
-    prompt_state.confirm_button->set_margin_right(12, Unit::Dp);
-    prompt_state.confirm_button->set_text_align(TextAlign::Center);
     prompt_state.confirm_button->add_pressed_callback(run_confirm_callback);
 
     prompt_state.cancel_button = context.create_element<Button>(prompt_state.prompt_controls, "", ButtonStyle::Danger);
     prompt_state.cancel_button->set_min_width(185.0f, Unit::Dp);
-    prompt_state.cancel_button->set_margin_top(0);
-    prompt_state.cancel_button->set_margin_bottom(0);
-    prompt_state.cancel_button->set_margin_left(12, Unit::Dp);
-    prompt_state.cancel_button->set_margin_right(12, Unit::Dp);
-    prompt_state.cancel_button->set_text_align(TextAlign::Center);
     prompt_state.cancel_button->add_pressed_callback(run_cancel_callback);
 
     context.close();
@@ -179,8 +167,8 @@ void recompui::open_choice_prompt(
     prompt_state.prompt_header->set_text(header_text);
     prompt_state.prompt_label->set_text(content_text);
     prompt_state.prompt_controls->set_display(Display::Flex);
-    prompt_state.confirm_button->set_display(Display::Block);
-    prompt_state.cancel_button->set_display(Display::Block);
+    prompt_state.confirm_button->set_display(Display::Flex);
+    prompt_state.cancel_button->set_display(Display::Flex);
     prompt_state.confirm_button->set_text(confirm_label_text);
     prompt_state.cancel_button->set_text(cancel_label_text);
     prompt_state.confirm_action = confirm_action;
@@ -219,7 +207,7 @@ void recompui::open_info_prompt(
     prompt_state.prompt_label->set_text(content_text);
     prompt_state.prompt_controls->set_display(Display::Flex);
     prompt_state.confirm_button->set_display(Display::None);
-    prompt_state.cancel_button->set_display(Display::Block);
+    prompt_state.cancel_button->set_display(Display::Flex);
     prompt_state.cancel_button->set_text(okay_label_text);
     prompt_state.confirm_action = {};
     prompt_state.cancel_action = okay_action;
