@@ -198,7 +198,7 @@ Element *Element::try_get_nav_direction(
 
     int cur_element_index = get_element_index(cur_nav_child, nav_children);
     if (cur_element_index == -1) {
-        printf("ERROR: could not find nav child!\n");
+        // No nav child found
         return nullptr;
     }
 
@@ -337,97 +337,6 @@ Element *Element::get_closest_element(std::vector<Element *> &elements) {
     }
 
     return closest;
-}
-
-bool Element::handle_navigation_event(Rml::Event &event) {
-    if (
-        is_root_document &&
-        event.GetId() == Rml::EventId::Keydown &&
-        event.GetPhase() == Rml::EventPhase::Bubble &&
-        event.IsPropagating()
-    ) {
-        int key_identifier = event.GetParameter<int>("key_identifier", Rml::Input::KI_UNKNOWN);
-        if (
-            key_identifier != Rml::Input::KI_LEFT &&
-            key_identifier != Rml::Input::KI_RIGHT &&
-            key_identifier != Rml::Input::KI_UP &&
-			key_identifier != Rml::Input::KI_DOWN
-        ) {
-            return false;
-        }
-        std::string nav_key_name;
-        switch (key_identifier) {
-            case Rml::Input::KI_UP:    nav_key_name = "up";    break;
-            case Rml::Input::KI_DOWN:  nav_key_name = "down";  break;
-            case Rml::Input::KI_LEFT:  nav_key_name = "left";  break;
-            case Rml::Input::KI_RIGHT: nav_key_name = "right"; break;
-        }
-        printf("Navigation key pressed: %-5s (%d)\n", nav_key_name.c_str(), key_identifier);
-
-        int vertical_nav = 0;
-        int horizontal_nav = 0;
-        switch (key_identifier) {
-            case Rml::Input::KI_UP:    vertical_nav   = -1; break;
-            case Rml::Input::KI_DOWN:  vertical_nav   =  1; break;
-            case Rml::Input::KI_LEFT:  horizontal_nav = -1; break;
-            case Rml::Input::KI_RIGHT: horizontal_nav =  1; break;
-        }
-
-        auto ctx = get_current_context();
-        auto navigation_from_element = ctx.get_focused_element();
-        if (navigation_from_element == nullptr) {
-            printf("    No focused element, cannot navigate.\n");
-            return false;
-        }
-        nav_children.clear();
-        build_navigation(this, navigation_from_element);
-        printf("ROOT\n");
-        print_nav_hierarchy(0);
-
-        Element *nav_parent = navigation_from_element->get_nav_parent();
-        while (nav_parent != nullptr) {
-            Element *next_focus = nav_parent->try_get_nav_direction(
-                vertical_nav,
-                horizontal_nav,
-                navigation_from_element
-            );
-
-            // If found, dive into the next focus element until finding the bottom most nav container
-            if (next_focus != nullptr) {
-                while (next_focus->nav_children.size() > 0) {
-                    bool found_primary = false;
-                    for (auto &child : next_focus->nav_children) {
-                        if (child->is_primary_focus) {
-                            next_focus = child;
-                            found_primary = true;
-                            printf("    Found primary focus child: %s\n", child->get_id().c_str());
-                            break;
-                        }
-                    }
-                    if (!found_primary) {
-                        next_focus = navigation_from_element->get_closest_element(next_focus->nav_children);
-                    }
-                }
-            }
-
-            if (next_focus != nullptr) {
-                event.StopPropagation();
-                next_focus->focus();
-                printf("    Navigated to next focus element: %s\n", next_focus->get_id().c_str());
-                return true;
-            }
-
-            navigation_from_element = nav_parent;
-            nav_parent = nav_parent->get_nav_parent();
-            printf("    No next focus found, moving up to parent: %s\n", navigation_from_element->get_id().c_str());
-        }
-
-        printf("    No next focus found, reached root document.\n");
-
-        return false;
-    } else {
-        return false;
-    }
 }
 
 Element::Element(Rml::Element *base) {
@@ -648,6 +557,7 @@ void Element::ProcessEvent(Rml::Event &event) {
     case Rml::EventId::Keydown: {
         auto rml_key = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
         if (events_enabled & Events(EventType::Navigate)) {
+            // Overriding element is cancelling navigation.
             if (handle_navigation_event(event)) {
                 break;
             }
@@ -727,14 +637,6 @@ void Element::ProcessEvent(Rml::Event &event) {
     if (prev_context != ContextId::null()) {
         prev_context.open();
     }
-}
-
-void Element::set_as_root_document(NavigationType nav_type) {
-    is_root_document = true;
-    is_nav_container = true;
-    this->nav_type = nav_type;
-
-    register_event_listeners(recompui::Events(recompui::EventType::Navigate, recompui::EventType::Focus));
 }
 
 void Element::set_attribute(const Rml::String &attribute_key, const Rml::String &attribute_value) {

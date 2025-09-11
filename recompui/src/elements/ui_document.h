@@ -12,6 +12,8 @@ namespace recompui {
         std::string_view get_type_name() override { return "Document"; }
     public:
         Document(Rml::Element *base);
+    private:
+        virtual bool handle_navigation_event(Rml::Event &event) override;
     };
 
 } // namespace recompui

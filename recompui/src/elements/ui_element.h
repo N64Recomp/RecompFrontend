@@ -51,7 +51,6 @@ private:
     bool disabled_attribute = false;
     bool disabled_from_parent = false;
     bool can_set_text = false;
-    bool is_root_document = false;
 
     bool is_nav_container = false;
     NavigationType nav_type = NavigationType::Auto;
@@ -79,7 +78,8 @@ private:
     // Style overrides.
     virtual void set_property(Rml::PropertyId property_id, const Rml::Property &property) override;
 
-    bool handle_navigation_event(Rml::Event &event);
+    // Handled by Document
+    virtual bool handle_navigation_event(Rml::Event &event) { return false; };
 
     // Rml::EventListener overrides.
     void ProcessEvent(Rml::Event &event) override final;
@@ -87,15 +87,6 @@ private:
     Element *get_nav_parent();
     void get_all_focusable_children(Element *nav_parent);
     void build_navigation(Element *nav_parent, Element *cur_focus_element);
-    void print_nav_hierarchy(int depth) {
-        for (auto &child : nav_children) {
-            for (int i = 0; i <= depth; i++) {
-                printf("    ");
-            }
-            printf("%s\n", child->get_id().c_str());
-            child->print_nav_hierarchy(depth + 1);
-        }
-    }
     Element *get_closest_element(std::vector<Element *> &elements);
 protected:
     // Use of this method in inherited classes is discouraged unless it's necessary.
