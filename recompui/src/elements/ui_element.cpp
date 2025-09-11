@@ -9,336 +9,6 @@
 
 namespace recompui {
 
-Element *Element::get_nav_parent() {
-    Element *cur = parent;
-    while (cur != nullptr) {
-        if (cur->is_nav_container) {
-            return cur;
-        }
-        cur = cur->parent;
-    }
-    return nullptr;
-}
-
-void Element::set_as_navigation_container(NavigationType nav_type) {
-    is_nav_container = true;
-    this->nav_type = nav_type;
-
-    Element *parent_nav = get_nav_parent();
-    if (parent_nav != nullptr) {
-        parent_nav->nav_children.push_back(this);
-    }
-}
-
-void Element::set_as_primary_focus(bool is_primary_focus) {
-    this->is_primary_focus = is_primary_focus;
-}
-
-struct RmlPosSize {
-    Rml::Vector2f position;
-    Rml::Vector2f size;
-    Rml::Vector2f center;
-
-    RmlPosSize(Rml::Vector2f position, const Rml::Box& box) : position(position), size(box.GetSize()) {
-        center = position + (size * 0.5f);
-    }
-
-    float get_distance_sq(const RmlPosSize& other) const {
-        auto delta = center - other.center;
-        return delta.SquaredMagnitude();
-    }
-
-    bool can_navigate_vertical(const RmlPosSize& other, int dir) const {
-        if (position.x + size.x < other.position.x + 1) {
-            return false;
-        }
-        if (position.x + 1 > other.position.x + other.size.x) {
-            return false;
-        }
-
-        if (dir == 1) {
-            // Navigating down
-            return is_above(other);
-        } else {
-            // Navigating up
-            return is_below(other);
-        }
-    }
-
-    bool can_navigate_horizontal(const RmlPosSize& other, int dir) const {
-        if (std::abs(position.x - other.position.x) < 5) {
-            return false;
-        }
-
-        bool aligns_vertically = (
-            // top side of this box is above the other
-            position.y < other.position.y + other.size.y &&
-            // bottom side of this box is below the other
-            position.y + size.y > other.position.y
-        );
-
-        if (!aligns_vertically) {
-            return false;
-        }
-
-        if (dir == 1) {
-            // Navigating right
-            return is_left_of(other);
-        } else {
-            // Navigating left
-            return is_right_of(other);
-        }
-    }
-
-    bool is_left_of(const RmlPosSize& other) const {
-        return position.x <= other.position.x;
-    }
-    bool is_right_of(const RmlPosSize& other) const {
-        return position.x >= other.position.x;
-    }
-    bool is_above(const RmlPosSize& other) const {
-        return position.y <= other.position.y;
-    }
-    bool is_below(const RmlPosSize& other) const {
-        return position.y >= other.position.y;
-    }
-    float vertical_distance(const RmlPosSize& other) const {
-        return std::min(
-            std::abs(position.y - (other.position.y + other.size.y)),
-            std::abs((position.y + size.y) - other.position.y)
-        );
-    }
-    float horizontal_distance(const RmlPosSize& other) const {
-        return std::min(
-            std::abs(position.x - (other.position.x + other.size.x)),
-            std::abs((position.x + size.x) - other.position.x)
-        );
-    }
-};
-
-Element::CanFocus Element::is_focusable() {
-    if (!base->IsVisible()) {
-        return CanFocus::NoAndNoChildren;
-    }
-
-    if (enabled == false) {
-        return CanFocus::NoAndNoChildren;
-    }
-
-    const Rml::ComputedValues& computed = base->GetComputedValues();
-
-    if (computed.focus() == Rml::Style::Focus::None) {
-        return CanFocus::NoAndNoChildren;
-    }
-
-    if (computed.tab_index() == Rml::Style::TabIndex::Auto) {
-        return CanFocus::Yes;
-    }
-
-    return CanFocus::No;
-}
-Element *Element::get_first_focusable_child() {
-    for (auto child : children) {
-        CanFocus res = child->is_focusable();
-        if (res == CanFocus::Yes) {
-            return child;
-        } else if (res == CanFocus::NoAndNoChildren) {
-            continue; // Skip this child, it has no focusable children.
-        } else {
-            Element *focusable_child = child->get_first_focusable_child();
-            if (focusable_child != nullptr) {
-                return focusable_child;
-            }
-        }
-    }
-
-    return nullptr;
-}
-
-int get_element_index(Element *el, std::vector<Element *> elements) {
-    for (int i = 0; i < static_cast<int>(elements.size()); i++) {
-        if (el == elements[i]) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-Element *Element::try_grid_navigation(
-    int nav_dir,
-    int cur_element_index
-) {
-    auto *grid_parent = get_nav_parent();
-    NavigationType parent_check_type = nav_type == NavigationType::GridCol ? NavigationType::GridRow : NavigationType::GridCol;
-    if (grid_parent == nullptr || grid_parent->nav_type != parent_check_type) {
-        return nullptr;
-    }
-
-    int parent_element_index = get_element_index(this, grid_parent->nav_children);
-    if (parent_element_index < 0) {
-        return nullptr;
-    }
-
-    int next_grid_index = parent_element_index + nav_dir;
-    if (next_grid_index >= 0 && next_grid_index < grid_parent->nav_children.size()) {
-        Element *adjacent = grid_parent->nav_children[next_grid_index];
-        if (cur_element_index >= 0 && cur_element_index < adjacent->nav_children.size()) {
-            return adjacent->nav_children[cur_element_index];
-        }
-    }
-
-    return nullptr;
-}
-
-Element *Element::try_get_nav_direction(
-    int vertical_nav,
-    int horizontal_nav,
-    Element *cur_nav_child
-) {
-
-    int cur_element_index = get_element_index(cur_nav_child, nav_children);
-    if (cur_element_index == -1) {
-        // No nav child found
-        return nullptr;
-    }
-
-    int num_nav_children = static_cast<int>(nav_children.size());
-    int next_nav_index = -1;
-
-    switch (nav_type) {
-        case NavigationType::Auto:
-            break;
-        case NavigationType::GridCol:
-            if (horizontal_nav != 0) {
-                return try_grid_navigation(horizontal_nav, cur_element_index);
-            }
-            // fallthrough
-        case NavigationType::Vertical:
-            if (vertical_nav == 0) {
-                return nullptr;
-            }
-            cur_element_index += vertical_nav;
-            if (cur_element_index >= 0 && cur_element_index < num_nav_children) {
-                return nav_children[cur_element_index];
-            }
-            return nullptr;
-        case NavigationType::GridRow:
-            if (vertical_nav != 0) {
-                return try_grid_navigation(vertical_nav, cur_element_index);
-            }
-            // fallthrough
-        case NavigationType::Horizontal:
-            if (horizontal_nav == 0) {
-                return nullptr;
-            }
-            cur_element_index += horizontal_nav;
-            if (cur_element_index >= 0 && cur_element_index < num_nav_children) {
-                return nav_children[cur_element_index];
-            }
-            return nullptr;
-    }
-
-    auto focused_box = cur_nav_child->base->GetBox();
-    RmlPosSize this_pos_size(cur_nav_child->base->GetAbsoluteOffset(), focused_box);
-
-    Element *next_focus = nullptr;
-    if (nav_children.size() > 0) {
-        float best_dist = std::numeric_limits<float>::max();
-        for (auto &nav_sibling : nav_children) {
-            if (nav_children[cur_element_index] == nav_sibling) {
-                continue;
-            }
-
-            RmlPosSize sibling_pos_size(nav_sibling->base->GetAbsoluteOffset(), nav_sibling->base->GetBox());
-            if (vertical_nav != 0 && this_pos_size.can_navigate_vertical(sibling_pos_size, vertical_nav)) {
-                float dist = this_pos_size.vertical_distance(sibling_pos_size);
-                if (dist < best_dist) {
-                    best_dist = dist;
-                    next_focus = nav_sibling;
-                }
-            } else if (horizontal_nav != 0 && this_pos_size.can_navigate_horizontal(sibling_pos_size, horizontal_nav)) {
-                float dist = this_pos_size.horizontal_distance(sibling_pos_size);
-                if (dist < best_dist) {
-                    best_dist = dist;
-                    next_focus = nav_sibling;
-                }
-            }
-        }
-    }
-
-    return next_focus;
-}
-
-void Element::get_all_focusable_children(Element *nav_parent) {
-    for (auto child : children) {
-        CanFocus res = child->is_focusable();
-        if (res == CanFocus::Yes) {
-            nav_parent->nav_children.push_back(child);
-        } else if (res == CanFocus::NoAndNoChildren) {
-            continue; // Skip this child, it has no focusable children.
-        } else {
-            child->get_all_focusable_children(nav_parent);
-        }
-    }
-}
-
-void Element::build_navigation(Element *nav_parent, Element *cur_focus_element) {
-    if (!base->IsVisible()) {
-        return;
-    }
-
-    for (auto &child : children) {
-        if (child == cur_focus_element) {
-            nav_parent->nav_children.push_back(child);
-            continue;
-        }
-        if (!child->base->IsVisible() || !child->enabled) {
-            continue;
-        }
-
-        if (child->is_focusable() == CanFocus::Yes) {
-            // End of the line because it is focusable itself
-            nav_parent->nav_children.push_back(child);
-        } else if (child->is_nav_container) {
-            nav_parent->nav_children.push_back(child);
-            child->nav_children.clear();
-            child->build_navigation(child, cur_focus_element);
-            // didn't find any nav children, check for focus elements
-            if (child->nav_children.size() == 0) {
-                child->get_all_focusable_children(child);
-            }
-            // didn't find any focus elements
-            if (child->nav_children.size() == 0) {
-                nav_parent->nav_children.pop_back();
-            }
-        } else {
-            child->build_navigation(nav_parent, cur_focus_element);
-        }
-    }
-}
-
-Element *Element::get_closest_element(std::vector<Element *> &elements) {
-    if (elements.empty()) {
-        return nullptr;
-    }
-
-    auto this_box = base->GetBox();
-    RmlPosSize this_pos_size(base->GetAbsoluteOffset(), this_box);
-    Element *closest = nullptr;
-    float closest_distance = std::numeric_limits<float>::max();
-    for (auto &element : elements) {
-        auto element_box = element->base->GetBox();
-        RmlPosSize element_pos_size(element->base->GetAbsoluteOffset(), element_box);
-        float distance = this_pos_size.get_distance_sq(element_pos_size);
-        if (distance < closest_distance) {
-            closest_distance = distance;
-            closest = element;
-        }
-    }
-
-    return closest;
-}
-
 Element::Element(Rml::Element *base) {
     assert(base != nullptr);
 
@@ -942,6 +612,336 @@ void Element::scroll_into_view() {
     options.vertical = Rml::ScrollAlignment::Nearest;
 
     base->ScrollIntoView(options);
+}
+
+// Navigation
+
+Element *Element::get_nav_parent() {
+    Element *cur = parent;
+    while (cur != nullptr) {
+        if (cur->is_nav_container) {
+            return cur;
+        }
+        cur = cur->parent;
+    }
+    return nullptr;
+}
+
+void Element::set_as_navigation_container(NavigationType nav_type) {
+    is_nav_container = true;
+    this->nav_type = nav_type;
+
+    Element *parent_nav = get_nav_parent();
+    if (parent_nav != nullptr) {
+        parent_nav->nav_children.push_back(this);
+    }
+}
+
+void Element::set_as_primary_focus(bool is_primary_focus) {
+    this->is_primary_focus = is_primary_focus;
+}
+
+// Helper for making element position comparisons.
+struct RmlPosSize {
+    Rml::Vector2f position;
+    Rml::Vector2f size;
+    Rml::Vector2f center;
+
+    RmlPosSize(Rml::Vector2f position, const Rml::Box& box) : position(position), size(box.GetSize()) {
+        center = position + (size * 0.5f);
+    }
+
+    float get_distance_sq(const RmlPosSize& other) const {
+        auto delta = center - other.center;
+        return delta.SquaredMagnitude();
+    }
+
+    bool can_navigate_vertical(const RmlPosSize& other, int dir) const {
+        if (position.x + size.x < other.position.x + 1) {
+            return false;
+        }
+        if (position.x + 1 > other.position.x + other.size.x) {
+            return false;
+        }
+
+        if (dir == 1) {
+            // Navigating down
+            return is_above(other);
+        } else {
+            // Navigating up
+            return is_below(other);
+        }
+    }
+
+    bool can_navigate_horizontal(const RmlPosSize& other, int dir) const {
+        if (std::abs(position.x - other.position.x) < 5) {
+            return false;
+        }
+
+        bool aligns_vertically = (
+            // top side of this box is above the other
+            position.y < other.position.y + other.size.y &&
+            // bottom side of this box is below the other
+            position.y + size.y > other.position.y
+        );
+
+        if (!aligns_vertically) {
+            return false;
+        }
+
+        if (dir == 1) {
+            // Navigating right
+            return is_left_of(other);
+        } else {
+            // Navigating left
+            return is_right_of(other);
+        }
+    }
+
+    bool is_left_of(const RmlPosSize& other) const  { return position.x <= other.position.x; }
+    bool is_right_of(const RmlPosSize& other) const { return position.x >= other.position.x; }
+    bool is_above(const RmlPosSize& other) const    { return position.y <= other.position.y; }
+    bool is_below(const RmlPosSize& other) const    { return position.y >= other.position.y; }
+
+    float vertical_distance(const RmlPosSize& other) const {
+        return std::min(
+            std::abs(position.y - (other.position.y + other.size.y)),
+            std::abs((position.y + size.y) - other.position.y)
+        );
+    }
+    float horizontal_distance(const RmlPosSize& other) const {
+        return std::min(
+            std::abs(position.x - (other.position.x + other.size.x)),
+            std::abs((position.x + size.x) - other.position.x)
+        );
+    }
+};
+
+// This is based on RmlUi's CanFocusElement func in ElementDocument.cpp
+// Everything is the same, except we also use the Element's enabled state.
+Element::CanFocus Element::is_focusable() {
+    if (!base->IsVisible()) {
+        return CanFocus::NoAndNoChildren;
+    }
+
+    if (enabled == false) {
+        return CanFocus::NoAndNoChildren;
+    }
+
+    const Rml::ComputedValues& computed = base->GetComputedValues();
+
+    if (computed.focus() == Rml::Style::Focus::None) {
+        return CanFocus::NoAndNoChildren;
+    }
+
+    if (computed.tab_index() == Rml::Style::TabIndex::Auto) {
+        return CanFocus::Yes;
+    }
+
+    return CanFocus::No;
+}
+
+Element *Element::get_first_focusable_child() {
+    for (auto child : children) {
+        CanFocus res = child->is_focusable();
+        if (res == CanFocus::Yes) {
+            return child;
+        } else if (res == CanFocus::NoAndNoChildren) {
+            continue; // Skip this child, it has no focusable children.
+        } else {
+            Element *focusable_child = child->get_first_focusable_child();
+            if (focusable_child != nullptr) {
+                return focusable_child;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+static int get_element_index(Element *el, std::vector<Element *> elements) {
+    for (int i = 0; i < static_cast<int>(elements.size()); i++) {
+        if (el == elements[i]) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+Element *Element::try_grid_navigation(
+    int nav_dir,
+    int cur_element_index
+) {
+    auto *grid_parent = get_nav_parent();
+    NavigationType parent_check_type = nav_type == NavigationType::GridCol ? NavigationType::GridRow : NavigationType::GridCol;
+    if (grid_parent == nullptr || grid_parent->nav_type != parent_check_type) {
+        return nullptr;
+    }
+
+    int parent_element_index = get_element_index(this, grid_parent->nav_children);
+    if (parent_element_index < 0) {
+        return nullptr;
+    }
+
+    int next_grid_index = parent_element_index + nav_dir;
+    if (next_grid_index >= 0 && next_grid_index < grid_parent->nav_children.size()) {
+        Element *adjacent = grid_parent->nav_children[next_grid_index];
+        if (cur_element_index >= 0 && cur_element_index < adjacent->nav_children.size()) {
+            return adjacent->nav_children[cur_element_index];
+        }
+    }
+
+    return nullptr;
+}
+
+Element *Element::try_get_nav_direction(
+    int vertical_nav,
+    int horizontal_nav,
+    Element *cur_nav_child
+) {
+
+    int cur_element_index = get_element_index(cur_nav_child, nav_children);
+    if (cur_element_index == -1) {
+        // No nav child found
+        return nullptr;
+    }
+
+    int num_nav_children = static_cast<int>(nav_children.size());
+    int next_nav_index = -1;
+
+    switch (nav_type) {
+        case NavigationType::Auto:
+            break;
+        case NavigationType::GridCol:
+            if (horizontal_nav != 0) {
+                return try_grid_navigation(horizontal_nav, cur_element_index);
+            }
+            // fallthrough
+        case NavigationType::Vertical:
+            if (vertical_nav == 0) {
+                return nullptr;
+            }
+            cur_element_index += vertical_nav;
+            if (cur_element_index >= 0 && cur_element_index < num_nav_children) {
+                return nav_children[cur_element_index];
+            }
+            return nullptr;
+        case NavigationType::GridRow:
+            if (vertical_nav != 0) {
+                return try_grid_navigation(vertical_nav, cur_element_index);
+            }
+            // fallthrough
+        case NavigationType::Horizontal:
+            if (horizontal_nav == 0) {
+                return nullptr;
+            }
+            cur_element_index += horizontal_nav;
+            if (cur_element_index >= 0 && cur_element_index < num_nav_children) {
+                return nav_children[cur_element_index];
+            }
+            return nullptr;
+    }
+
+    auto focused_box = cur_nav_child->base->GetBox();
+    RmlPosSize this_pos_size(cur_nav_child->base->GetAbsoluteOffset(), focused_box);
+
+    Element *next_focus = nullptr;
+    if (nav_children.size() > 0) {
+        float best_dist = std::numeric_limits<float>::max();
+        for (auto &nav_sibling : nav_children) {
+            if (nav_children[cur_element_index] == nav_sibling) {
+                continue;
+            }
+
+            RmlPosSize sibling_pos_size(nav_sibling->base->GetAbsoluteOffset(), nav_sibling->base->GetBox());
+            if (vertical_nav != 0 && this_pos_size.can_navigate_vertical(sibling_pos_size, vertical_nav)) {
+                float dist = this_pos_size.vertical_distance(sibling_pos_size);
+                if (dist < best_dist) {
+                    best_dist = dist;
+                    next_focus = nav_sibling;
+                }
+            } else if (horizontal_nav != 0 && this_pos_size.can_navigate_horizontal(sibling_pos_size, horizontal_nav)) {
+                float dist = this_pos_size.horizontal_distance(sibling_pos_size);
+                if (dist < best_dist) {
+                    best_dist = dist;
+                    next_focus = nav_sibling;
+                }
+            }
+        }
+    }
+
+    return next_focus;
+}
+
+void Element::get_all_focusable_children(Element *nav_parent) {
+    for (auto child : children) {
+        CanFocus res = child->is_focusable();
+        if (res == CanFocus::Yes) {
+            nav_parent->nav_children.push_back(child);
+        } else if (res == CanFocus::NoAndNoChildren) {
+            continue; // Skip this child, it has no focusable children.
+        } else {
+            child->get_all_focusable_children(nav_parent);
+        }
+    }
+}
+
+// Dive into the hierarchy to build a list of focusable elements and navigation containers.
+void Element::build_navigation(Element *nav_parent, Element *cur_focus_element) {
+    if (!base->IsVisible()) {
+        return;
+    }
+
+    for (auto &child : children) {
+        if (child == cur_focus_element) {
+            nav_parent->nav_children.push_back(child);
+            continue;
+        }
+        if (!child->base->IsVisible() || !child->enabled) {
+            continue;
+        }
+
+        if (child->is_focusable() == CanFocus::Yes) {
+            // End of the line because it is focusable itself
+            nav_parent->nav_children.push_back(child);
+        } else if (child->is_nav_container) {
+            nav_parent->nav_children.push_back(child);
+            child->nav_children.clear();
+            child->build_navigation(child, cur_focus_element);
+            // didn't find any nav children, check for focus elements
+            if (child->nav_children.size() == 0) {
+                child->get_all_focusable_children(child);
+            }
+            // didn't find any focus elements
+            if (child->nav_children.size() == 0) {
+                nav_parent->nav_children.pop_back();
+            }
+        } else {
+            child->build_navigation(nav_parent, cur_focus_element);
+        }
+    }
+}
+
+Element *Element::get_closest_element(std::vector<Element *> &elements) {
+    if (elements.empty()) {
+        return nullptr;
+    }
+
+    auto this_box = base->GetBox();
+    RmlPosSize this_pos_size(base->GetAbsoluteOffset(), this_box);
+    Element *closest = nullptr;
+    float closest_distance = std::numeric_limits<float>::max();
+    for (auto &element : elements) {
+        auto element_box = element->base->GetBox();
+        RmlPosSize element_pos_size(element->base->GetAbsoluteOffset(), element_box);
+        float distance = this_pos_size.get_distance_sq(element_pos_size);
+        if (distance < closest_distance) {
+            closest_distance = distance;
+            closest = element;
+        }
+    }
+
+    return closest;
 }
 
 } // namespace recompui
