@@ -10,6 +10,8 @@
 #include <variant>
 
 namespace recompui {
+class Document;
+
 struct UICallback {
     ContextId context;
     PTR(void) callback;
@@ -31,6 +33,7 @@ class Element : public Style, public Rml::EventListener {
     friend ContextId create_context(const std::filesystem::path& path);
     friend ContextId create_context();
     friend class ContextId; // To allow ContextId to call the handle_event method directly.
+    friend class Document;
 private:
     Rml::Element *base = nullptr;
     Rml::ElementPtr base_owning = {};

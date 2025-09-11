@@ -11,6 +11,8 @@
 #include "recompui.h"
 #include "ui_context.h"
 #include "elements/ui_element.h"
+#include "elements/ui_document.h"
+#include "data/base_rcss.h"
 
 // Hash implementations for ContextId and ResourceId.
 template <>
@@ -34,7 +36,7 @@ namespace recompui {
         std::mutex context_lock;
         resource_slotmap resources;
         Rml::ElementDocument* document;
-        Element root_element;
+        Document root_element;
         Element* autofocus_element = nullptr;
         std::vector<Element*> loose_elements;
         std::unordered_set<ResourceId> to_update;
@@ -190,7 +192,33 @@ recompui::ContextId create_context_impl(Rml::ElementDocument* document) {
     return ret;
 }
 
+// Initialize every document with the base recompui rcss style. This is needed to ensure that everything gets fonts.
+class InitializeBaseRcssPlugin : public Rml::Plugin {
+public:
+    int GetEventClasses() override {
+        return EVT_DOCUMENT;
+    }
+
+    void OnDocumentLoad(Rml::ElementDocument* document) override {
+        auto style = document->GetStyleSheetContainer();
+        if (style != nullptr) {
+            document->SetStyleSheetContainer(style->CombineStyleSheetContainer(*context_state.style_sheet));
+        } else {
+            document->SetStyleSheetContainer(context_state.style_sheet->CombineStyleSheetContainer(Rml::StyleSheetContainer()));
+        }
+    }
+};
+static InitializeBaseRcssPlugin init_base_rcss_plugin_instance;
+
 void recompui::init_styling(const std::filesystem::path& rcss_file) {
+    // Load base rcss.
+    const std::string &base_rcss = get_base_rcss();
+    auto memory_stream = Rml::MakeUnique<Rml::StreamMemory>((const Rml::byte*)base_rcss.c_str(), base_rcss.size());
+    memory_stream->SetSourceURL("recompui base styles");
+	context_state.style_sheet = Rml::Factory::InstanceStyleSheetStream(memory_stream.get());
+
+    // TODO: User rcss file should be optional.
+    // Load user rcss.
     std::string style{};
     {
         std::ifstream style_stream{rcss_file};
@@ -202,7 +230,11 @@ void recompui::init_styling(const std::filesystem::path& rcss_file) {
     }
     std::unique_ptr<Rml::StreamMemory> rml_stream = std::make_unique<Rml::StreamMemory>(reinterpret_cast<Rml::byte*>(style.data()), style.size());
     rml_stream->SetSourceURL(rcss_file.filename().string());
-    context_state.style_sheet = Rml::Factory::InstanceStyleSheetStream(rml_stream.get());
+
+    // Merge user rcss with base rcss.
+    context_state.style_sheet->MergeStyleSheetContainer(*Rml::Factory::InstanceStyleSheetStream(rml_stream.get()));
+
+    Rml::RegisterPlugin(&init_base_rcss_plugin_instance);
 }
 
 recompui::ContextId recompui::create_context(const std::filesystem::path& path) {
@@ -232,11 +264,7 @@ recompui::ContextId recompui::create_context(Rml::ElementDocument* document) {
 
 recompui::ContextId recompui::create_context() {
     Rml::ElementDocument* doc = create_empty_document();
-    doc->SetStyleSheetContainer(context_state.style_sheet);
     ContextId ret = create_context_impl(doc);
-    Element* root = ret.get_root_element();
-    // Mark the root element as not being a shim, as that's only needed for elements that were parented to Rml ones manually.
-    root->shim = false;
 
     ret.open();
 
@@ -244,11 +272,6 @@ recompui::ContextId recompui::create_context() {
     Rml::DocumentHeader header = Rml::DocumentHeader();
     header.source = "assets/";
     doc->ProcessHeader(&header);
-
-    root->set_width(100.0f, Unit::Percent);
-    root->set_height(100.0f, Unit::Percent);
-    root->set_display(Display::Flex);
-    root->set_as_root_document();
 
     ret.close();
 
@@ -643,7 +666,7 @@ Rml::ElementDocument* recompui::ContextId::get_document() {
     return ctx->document;
 }
 
-recompui::Element* recompui::ContextId::get_root_element() {
+recompui::Document* recompui::ContextId::get_root_element() {
     std::lock_guard lock{ context_state.all_contexts_lock };
 
     Context* ctx = context_state.all_contexts.get(context_slotmap::key{ slot_id });

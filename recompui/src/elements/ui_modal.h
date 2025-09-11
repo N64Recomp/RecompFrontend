@@ -2,6 +2,7 @@
 
 #include "recompui/recompui.h"
 #include "elements/ui_element.h"
+#include "elements/ui_document.h"
 #include "elements/ui_config_page.h"
 #include "elements/ui_tab_set.h"
 
@@ -60,7 +61,7 @@ namespace recompui {
         void initialize_tab(TabContext &tab_context);
     public:
         recompui::ContextId modal_root_context;
-        Modal(Element *parent, recompui::ContextId modal_root_context, ModalType modal_type);
+        Modal(Document *parent, recompui::ContextId modal_root_context, ModalType modal_type);
         static Modal *create_modal(ModalType modal_type = ModalType::Fullscreen);
         virtual ~Modal();
         void open();

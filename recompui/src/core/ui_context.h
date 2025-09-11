@@ -13,6 +13,7 @@
 namespace recompui {
     class Style;
     class Element;
+    class Document;
     class ContextId {
         Style* add_resource_impl(std::unique_ptr<Style>&& resource);
     public:
@@ -41,7 +42,7 @@ namespace recompui {
         void clear_children();
 
         Rml::ElementDocument* get_document();
-        Element* get_root_element();
+        Document* get_root_element();
         Element* get_focused_element();
         Element* get_autofocus_element();
         void set_autofocus_element(Element* element);

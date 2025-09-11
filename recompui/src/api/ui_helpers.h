@@ -5,6 +5,7 @@
 #include "librecomp/addresses.hpp"
 
 #include "elements/ui_element.h"
+#include "elements/ui_document.h"
 #include "elements/ui_types.h"
 #include "core/ui_context.h"
 #include "core/ui_resource.h"

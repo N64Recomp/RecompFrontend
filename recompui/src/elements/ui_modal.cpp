@@ -1,5 +1,6 @@
 #include "ui_modal.h"
 #include "ui_element.h"
+#include "ui_document.h"
 
 namespace recompui {
 
@@ -38,7 +39,7 @@ constexpr float modal_height = modal_page_base_height - (modal_page_padding * 2.
 constexpr float modal_width = modal_page_base_height * 16.0f / 9.0f;
 
 Modal::Modal(
-    Element *parent,
+    Document *parent,
     recompui::ContextId modal_root_context,
     ModalType modal_type
 ) : Element(parent, Events(EventType::MenuAction), "div", false)
@@ -263,8 +264,7 @@ void Modal::add_tab(
 Modal *Modal::create_modal(ModalType modal_type) {
     ContextId new_context = recompui::create_context();
     new_context.open();
-    auto doc = new_context.get_root_element();
-    Modal *modal = new_context.create_element<Modal>(doc, new_context, modal_type);
+    Modal *modal = new_context.create_element<Modal>(new_context.get_root_element(), new_context, modal_type);
     new_context.close();
     return modal;
 }

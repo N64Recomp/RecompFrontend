@@ -52,8 +52,14 @@ void recompui::open_quit_game_prompt() {
 }
 
 static std::string primary_font = "";
-void recompui::register_primary_font(const std::string& font_filename) {
+static std::string primary_font_family = "";
+void recompui::register_primary_font(const std::string& font_filename, const std::string& font_family) {
     primary_font = font_filename;
+    primary_font_family = font_family;
+}
+
+const std::string& recompui::get_primary_font_family() {
+    return primary_font_family;
 }
 
 static std::vector<std::string> extra_fonts;

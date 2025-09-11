@@ -3,6 +3,7 @@
 #include "recompui.h"
 
 #include "elements/ui_element.h"
+#include "elements/ui_document.h"
 #include "elements/ui_label.h"
 #include "elements/ui_button.h"
 

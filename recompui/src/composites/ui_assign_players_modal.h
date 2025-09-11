@@ -2,6 +2,7 @@
 
 #include "recompinput/recompinput.h"
 #include "elements/ui_element.h"
+#include "elements/ui_document.h"
 #include "elements/ui_svg.h"
 #include "elements/ui_button.h"
 #include "ui_player_card.h"
@@ -25,7 +26,7 @@ protected:
 private:
     void create_player_elements();
 public:
-    AssignPlayersModal(Element *parent);
+    AssignPlayersModal(Document *parent);
     virtual ~AssignPlayersModal();
     void open();
     void close();

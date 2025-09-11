@@ -18,7 +18,7 @@ static void set_button_side_styles(Element *el) {
     el->set_gap(8.0f);
 }
 
-AssignPlayersModal::AssignPlayersModal(Element *parent) : Element(parent, 0, "div", false) {
+AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, 0, "div", false) {
     recompui::ContextId context = get_current_context();
     
     set_display(Display::Flex);
