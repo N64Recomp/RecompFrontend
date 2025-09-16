@@ -24,6 +24,7 @@
 
 #include "librecomp/game.hpp"
 
+#include "base/ui_launcher.h"
 #include "composites/ui_mod_menu.h"
 #include "composites/ui_mod_installer.h"
 #include "composites/ui_assign_players_modal.h"
@@ -205,7 +206,6 @@ struct ContextDetails {
 class UIState {
     Rml::Element* prev_focused = nullptr;
     bool mouse_is_active_changed = false;
-    std::unique_ptr<recompui::MenuController> launcher_menu_controller{};
     std::vector<ContextDetails> shown_contexts{};
 public:
     bool mouse_is_active_initialized = false;
@@ -214,7 +214,6 @@ public:
     bool await_stick_return_x = false;
     bool await_stick_return_y = false;
     int last_active_mouse_position[2] = {0, 0};
-    std::unique_ptr<recompui::MenuController> launcher_controller;
     std::unique_ptr<SystemInterface_SDL> system_interface;
     recompui::RmlRenderInterface_RT64 render_interface;
     Rml::Context* context;
@@ -226,13 +225,10 @@ public:
     UIState& operator=(UIState&& rhs) = delete;
 
     UIState(SDL_Window* window, RT64::RenderInterface* interface, RT64::RenderDevice* device) {
-        launcher_menu_controller = recompui::create_launcher_menu();
 
         system_interface = std::make_unique<SystemInterface_SDL>();
         system_interface->SetWindow(window);
         render_interface.init(interface, device);
-
-        launcher_menu_controller->register_events(event_listener_instancer);
 
         Rml::SetSystemInterface(system_interface.get());
         Rml::SetRenderInterface(render_interface.get_rml_interface());
@@ -249,7 +245,6 @@ public:
         SDL_GetWindowSizeInPixels(window, &width, &height);
         
         context = Rml::CreateContext("main", Rml::Vector2i(width, height));
-        launcher_menu_controller->make_bindings(context);
 
         Rml::Debugger::Initialise(context);
         {
@@ -287,7 +282,7 @@ public:
 
     void create_menus() {
         recompui::init_styling(recompui::file::get_asset_path("recomp.rcss"));
-        launcher_menu_controller->load_document();
+        recompui::init_launcher_menu();
         recompui::init_prompt_context();
         recompui::init_assign_players_modal();
         recompui::config::init_modal();

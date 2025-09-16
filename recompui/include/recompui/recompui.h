@@ -15,6 +15,7 @@
 #include "../src/elements/ui_types.h"
 
 #include "../src/core/ui_context.h"
+#include "../src/base/ui_launcher.h"
 
 namespace Rml {
     class ElementDocument;
@@ -31,18 +32,12 @@ namespace recompui {
     // Any extra fonts to load after the primary font.
     void register_extra_font(const std::string& font_filename);
 
+    // Use this to customize the launcher menu after it's created.
+    // If set, you will need to initialize the launcher's options, by calling
+    // `menu->init_game_options_menu`, and then adding options to it.
+    void register_launcher_init_callback(std::function<void(LauncherMenu *menu)> callback);
+
     class UiEventListenerInstancer;
-
-    // TODO remove this once the UI has been ported over to the new system.
-    class MenuController {
-    public:
-        virtual ~MenuController() {}
-        virtual void load_document() = 0;
-        virtual void register_events(UiEventListenerInstancer& listener) = 0;
-        virtual void make_bindings(Rml::Context* context) = 0;
-    };
-
-    std::unique_ptr<MenuController> create_launcher_menu();
 
     using event_handler_t = void(const std::string& param, Rml::Event&);
 

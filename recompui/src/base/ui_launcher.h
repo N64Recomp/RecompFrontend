@@ -1,0 +1,63 @@
+#pragma once
+
+#include "recompui/recompui.h"
+#include "elements/ui_element.h"
+#include "elements/ui_document.h"
+#include "elements/ui_label.h"
+#include "base/ui_game_option.h"
+#include "base/ui_launcher_common.h"
+#include "elements/ui_svg.h"
+
+namespace recompui {
+    class GameOption;
+
+    class GameOptionsMenu : public Element {
+    private:
+        void select_rom(std::function<void(bool)> callback);
+    protected:
+        std::vector<GameOption *> options;
+        std::u8string game_id;
+        std::string mod_game_id;
+        bool rom_valid = false;
+        GameOptionsMenuLayout layout;
+
+        std::string_view get_type_name() override { return "GameOptionsMenu"; }
+    public:
+        GameOptionsMenu(Element* parent, std::u8string game_id, std::string mod_game_id, GameOptionsMenuLayout layout = GameOptionsMenuLayout::Center);
+
+        GameOption *add_option(const std::string& title, std::function<void()> callback);
+
+        GameOption *add_start_game_or_load_rom_option(const std::string& load_rom_title = "Load ROM", const std::string& start_game_title = "Start Game");
+        GameOption *add_setup_controls_option(const std::string& title = "Setup controls");
+        GameOption *add_settings_option(const std::string& title = "Settings");
+        GameOption *add_mods_option(const std::string& title = "Mods");
+        GameOption *add_exit_option(const std::string& title = "Exit");
+    
+        void add_default_options() {
+            add_start_game_or_load_rom_option();
+            add_setup_controls_option();
+            add_settings_option();
+            add_mods_option();
+            add_exit_option();
+        }
+    };
+
+    class LauncherMenu : public Element {
+    protected:
+        std::string_view get_type_name() override { return "LauncherMenu"; }
+        Element *background_wrapper;
+        Svg *background_svg = nullptr;
+        Element *menu_container;
+        Element *default_title_wrapper;
+        GameOptionsMenu *game_options_menu = nullptr;
+    public:
+        LauncherMenu(Document* parent, ContextId context);
+        GameOptionsMenu *init_game_options_menu(std::u8string game_id, std::string mod_game_id, GameOptionsMenuLayout layout = GameOptionsMenuLayout::Center);
+        GameOptionsMenu *get_game_options_menu() { return game_options_menu; }
+        void remove_default_title();
+        Svg *set_launcher_background_svg(const std::string& svg_path);
+    };
+
+    LauncherMenu *get_launcher_menu();
+    void init_launcher_menu();
+} // namespace recompui
