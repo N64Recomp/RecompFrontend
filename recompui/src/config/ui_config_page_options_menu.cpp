@@ -96,9 +96,6 @@ void ConfigPageOptionsMenu::perform_option_render_updates() {
     }
 
     config->clear_config_option_updates();
-    if (has_updates) {
-        // apply_option_navigation();
-    }
 }
 
 void ConfigPageOptionsMenu::process_event(const Event &e) {
@@ -166,6 +163,8 @@ void ConfigPageOptionsMenu::render_config_options() {
         body_left_scroll->set_max_height(100.0f, Unit::Percent);
         body_left_scroll->set_padding(16.0f);
         body_left_scroll->set_overflow_y(Overflow::Auto);
+        body_left_scroll->set_as_navigation_container(NavigationType::Vertical);
+        body_left_scroll->set_nav_wrapping(true);
 
         config_option_elements.clear();
         bound_on_option_hover = [this](const std::string &option_id) {
@@ -231,53 +230,6 @@ void ConfigPageOptionsMenu::render_config_options() {
             element->update_hidden();
             config_option_elements.push_back(element);
         }
-
-        apply_option_navigation();
-    }
-}
-
-// TODO: Verify this is now useless
-Element* ConfigPageOptionsMenu::get_navigation_element(int cur_index, int direction) {
-    int new_index = cur_index + direction;
-    if (new_index < 0) {
-        return nullptr;
-    }
-    auto schema = config->get_config_schema();
-    if (
-        new_index >= static_cast<int>(config_option_elements.size()) ||
-        new_index >= static_cast<int>(schema.options.size())) {
-        return nullptr;
-    }
-    auto option = schema.options[new_index];
-    if (config->is_config_option_disabled(new_index) || config->is_config_option_hidden(new_index)) {
-        return get_navigation_element(new_index, direction);
-    }
-
-    return config_option_elements[new_index]->get_focus_element();
-}
-
-void ConfigPageOptionsMenu::apply_option_navigation() {
-    bool found_primary_focus = false;
-    auto schema = config->get_config_schema();
-    for (size_t i = 0; i < schema.options.size(); i++) {
-        auto option = schema.options[i];
-        bool this_is_fully_enabled = !config->is_config_option_disabled(i) && !config->is_config_option_hidden(i);
-        if (found_primary_focus == false && this_is_fully_enabled) {
-            found_primary_focus = true;
-            config_option_elements[i]->set_as_primary_focus(true);
-        } else {
-            config_option_elements[i]->set_as_primary_focus(false);
-        }
-
-        // TODO: Verify this is now useless
-        // auto *prev_element = get_navigation_element(i, -1);
-        // if (prev_element != nullptr) {
-        //     config_option_elements[i]->set_nav(NavDirection::Up, prev_element);
-        // }
-        // auto *next_element = get_navigation_element(i, 1);
-        // if (next_element != nullptr) {
-        //     config_option_elements[i]->set_nav(NavDirection::Down, next_element);
-        // }
     }
 }
 

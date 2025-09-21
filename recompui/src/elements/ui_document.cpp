@@ -44,6 +44,7 @@ namespace recompui {
 
             auto ctx = get_current_context();
             auto navigation_from_element = ctx.get_focused_element();
+            auto original_focused_element = navigation_from_element;
             if (navigation_from_element == nullptr) {
                 // No focused element, cannot navigate.
                 return false;
@@ -53,11 +54,13 @@ namespace recompui {
             build_navigation(this, navigation_from_element);
 
             Element *nav_parent = navigation_from_element->get_nav_parent();
+            Element *fallback_wrap_element = nullptr;
             while (nav_parent != nullptr) {
                 Element *next_focus = nav_parent->try_get_nav_direction(
                     vertical_nav,
                     horizontal_nav,
-                    navigation_from_element
+                    navigation_from_element,
+                    &fallback_wrap_element
                 );
 
                 // If found, dive into the next focus element until finding the bottom most nav container
@@ -85,6 +88,27 @@ namespace recompui {
 
                 navigation_from_element = nav_parent;
                 nav_parent = nav_parent->get_nav_parent();
+            }
+
+            if (fallback_wrap_element != nullptr) {
+                // Wrap to the fallback element if set
+                while (fallback_wrap_element->nav_children.size() > 0) {
+                    bool found_primary = false;
+                    for (auto &child : fallback_wrap_element->nav_children) {
+                        if (child->is_primary_focus) {
+                            fallback_wrap_element = child;
+                            found_primary = true;
+                            break;
+                        }
+                    }
+                    if (!found_primary) {
+                        fallback_wrap_element = original_focused_element->get_closest_element(fallback_wrap_element->nav_children);
+                    }
+                }
+
+                event.StopPropagation();
+                fallback_wrap_element->focus();
+                return true;
             }
 
             return false;

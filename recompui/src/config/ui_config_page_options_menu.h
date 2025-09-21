@@ -30,8 +30,6 @@ namespace recompui {
         void on_set_option_value(const std::string &option_id, recomp::config::ConfigValueVariant value);
         ConfigOptionElement* get_element_from_option_id(const std::string &option_id);
         void perform_option_render_updates();
-        void apply_option_navigation();
-        Element* get_navigation_element(int cur_index, int direction);
         void set_description_text(const std::string &text);
     public:
         ConfigPageOptionsMenu(

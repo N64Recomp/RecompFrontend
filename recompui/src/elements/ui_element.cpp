@@ -656,6 +656,10 @@ void Element::set_as_navigation_container(NavigationType nav_type) {
     }
 }
 
+void Element::set_nav_wrapping(bool wrapping) {
+    is_nav_wrapping = wrapping;
+}
+
 void Element::set_as_primary_focus(bool is_primary_focus) {
     this->is_primary_focus = is_primary_focus;
 }
@@ -787,9 +791,22 @@ static int get_element_index(Element *el, std::vector<Element *> elements) {
     return -1;
 }
 
+void Element::get_wrapped_fallback_element(Element **fallback_wrap_element,  int nav_dir) {
+    if (!is_nav_wrapping || nav_children.empty() || fallback_wrap_element == nullptr) {
+        return;
+    }
+
+    if (nav_dir == 1) {
+        *fallback_wrap_element = nav_children[0];
+    } else if (nav_dir == -1) {
+        *fallback_wrap_element = nav_children[nav_children.size() - 1];
+    }
+}
+
 Element *Element::try_grid_navigation(
     int nav_dir,
-    int cur_element_index
+    int cur_element_index,
+    Element **fallback_wrap_element
 ) {
     auto *grid_parent = get_nav_parent();
     NavigationType parent_check_type = nav_type == NavigationType::GridCol ? NavigationType::GridRow : NavigationType::GridCol;
@@ -808,6 +825,8 @@ Element *Element::try_grid_navigation(
         if (cur_element_index >= 0 && cur_element_index < adjacent->nav_children.size()) {
             return adjacent->nav_children[cur_element_index];
         }
+    } else {
+        grid_parent->get_wrapped_fallback_element(fallback_wrap_element, nav_dir);
     }
 
     return nullptr;
@@ -816,7 +835,8 @@ Element *Element::try_grid_navigation(
 Element *Element::try_get_nav_direction(
     int vertical_nav,
     int horizontal_nav,
-    Element *cur_nav_child
+    Element *cur_nav_child,
+    Element **fallback_wrap_element
 ) {
 
     int cur_element_index = get_element_index(cur_nav_child, nav_children);
@@ -833,7 +853,7 @@ Element *Element::try_get_nav_direction(
             break;
         case NavigationType::GridCol:
             if (horizontal_nav != 0) {
-                return try_grid_navigation(horizontal_nav, cur_element_index);
+                return try_grid_navigation(horizontal_nav, cur_element_index, fallback_wrap_element);
             }
             // fallthrough
         case NavigationType::Vertical:
@@ -843,11 +863,14 @@ Element *Element::try_get_nav_direction(
             cur_element_index += vertical_nav;
             if (cur_element_index >= 0 && cur_element_index < num_nav_children) {
                 return nav_children[cur_element_index];
+            } else {
+                get_wrapped_fallback_element(fallback_wrap_element, vertical_nav);
             }
+
             return nullptr;
         case NavigationType::GridRow:
             if (vertical_nav != 0) {
-                return try_grid_navigation(vertical_nav, cur_element_index);
+                return try_grid_navigation(vertical_nav, cur_element_index, fallback_wrap_element);
             }
             // fallthrough
         case NavigationType::Horizontal:
@@ -857,6 +880,8 @@ Element *Element::try_get_nav_direction(
             cur_element_index += horizontal_nav;
             if (cur_element_index >= 0 && cur_element_index < num_nav_children) {
                 return nav_children[cur_element_index];
+            } else {
+                get_wrapped_fallback_element(fallback_wrap_element, horizontal_nav);
             }
             return nullptr;
     }

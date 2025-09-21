@@ -53,6 +53,7 @@ private:
     bool can_set_text = false;
 
     bool is_nav_container = false;
+    bool is_nav_wrapping = false;
     NavigationType nav_type = NavigationType::Auto;
     bool is_primary_focus = false;
 
@@ -65,14 +66,17 @@ private:
     void handle_event(const Event &e);
     void set_id(const std::string& new_id);
     void set_as_root_document(NavigationType nav_type = NavigationType::Vertical);
+    void get_wrapped_fallback_element(Element **fallback_wrap_element, int nav_dir);
     Element *try_grid_navigation(
         int nav_dir,
-        int cur_element_index
+        int cur_element_index,
+        Element **fallback_wrap_element
     );   
     Element *try_get_nav_direction(   
         int vertical_nav,
         int horizontal_nav,
-        Element *cur_nav_child
+        Element *cur_nav_child,
+        Element **fallback_wrap_element
     );
 
     // Style overrides.
@@ -150,6 +154,7 @@ public:
     void scroll_into_view(bool smooth = false);
 
     void set_as_navigation_container(NavigationType nav_type);
+    void set_nav_wrapping(bool wrapping);
     void set_as_primary_focus(bool is_primary_focus = true);
 
     Element *select_add_option(std::string_view text, std::string_view value);
