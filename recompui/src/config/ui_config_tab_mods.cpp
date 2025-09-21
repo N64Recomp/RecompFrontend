@@ -1,6 +1,7 @@
 #include "recompui/config.h"
 #include "recompinput/players.h"
 #include "recompinput/profiles.h"
+#include "composites/ui_mod_menu.h"
 #include "elements/ui_element.h"
 #include "librecomp/game.hpp"
 
@@ -11,15 +12,11 @@ void config::create_mods_tab(const std::string &name) {
         name,
         config::mods::id,
         [](ContextId context, Element* parent) {
-            auto el = context.create_element<Element>(
-                parent,
-                0,
-                "div",
-                true
-            );
-            el->set_text("INSERT MODS TAB STUFF HERE LOL");
+            context.create_element<ModMenu>(parent);
         }
     );
+
+    recompui::update_mod_list(false);
 }
 
 } // namespace recompui

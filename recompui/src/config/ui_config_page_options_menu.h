@@ -13,7 +13,7 @@ namespace recompui {
         recomp::config::Config *config;
         bool is_internal = false;
 
-        std::vector<RenameMe_ConfigOptionElement*> config_option_elements;
+        std::vector<ConfigOptionElement*> config_option_elements;
         Element *description_container = nullptr;
         std::string description_option_id = "";
         Button *apply_button = nullptr;
@@ -28,7 +28,7 @@ namespace recompui {
         void render_confirmation_footer();
         void on_option_hover(const std::string &option_id);
         void on_set_option_value(const std::string &option_id, recomp::config::ConfigValueVariant value);
-        RenameMe_ConfigOptionElement* get_element_from_option_id(const std::string &option_id);
+        ConfigOptionElement* get_element_from_option_id(const std::string &option_id);
         void perform_option_render_updates();
         void apply_option_navigation();
         Element* get_navigation_element(int cur_index, int direction);

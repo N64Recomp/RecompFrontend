@@ -12,7 +12,7 @@ namespace recompui {
     using set_option_value_t = std::function<void(const std::string &option_id, recomp::config::ConfigValueVariant value)>;
     using on_option_hover_t = std::function<void(const std::string &option_id)>;
 
-    class RenameMe_ConfigOptionElement : public Element {
+    class ConfigOptionElement : public Element {
     protected:
         std::string option_id;
         size_t option_index;
@@ -26,9 +26,9 @@ namespace recompui {
         bool get_hidden();
 
         virtual void process_event(const Event &e) override;
-        std::string_view get_type_name() override { return "RenameMe_ConfigOptionElement"; }
+        std::string_view get_type_name() override { return "ConfigOptionElement"; }
     public:
-        RenameMe_ConfigOptionElement(
+        ConfigOptionElement(
             Element *parent,
             std::string option_id,
             size_t option_index,
@@ -36,7 +36,7 @@ namespace recompui {
             set_option_value_t set_option_value,
             on_option_hover_t on_hover
         );
-        virtual ~RenameMe_ConfigOptionElement() = default;
+        virtual ~ConfigOptionElement() = default;
         // required overrides
         virtual void update_value() = 0;
         virtual void update_disabled() = 0;
@@ -49,14 +49,14 @@ namespace recompui {
         void set_nav_manual(NavDirection dir, const std::string& target) override { get_focus_element()->set_nav_manual(dir, target); }
     };
 
-class RenameMe_ConfigOptionEnum : public RenameMe_ConfigOptionElement {
+class ConfigOptionEnum : public ConfigOptionElement {
 protected:
     Radio *radio = nullptr;
     Label *details_label = nullptr;
 
-    std::string_view get_type_name() override { return "RenameMe_ConfigOptionEnum"; }
+    std::string_view get_type_name() override { return "ConfigOptionEnum"; }
 public:
-    RenameMe_ConfigOptionEnum(
+    ConfigOptionEnum(
         Element *parent,
         std::string option_id,
         size_t option_index,
@@ -73,13 +73,13 @@ public:
     void update_enum_disabled();
 };
 
-class RenameMe_ConfigOptionNumber : public RenameMe_ConfigOptionElement {
+class ConfigOptionNumber : public ConfigOptionElement {
 protected:
     Slider *slider = nullptr;
 
-    std::string_view get_type_name() override { return "RenameMe_ConfigOptionNumber"; }
+    std::string_view get_type_name() override { return "ConfigOptionNumber"; }
 public:
-    RenameMe_ConfigOptionNumber(
+    ConfigOptionNumber(
         Element *parent,
         std::string option_id,
         size_t option_index,
@@ -93,13 +93,13 @@ public:
     void update_disabled() override;
 };
 
-class RenameMe_ConfigOptionString : public RenameMe_ConfigOptionElement {
+class ConfigOptionString : public ConfigOptionElement {
 protected:
     TextInput *text_input = nullptr;
 
-    std::string_view get_type_name() override { return "RenameMe_ConfigOptionString"; }
+    std::string_view get_type_name() override { return "ConfigOptionString"; }
 public:
-    RenameMe_ConfigOptionString(
+    ConfigOptionString(
         Element *parent,
         std::string option_id,
         size_t option_index,
@@ -113,13 +113,13 @@ public:
     void update_disabled() override;
 };
 
-class RenameMe_ConfigOptionBool : public RenameMe_ConfigOptionElement {
+class ConfigOptionBool : public ConfigOptionElement {
 protected:
     Toggle *toggle = nullptr;
 
-    std::string_view get_type_name() override { return "RenameMe_ConfigOptionBool"; }
+    std::string_view get_type_name() override { return "ConfigOptionBool"; }
 public:
-    RenameMe_ConfigOptionBool(
+    ConfigOptionBool(
         Element *parent,
         std::string option_id,
         size_t option_index,

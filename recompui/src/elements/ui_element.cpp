@@ -487,6 +487,22 @@ float Element::get_absolute_top() {
     return base->GetAbsoluteTop();
 }
 
+float Element::get_offset_left() {
+    return base->GetOffsetLeft();
+}
+
+float Element::get_offset_top() {
+    return base->GetOffsetTop();
+}
+
+float Element::get_scroll_left() {
+    return base->GetScrollLeft();
+}
+
+float Element::get_scroll_top() {
+    return base->GetScrollTop();
+}
+
 float Element::get_client_left() {
     return base->GetClientLeft();
 }
@@ -603,13 +619,16 @@ bool Element::is_pseudo_class_set(Rml::String pseudo_class) {
     return base->IsPseudoClassSet(pseudo_class);
 }
 
-void Element::scroll_into_view() {
+void Element::scroll_into_view(bool smooth) {
     if (base == nullptr) {
         return;
     }
 
     Rml::ScrollIntoViewOptions options;
     options.vertical = Rml::ScrollAlignment::Nearest;
+    if (smooth) {
+        options.behavior = Rml::ScrollBehavior::Smooth;
+    }
 
     base->ScrollIntoView(options);
 }

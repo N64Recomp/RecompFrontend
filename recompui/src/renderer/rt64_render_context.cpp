@@ -495,13 +495,23 @@ void renderer::enable_texture_pack(const recomp::mods::ModContext& context, cons
         const recomp::config::ConfigOption& config_option = config_schema.options[find_it->second];
 
         if (is_texture_pack_enable_config_option(config_option, false)) {
+            uint32_t value = 0;
+
             recomp::config::ConfigValueVariant value_variant = context.get_mod_config_value(mod.manifest.mod_id, config_option.id);
-            uint32_t value;
-            if (uint32_t* value_ptr = std::get_if<uint32_t>(&value_variant)) {
-                value = *value_ptr;
-            }
-            else {
-                value = 0;
+            switch (config_option.type) {
+                case recomp::config::ConfigOptionType::Enum: {
+                    if (uint32_t* value_ptr = std::get_if<uint32_t>(&value_variant)) {
+                        value = *value_ptr;
+                    }
+                    break;
+                }
+                case recomp::config::ConfigOptionType::Bool:
+                    if (bool* value_ptr = std::get_if<bool>(&value_variant)) {
+                        value = *value_ptr ? 1 : 0;
+                    }
+                    break;
+                default:
+                    break;
             }
 
             if (value) {
@@ -531,22 +541,25 @@ void renderer::secondary_disable_texture_pack(const std::string& mod_id) {
 // The first option is treated as disabled and the second option is treated as enabled.
 bool renderer::is_texture_pack_enable_config_option(const recomp::config::ConfigOption& option, bool show_errors) {
     if (option.id == renderer::special_option_texture_pack_enabled) {
-        if (option.type != recomp::config::ConfigOptionType::Enum) {
-            if (show_errors) {
-                recompui::message_box(("Mod has the special config option id for enabling an HD texture pack (\"" + renderer::special_option_texture_pack_enabled + "\"), but the config option is not an enum.").c_str());
+        switch (option.type) {
+            case recomp::config::ConfigOptionType::Enum: {
+                const recomp::config::ConfigOptionEnum &option_enum = std::get<recomp::config::ConfigOptionEnum>(option.variant);
+                if (option_enum.options.size() != 2) {
+                    if (show_errors) {
+                        recompui::message_box(("Mod has the special config option id for enabling an HD texture pack (\"" + renderer::special_option_texture_pack_enabled + "\"), but the config option doesn't have exactly 2 values.").c_str());
+                    }
+                    return false;
+                }
+                return true;
             }
-            return false;
+            case recomp::config::ConfigOptionType::Bool:
+                return true;
+            default:
+                if (show_errors) {
+                    recompui::message_box(("Mod has the special config option id for enabling an HD texture pack (\"" + renderer::special_option_texture_pack_enabled + "\"), but the config option is not an enum.").c_str());
+                }
+                return false;
         }
-
-        const recomp::config::ConfigOptionEnum &option_enum = std::get<recomp::config::ConfigOptionEnum>(option.variant);
-        if (option_enum.options.size() != 2) {
-            if (show_errors) {
-                recompui::message_box(("Mod has the special config option id for enabling an HD texture pack (\"" + renderer::special_option_texture_pack_enabled + "\"), but the config option doesn't have exactly 2 values.").c_str());
-            }
-            return false;
-        }
-
-        return true;
     }
     return false;
 }

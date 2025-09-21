@@ -156,6 +156,10 @@ void Modal::process_event(const Event &e) {
         }
         case EventType::MenuAction: {
             auto action = std::get<EventMenuAction>(e.variant).action;
+            if (menu_action_callbacks.contains(action)) {
+                menu_action_callbacks[action]();
+                break;
+            }
             switch (action) {
                 case MenuAction::Accept:
                     break;

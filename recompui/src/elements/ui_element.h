@@ -124,6 +124,12 @@ public:
     bool is_element() override { return true; }
     float get_absolute_left();
     float get_absolute_top();
+    // Left relative to offset parent.
+    float get_offset_left();
+    // Top relative to offset parent.
+    float get_offset_top();
+    float get_scroll_left();
+    float get_scroll_top();
     float get_client_left();
     float get_client_top();
     float get_client_width();
@@ -141,7 +147,7 @@ public:
     void set_input_value_double(double val) { set_input_value(val); }
     const std::string& get_id() { return id; }
     bool is_pseudo_class_set(Rml::String pseudo_class);
-    void scroll_into_view();
+    void scroll_into_view(bool smooth = false);
 
     void set_as_navigation_container(NavigationType nav_type);
     void set_as_primary_focus(bool is_primary_focus = true);

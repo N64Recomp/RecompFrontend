@@ -37,7 +37,7 @@ void ConfigPageOptionsMenu::set_description_text(const std::string &text) {
     }
 }
 
-RenameMe_ConfigOptionElement* ConfigPageOptionsMenu::get_element_from_option_id(const std::string &option_id) {
+ConfigOptionElement* ConfigPageOptionsMenu::get_element_from_option_id(const std::string &option_id) {
     for (auto *element : config_option_elements) {
         if (element->get_option_id() == option_id) {
             return element;
@@ -56,7 +56,7 @@ void ConfigPageOptionsMenu::perform_option_render_updates() {
         size_t option_index = option_update.option_index;
         auto schema = config->get_config_schema();
         std::string &option_id = schema.options[option_index].id;
-        RenameMe_ConfigOptionElement* element = get_element_from_option_id(option_id);
+        ConfigOptionElement* element = get_element_from_option_id(option_id);
         if (element == nullptr) {
             printf("Failed to update conf option: '%s'\n", option_id.c_str());
             continue;
@@ -72,12 +72,12 @@ void ConfigPageOptionsMenu::perform_option_render_updates() {
                     break;
                 }
                 case ConfigOptionUpdateType::EnumDetails: {
-                    RenameMe_ConfigOptionEnum *enum_element = static_cast<RenameMe_ConfigOptionEnum*>(element);
+                    ConfigOptionEnum *enum_element = static_cast<ConfigOptionEnum*>(element);
                     enum_element->update_enum_details();
                     break;
                 }
                 case ConfigOptionUpdateType::EnumDisabled: {
-                    RenameMe_ConfigOptionEnum *enum_element = static_cast<RenameMe_ConfigOptionEnum*>(element);
+                    ConfigOptionEnum *enum_element = static_cast<ConfigOptionEnum*>(element);
                     enum_element->update_enum_disabled();
                     break;
                 }
@@ -177,10 +177,10 @@ void ConfigPageOptionsMenu::render_config_options() {
         auto schema = config->get_config_schema();
         for (size_t i = 0; i < schema.options.size(); i++) {
             auto &config_option = schema.options[i];
-            RenameMe_ConfigOptionElement *element = nullptr;
+            ConfigOptionElement *element = nullptr;
             switch (config_option.type) {
                 case recomp::config::ConfigOptionType::Enum: {
-                    element = context.create_element<RenameMe_ConfigOptionEnum>(
+                    element = context.create_element<ConfigOptionEnum>(
                         body_left_scroll,
                         config_option.id,
                         i,
@@ -191,7 +191,7 @@ void ConfigPageOptionsMenu::render_config_options() {
                     break;
                 }
                 case recomp::config::ConfigOptionType::Number: {
-                    element = context.create_element<RenameMe_ConfigOptionNumber>(
+                    element = context.create_element<ConfigOptionNumber>(
                         body_left_scroll,
                         config_option.id,
                         i,
@@ -202,7 +202,7 @@ void ConfigPageOptionsMenu::render_config_options() {
                     break;
                 }
                 case recomp::config::ConfigOptionType::String: {
-                    element = context.create_element<RenameMe_ConfigOptionString>(
+                    element = context.create_element<ConfigOptionString>(
                         body_left_scroll,
                         config_option.id,
                         i,
@@ -213,7 +213,7 @@ void ConfigPageOptionsMenu::render_config_options() {
                     break;
                 }
                 case recomp::config::ConfigOptionType::Bool: {
-                    element = context.create_element<RenameMe_ConfigOptionBool>(
+                    element = context.create_element<ConfigOptionBool>(
                         body_left_scroll,
                         config_option.id,
                         i,

@@ -4,7 +4,6 @@
 #include "librecomp/mods.hpp"
 #include "elements/ui_scroll_container.h"
 #include "elements/ui_icon_button.h"
-#include "ui_config_sub_menu.h"
 #include "ui_mod_details_panel.h"
 
 namespace recompui {
@@ -59,6 +58,7 @@ class ModEntrySpacer : public Element {
 private:
     float height = 0.0f;
     float target_height = 0.0f;
+    bool active = false;
     std::chrono::high_resolution_clock::duration last_time;
 
     void check_height_distance();
@@ -68,6 +68,7 @@ protected:
 public:
     ModEntrySpacer(Element *parent);
     void set_target_height(float target_height, bool animate_to_target);
+    void set_active(bool active);
 };
 
 class ModMenu : public Element {
@@ -75,6 +76,7 @@ public:
     ModMenu(Element *parent);
     virtual ~ModMenu();
     void set_mods_dirty(bool scan_mods) { mods_dirty = true; mod_scan_queued = scan_mods; }
+    void set_game_mod_id(const std::string &mod_game_id) { game_mod_id = mod_game_id; set_mods_dirty(true); }
     Element* get_first_mod_entry() { return !mod_entry_buttons.empty() ? mod_entry_buttons[0] : nullptr; }
     Element* get_mod_configure_button() { return mod_details_panel != nullptr ? mod_details_panel->get_configure_button() : nullptr; }
 protected:
@@ -117,14 +119,6 @@ private:
     std::string game_mod_id;
     bool mods_dirty = false;
     bool mod_scan_queued = false;
-
-    ConfigSubMenu *config_sub_menu;
-};
-
-class ElementModMenu : public Rml::Element {
-public:
-    ElementModMenu(const Rml::String& tag);
-    virtual ~ElementModMenu();
 };
 
 } // namespace recompui

@@ -3,7 +3,7 @@
 namespace recompui {
 
 constexpr float config_option_element_margin_vertical = 12.0f;
-RenameMe_ConfigOptionElement::RenameMe_ConfigOptionElement(
+ConfigOptionElement::ConfigOptionElement(
     Element *parent,
     std::string option_id,
     size_t option_index,
@@ -46,22 +46,22 @@ RenameMe_ConfigOptionElement::RenameMe_ConfigOptionElement(
     update_hidden();
 }
 
-recomp::config::ConfigValueVariant RenameMe_ConfigOptionElement::get_value() {
+recomp::config::ConfigValueVariant ConfigOptionElement::get_value() {
     if (config->requires_confirmation) {
         return config->get_temp_option_value(option_id);
     }
     return config->get_option_value(option_id);
 }
 
-bool RenameMe_ConfigOptionElement::get_disabled() {
+bool ConfigOptionElement::get_disabled() {
     return config->is_config_option_disabled(option_index);
 }
 
-bool RenameMe_ConfigOptionElement::get_hidden() {
+bool ConfigOptionElement::get_hidden() {
     return config->is_config_option_hidden(option_index);
 }
 
-void RenameMe_ConfigOptionElement::process_event(const Event &e) {
+void ConfigOptionElement::process_event(const Event &e) {
     switch (e.type) {
     case EventType::Hover: {
         bool active = std::get<EventHover>(e.variant).active;
@@ -86,7 +86,7 @@ void RenameMe_ConfigOptionElement::process_event(const Event &e) {
     }
 }
 
-void RenameMe_ConfigOptionElement::update_hidden() {
+void ConfigOptionElement::update_hidden() {
     if (config->is_config_option_hidden(option_index)) {
         set_display(Display::None);
         set_enabled(false);
@@ -96,15 +96,15 @@ void RenameMe_ConfigOptionElement::update_hidden() {
     }
 }
 
-// RenameMe_ConfigOptionEnum
-RenameMe_ConfigOptionEnum::RenameMe_ConfigOptionEnum(
+// ConfigOptionEnum
+ConfigOptionEnum::ConfigOptionEnum(
     Element *parent,
     std::string option_id,
     size_t option_index,
     const recomp::config::Config *config,
     set_option_value_t set_option_value,
     on_option_hover_t on_hover
-) : RenameMe_ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
+) : ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
 {
     ContextId context = recompui::get_current_context();
     Element *wrapper = context.create_element<Element>(this, 0, "div", false);
@@ -145,7 +145,7 @@ RenameMe_ConfigOptionEnum::RenameMe_ConfigOptionEnum(
     // enable_focus();
 };
 
-void RenameMe_ConfigOptionEnum::update_value() {
+void ConfigOptionEnum::update_value() {
     recomp::config::ConfigValueVariant value_variant = get_value();
     uint32_t option_value = std::get<uint32_t>(value_variant);
 
@@ -160,11 +160,11 @@ void RenameMe_ConfigOptionEnum::update_value() {
     radio->set_index(enum_opt.options.size());
 };
 
-void RenameMe_ConfigOptionEnum::update_disabled() {
+void ConfigOptionEnum::update_disabled() {
     update_enum_disabled();
 };
 
-void RenameMe_ConfigOptionEnum::update_enum_details() {
+void ConfigOptionEnum::update_enum_details() {
     const std::string &enum_details = config->get_enum_option_details(option_index);
     if (enum_details.empty()) {
         details_label->set_text("");
@@ -173,7 +173,7 @@ void RenameMe_ConfigOptionEnum::update_enum_details() {
     }
 };
 
-void RenameMe_ConfigOptionEnum::update_enum_disabled() {
+void ConfigOptionEnum::update_enum_disabled() {
     bool all_disabled = get_disabled();
     auto &enum_opt = config->get_option_config<recomp::config::ConfigOptionEnum>(option_index);
     for (uint32_t i = 0; i < enum_opt.options.size(); i++) {
@@ -183,15 +183,15 @@ void RenameMe_ConfigOptionEnum::update_enum_disabled() {
     }
 };
 
-// RenameMe_ConfigOptionNumber
-RenameMe_ConfigOptionNumber::RenameMe_ConfigOptionNumber(
+// ConfigOptionNumber
+ConfigOptionNumber::ConfigOptionNumber(
     Element *parent,
     std::string option_id,
     size_t option_index,
     const recomp::config::Config *config,
     set_option_value_t set_option_value,
     on_option_hover_t on_hover
-) : RenameMe_ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
+) : ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
 {
     ContextId context = recompui::get_current_context();
     auto &num_opt = config->get_option_config<recomp::config::ConfigOptionNumber>(option_index);
@@ -217,26 +217,26 @@ RenameMe_ConfigOptionNumber::RenameMe_ConfigOptionNumber(
     update_disabled();
 };
 
-void RenameMe_ConfigOptionNumber::update_value() {
+void ConfigOptionNumber::update_value() {
     recomp::config::ConfigValueVariant value_variant = get_value();
     double value = std::get<double>(value_variant);
     slider->set_value(value);
 };
 
-void RenameMe_ConfigOptionNumber::update_disabled() {
+void ConfigOptionNumber::update_disabled() {
     bool disabled = get_disabled();
     set_enabled(!disabled);
 };
 
-// RenameMe_ConfigOptionString
-RenameMe_ConfigOptionString::RenameMe_ConfigOptionString(
+// ConfigOptionString
+ConfigOptionString::ConfigOptionString(
     Element *parent,
     std::string option_id,
     size_t option_index,
     const recomp::config::Config *config,
     set_option_value_t set_option_value,
     on_option_hover_t on_hover
-) : RenameMe_ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
+) : ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
 {
     // Negates the extra padding that text inputs automatically add.
     name_label->set_margin_bottom(4.0f);
@@ -257,25 +257,25 @@ RenameMe_ConfigOptionString::RenameMe_ConfigOptionString(
     // enable_focus();
 };
 
-void RenameMe_ConfigOptionString::update_value() {
+void ConfigOptionString::update_value() {
     std::string value = std::get<std::string>(get_value());
     text_input->set_text(value);
 };
 
-void RenameMe_ConfigOptionString::update_disabled() {
+void ConfigOptionString::update_disabled() {
     bool disabled = get_disabled();
     text_input->set_enabled(!disabled);
 };
 
-// RenameMe_ConfigOptionBool
-RenameMe_ConfigOptionBool::RenameMe_ConfigOptionBool(
+// ConfigOptionBool
+ConfigOptionBool::ConfigOptionBool(
     Element *parent,
     std::string option_id,
     size_t option_index,
     const recomp::config::Config *config,
     set_option_value_t set_option_value,
     on_option_hover_t on_hover
-) : RenameMe_ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
+) : ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
 {
     // Negates the extra padding that text inputs automatically add.
     name_label->set_margin_bottom(4.0f);
@@ -295,12 +295,12 @@ RenameMe_ConfigOptionBool::RenameMe_ConfigOptionBool(
     // enable_focus();
 };
 
-void RenameMe_ConfigOptionBool::update_value() {
+void ConfigOptionBool::update_value() {
     bool value = std::get<bool>(get_value());
     toggle->set_checked(value);
 };
 
-void RenameMe_ConfigOptionBool::update_disabled() {
+void ConfigOptionBool::update_disabled() {
     bool disabled = get_disabled();
     toggle->set_enabled(!disabled);
 };

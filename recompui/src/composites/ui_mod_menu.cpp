@@ -4,6 +4,9 @@
 #include "recompui/config.h"
 #include "util/file.h"
 #include "renderer.h"
+#include "elements/ui_modal.h"
+#include "elements/ui_button.h"
+#include "config/ui_config_page_options_menu.h"
 
 #include "librecomp/mods.hpp"
 
@@ -27,6 +30,13 @@ static bool is_mod_enabled_or_auto(const std::string &mod_id) {
     return recomp::mods::is_mod_enabled(mod_id) || recomp::mods::is_mod_auto_enabled(mod_id);
 }
 
+Modal *mod_config_modal = nullptr;
+void create_mod_config_modal() {
+    if (mod_config_modal == nullptr) {
+        mod_config_modal = Modal::create_modal(ModalType::Fullscreen);
+    }
+}
+
 // ModEntryView
 constexpr float modEntryHeight = 120.0f;
 constexpr float modEntryPadding = 4.0f;
@@ -43,14 +53,14 @@ ModEntryView::ModEntryView(Element *parent) : Element(parent, Events(EventType::
     set_height_auto();
     set_padding(modEntryPadding);
     set_border_left_width(2.0f);
-    set_border_color(theme::color::BorderSoft);
-    set_background_color(theme::color::BorderSoft);
+    set_border_color(recompui::theme::color::WhiteA5);
+    set_background_color(recompui::theme::color::WhiteA5);
     set_cursor(Cursor::Pointer);
     set_color(theme::color::Text);
 
     checked_style.set_border_color(theme::color::BorderSolid);
     checked_style.set_color(theme::color::White);
-    checked_style.set_background_color(recompui::theme::color::Background3);
+    checked_style.set_background_color(recompui::theme::color::WhiteA20);
     hover_style.set_border_color(theme::color::BorderHard);
     checked_hover_style.set_border_color(theme::color::Text);
     pulsing_style.set_border_color(theme::color::SecondaryA80);
@@ -164,11 +174,15 @@ void ModEntryButton::set_mod_enabled(bool enabled) {
 
 void ModEntryButton::set_selected(bool selected) {
     view->set_selected(selected);
+    set_as_primary_focus(selected);
 }
 
 void ModEntryButton::set_focused(bool focused) {
     view->set_focused(focused);
     view->queue_update();
+    if (focused) {
+        scroll_into_view();
+    }
 }
 
 void ModEntryButton::process_event(const Event& e) {
@@ -226,7 +240,8 @@ void ModEntrySpacer::process_event(const Event &e) {
 }
 
 ModEntrySpacer::ModEntrySpacer(Element *parent) : Element(parent) {
-    // Do nothing.
+    set_border_width(theme::border::width);
+    set_border_color(recompui::theme::color::Transparent);
 }
 
 void ModEntrySpacer::set_target_height(float target_height, bool animate_to_target) {
@@ -241,6 +256,21 @@ void ModEntrySpacer::set_target_height(float target_height, bool animate_to_targ
         set_height(target_height, Unit::Dp);
     }
 }
+
+void ModEntrySpacer::set_active(bool active) {
+    this->active = active;
+    if (active) {
+        set_border_color(recompui::theme::color::PrimaryL);
+        set_background_color(recompui::theme::color::PrimaryL, 255/4);
+    } else {
+        set_border_color(recompui::theme::color::Transparent);
+        set_background_color(recompui::theme::color::Transparent);
+    }
+}
+
+recompui::ModMenu* mod_menu = nullptr;
+static bool queue_mod_list_rescan = false;
+
 
 // ModMenu
 
@@ -313,35 +343,6 @@ void ModMenu::mod_selected(uint32_t mod_index) {
         bool configure_enabled = !config_schema.options.empty();
         mod_details_panel->set_mod_details(mod_details[mod_index], thumbnail_src, toggle_checked, toggle_enabled, auto_enabled, configure_enabled);
         mod_entry_buttons[active_mod_index]->set_selected(true);
-
-        mod_details_panel->setup_mod_navigation(mod_entry_buttons[mod_index]);
-
-        // Navigation from the bottom bar.
-        Button *configure_button = mod_details_panel->get_configure_button();
-        Toggle *enable_toggle = mod_details_panel->get_enable_toggle();
-        if (configure_enabled) {
-            refresh_button->set_nav(NavDirection::Up, configure_button);
-            mods_folder_button->set_nav(NavDirection::Up, configure_button);
-        }
-        else if (toggle_enabled) {
-            refresh_button->set_nav(NavDirection::Up, enable_toggle);
-            mods_folder_button->set_nav(NavDirection::Up, enable_toggle);
-        }
-        else {
-            refresh_button->set_nav_manual(NavDirection::Up, mod_tab_id);
-            mods_folder_button->set_nav_manual(NavDirection::Up, mod_tab_id);
-        }
-
-        // Navigation from the mod list.
-        if (toggle_enabled) {
-            mod_entry_buttons[active_mod_index]->set_nav(NavDirection::Right, enable_toggle);
-        }
-        else if (configure_enabled) {
-            mod_entry_buttons[active_mod_index]->set_nav(NavDirection::Right, configure_button);
-        }
-        else {
-            mod_entry_buttons[active_mod_index]->set_nav_none(NavDirection::Right);
-        }
     }
 }
 
@@ -350,8 +351,10 @@ void ModMenu::mod_dragged(uint32_t mod_index, EventDrag drag) {
 
     switch (drag.phase) {
     case DragPhase::Start: {
+        float this_top = get_absolute_top();
+        float this_left = get_absolute_left();
         for (size_t i = 0; i < mod_entry_buttons.size(); i++) {
-            mod_entry_middles[i] = mod_entry_buttons[i]->get_absolute_top() + mod_entry_buttons[i]->get_client_height() / 2.0f;
+            mod_entry_middles[i] = mod_entry_buttons[i]->get_offset_top();
         }
 
         // When the drag phase starts, we make the floating mod details visible and store the relative coordinate of the
@@ -359,50 +362,67 @@ void ModMenu::mod_dragged(uint32_t mod_index, EventDrag drag) {
         // long as the cursor is hovering over this slot.
         float width = mod_entry_buttons[mod_index]->get_client_width();
         float height = mod_entry_buttons[mod_index]->get_client_height();
-        float left = mod_entry_buttons[mod_index]->get_absolute_left() - get_absolute_left();
-        float top = mod_entry_buttons[mod_index]->get_absolute_top() - (height / 2.0f); // TODO: Figure out why this adjustment is even necessary.
+        float left = mod_entry_buttons[mod_index]->get_absolute_left();
+        float top = mod_entry_buttons[mod_index]->get_absolute_top();
         mod_entry_buttons[mod_index]->set_display(Display::None);
         mod_entry_buttons[mod_index]->set_focused(false);
         mod_entry_floating_view->set_display(Display::Flex);
         mod_entry_floating_view->set_mod_details(mod_details[mod_index]);
         mod_entry_floating_view->set_mod_thumbnail(generate_thumbnail_src_for_mod(mod_details[mod_index].mod_id));
         mod_entry_floating_view->set_mod_enabled(is_mod_enabled_or_auto(mod_details[mod_index].mod_id));
-        mod_entry_floating_view->set_left(left, Unit::Px);
-        mod_entry_floating_view->set_top(top, Unit::Px);
+        // Moves the mod with the cursor, commenting out in case it is preferred over keeping it aligned.
+        // mod_entry_floating_view->set_left(left - this_left, Unit::Px);
+        mod_entry_floating_view->set_left(0, Unit::Px);
+        mod_entry_floating_view->set_top(top - this_top, Unit::Px);
         mod_entry_floating_view->set_width(width, Unit::Px);
         mod_entry_floating_view->set_height(height, Unit::Px);
         mod_drag_start_coordinates[0] = drag.x;
         mod_drag_start_coordinates[1] = drag.y;
         mod_drag_view_coordinates[0] = left;
         mod_drag_view_coordinates[1] = top;
-        
+
         mod_drag_target_index = mod_index;
         mod_entry_spacers[mod_drag_target_index]->set_target_height(spacer_height, false);
+        mod_entry_spacers[mod_drag_target_index]->set_active(true);
+        mod_entry_spacers[mod_entry_spacers.size() - 1]->set_target_height(spacer_height, false);
         break;
     }
     case DragPhase::Move: {
-        // Binary search for the drag area.
-        uint32_t low = 0;
-        uint32_t high = mod_entry_buttons.size();
-        while (low < high) {
-            uint32_t mid = low + (high - low) / 2;
-            if (drag.y < mod_entry_middles[mid]) {
-                high = mid;
-            }
-            else {
-                low = mid + 1;
-            }
-        }
-        
-        uint32_t new_index = low;
+        float this_top = get_absolute_top();
+        float this_left = get_absolute_left();
+        float scroll_top = list_scroll_container->get_scroll_top();
+
         float delta_x = drag.x - mod_drag_start_coordinates[0];
         float delta_y = drag.y - mod_drag_start_coordinates[1];
-        mod_entry_floating_view->set_left(mod_drag_view_coordinates[0] + delta_x, Unit::Px);
-        mod_entry_floating_view->set_top(mod_drag_view_coordinates[1] + delta_y, Unit::Px);
+        // Moves the mod with the cursor, commenting out in case it is preferred over keeping it aligned.
+        // mod_entry_floating_view->set_left(mod_drag_view_coordinates[0] + delta_x - this_left, Unit::Px);
+        mod_entry_floating_view->set_left(0, Unit::Px);
+        mod_entry_floating_view->set_top(mod_drag_view_coordinates[1] + delta_y - this_top, Unit::Px);
+
+        uint32_t closest = 0;
+        float best_distance = std::numeric_limits<float>::max();
+        float y_pos = mod_drag_view_coordinates[1] + delta_y + scroll_top - this_top;
+        for (uint32_t i = 0; static_cast<size_t>(i) < mod_entry_middles.size(); i++) {
+            float new_distance = abs(y_pos - mod_entry_middles[i]);
+            if (new_distance < best_distance) {
+                best_distance = new_distance;
+                closest = i;
+            } else {
+                break;
+            }
+        }
+
+        uint32_t new_index = closest;
+
         if (mod_drag_target_index != new_index) {
-            mod_entry_spacers[mod_drag_target_index]->set_target_height(0.0f, true);
-            mod_entry_spacers[new_index]->set_target_height(spacer_height, true);
+            uint32_t extra_space = (mod_drag_target_index > mod_index) ? 1 : 0;
+            mod_entry_spacers[mod_drag_target_index + extra_space]->set_target_height(0.0f, true);
+            mod_entry_spacers[mod_drag_target_index + extra_space]->set_active(false);
             mod_drag_target_index = new_index;
+            extra_space = (mod_drag_target_index > mod_index) ? 1 : 0;
+            mod_entry_spacers[new_index + extra_space]->set_target_height(spacer_height, true);
+            mod_entry_spacers[new_index + extra_space]->scroll_into_view(true);
+            mod_entry_spacers[new_index + extra_space]->set_active(true);
         }
 
         break;
@@ -411,13 +431,10 @@ void ModMenu::mod_dragged(uint32_t mod_index, EventDrag drag) {
         // Dragging has ended, hide the floating view.
         mod_entry_buttons[mod_index]->set_display(Display::Block);
         mod_entry_buttons[mod_index]->set_selected(false);
-        mod_entry_spacers[mod_drag_target_index]->set_target_height(0.0f, false);
+        uint32_t extra_space = (mod_drag_target_index > mod_index) ? 1 : 0;
+        mod_entry_spacers[mod_drag_target_index + extra_space]->set_target_height(0.0f, false);
+        mod_entry_spacers[mod_drag_target_index + extra_space]->set_active(false);
         mod_entry_floating_view->set_display(Display::None);
-
-        // Result needs a small substraction when dragging downwards.
-        if (mod_drag_target_index > mod_index) {
-            mod_drag_target_index--;
-        }
 
         // Re-order the mods and update all the details on the menu.
         recomp::mods::set_mod_index(game_mod_id, mod_details[mod_index].mod_id, mod_drag_target_index);
@@ -428,8 +445,14 @@ void ModMenu::mod_dragged(uint32_t mod_index, EventDrag drag) {
             mod_entry_buttons[i]->set_mod_enabled(is_mod_enabled_or_auto(mod_details[i].mod_id));
         }
 
-        mod_entry_buttons[mod_drag_target_index]->set_selected(true);
-        active_mod_index = mod_drag_target_index;
+        mod_selected(mod_drag_target_index);
+        if (mod_drag_target_index < mod_entry_buttons.size() - 1) {
+            mod_entry_buttons[mod_drag_target_index]->scroll_into_view(true);
+        } else {
+            // Make sure if placed last it will be visible after the drag ends.
+            mod_entry_spacers[mod_entry_spacers.size() - 1]->scroll_into_view(true);
+        }
+        mod_entry_spacers[mod_entry_spacers.size() - 1]->set_target_height(0, false);
 
         break;
     }
@@ -438,27 +461,18 @@ void ModMenu::mod_dragged(uint32_t mod_index, EventDrag drag) {
     }
 }
 
-// TODO remove this once this is migrated to the new system.
-ContextId sub_menu_context;
-
-ContextId get_config_sub_menu_context_id() {
-    return sub_menu_context;
-}
-
 bool ModMenu::handle_special_config_options(const recomp::config::ConfigOption& option, const recomp::config::ConfigValueVariant& config_value) {
     if (recompui::renderer::is_texture_pack_enable_config_option(option, true)) {
-        const recomp::config::ConfigOptionEnum &option_enum = std::get<recomp::config::ConfigOptionEnum>(option.variant);
-        std::vector<std::string> option_names;
-        for (const auto &opt : option_enum.options) {
-            option_names.push_back(opt.name);
+        if (option.type == recomp::config::ConfigOptionType::Enum) {
+            if (std::holds_alternative<uint32_t>(config_value)) {
+                mod_hd_textures_enabled_changed(std::get<uint32_t>(config_value));
+            }
         }
-
-        config_sub_menu->add_radio_option(option.id, option.name, option.description, std::get<uint32_t>(config_value), option_names,
-            [this](const std::string &id, uint32_t value) {
-                mod_enum_option_changed(id, value);
-                mod_hd_textures_enabled_changed(value);
-            });
-
+        else if (option.type == recomp::config::ConfigOptionType::Bool) {
+            if (std::holds_alternative<bool>(config_value)) {
+                mod_hd_textures_enabled_changed(std::get<bool>(config_value) ? 1 : 0);
+            }
+        }
         return true;
     }
 
@@ -471,58 +485,73 @@ void ModMenu::mod_configure_requested() {
         ContextId prev_context = recompui::get_current_context();
         prev_context.close();
 
-        // Open the sub menu context and set up the element.
-        sub_menu_context.open();
-        config_sub_menu->clear_options();
+        ContextId modal_context = mod_config_modal->modal_root_context;
+        modal_context.open();
 
-        const recomp::config::ConfigSchema &config_schema = recomp::mods::get_mod_config_schema(mod_details[active_mod_index].mod_id);
-        for (const recomp::config::ConfigOption &option : config_schema.options) {
-            recomp::config::ConfigValueVariant config_value = recomp::mods::get_mod_config_value(mod_details[active_mod_index].mod_id, option.id);
-            if (std::holds_alternative<std::monostate>(config_value)) {
-                continue;
-            }
+        mod_config_modal->set_on_close_callback([this]() {
+            auto mod_config = recomp::mods::get_mod_config(this->mod_details[this->active_mod_index].mod_id);
+            mod_config->save_config();
+            mod_menu->get_mod_configure_button()->focus();
 
-            if (handle_special_config_options(option, config_value)) {
-                continue;
-            }
-
-            switch (option.type) {
-            case recomp::config::ConfigOptionType::Enum: {
-                const recomp::config::ConfigOptionEnum &option_enum = std::get<recomp::config::ConfigOptionEnum>(option.variant);
-                std::vector<std::string> option_names;
-                for (const auto &opt : option_enum.options) {
-                    option_names.push_back(opt.name);
+            auto schema = mod_config->get_config_schema();
+            for (const auto &option : schema.options) {
+                if (handle_special_config_options(option, mod_config->get_option_value(option.id))) {
+                    break;
                 }
-                config_sub_menu->add_radio_option(option.id, option.name, option.description, std::get<uint32_t>(config_value), option_names,
-                    [this](const std::string &id, uint32_t value){ mod_enum_option_changed(id, value); });
-                break;
             }
-            case recomp::config::ConfigOptionType::Number: {
-                const recomp::config::ConfigOptionNumber &option_number = std::get<recomp::config::ConfigOptionNumber>(option.variant);
-                config_sub_menu->add_slider_option(option.id, option.name, option.description, std::get<double>(config_value), option_number.min, option_number.max, option_number.step, option_number.percent,
-                    [this](const std::string &id, double value){ mod_number_option_changed(id, value); });
-                break;
-            }
-            case recomp::config::ConfigOptionType::String: {
-                config_sub_menu->add_text_option(option.id, option.name, option.description, std::get<std::string>(config_value),
-                    [this](const std::string &id, const std::string &value){ mod_string_option_changed(id, value); });
-                break;
-            }
-            default:
-                assert(false && "Unknown config option type.");
-                break;
-            }
-        }
+        });
 
-        config_sub_menu->enter(mod_details[active_mod_index].display_name);
-        sub_menu_context.close();
+        auto config_header = mod_config_modal->get_header();
+        auto header_left = config_header->get_left();
+        header_left->set_padding(16.0f);
+        header_left->set_padding_left(20.0f);
+        header_left->set_gap(24.0f);
+        header_left->set_flex_grow(1.0f);
+        header_left->set_flex_shrink(1.0f);
+        header_left->set_flex_basis(100.0f, Unit::Percent);
+        header_left->clear_children();
+        auto back_button = modal_context.create_element<Button>(
+            header_left,
+            "Back",
+            ButtonStyle::Secondary,
+            ButtonSize::Medium
+        );
+        back_button->add_pressed_callback([]() {
+            mod_config_modal->close();
+        });
 
-        // Reopen the context that was open when this function was called.
+        mod_config_modal->set_menu_action_callback(MenuAction::Back, [back_button]() {
+            ContextId modal_context = mod_config_modal->modal_root_context;
+            if (modal_context.get_focused_element() == static_cast<Element*>(back_button)) {
+                // If the back button is already focused, just close the modal.
+                mod_config_modal->close();
+            } else {
+                back_button->focus();
+            }
+        });
+
+        // Title
+        modal_context.create_element<Label>(
+            header_left,
+            mod_details[active_mod_index].display_name,
+            theme::Typography::Header3
+        );
+
+        auto body = mod_config_modal->get_body();
+        body->clear_children();
+
+        auto mod_config = modal_context.create_element<ConfigPageOptionsMenu>(
+            body,
+            recomp::mods::get_mod_config(mod_details[active_mod_index].mod_id),
+            false
+        );
+
+
+        modal_context.close();
+        // Needed, unsure why. Might be due to the button press event needing to finish.
         prev_context.open();
-        
-        // Hide the config menu and show the sub menu.
-        recompui::config::close();
-        recompui::show_context(sub_menu_context, "");
+        mod_config_modal->open();
+        back_button->focus();
     }
 }
 
@@ -563,8 +592,6 @@ void ModMenu::create_mod_list() {
     mod_entry_buttons.clear();
     mod_entry_spacers.clear();
 
-    Toggle* enable_toggle = mod_details_panel->get_enable_toggle();
-
     // Create the child elements for the list scroll.
     for (size_t mod_index = 0; mod_index < mod_details.size(); mod_index++) {
         const std::vector<char> &thumbnail = recomp::mods::get_mod_thumbnail(mod_details[mod_index].mod_id);
@@ -586,18 +613,11 @@ void ModMenu::create_mod_list() {
         mod_entry_buttons.emplace_back(mod_entry);
     }
 
-    if (!mod_entry_buttons.empty()) {
-        mod_entry_buttons.front()->set_nav_manual(NavDirection::Up, mod_tab_id);
-        mod_entry_buttons.back()->set_nav(NavDirection::Down, install_mods_button);
-        install_mods_button->set_nav(NavDirection::Up, mod_entry_buttons.back());
-    }
-    else {
-        install_mods_button->set_nav_manual(NavDirection::Up, mod_tab_id);
-    }
-
-    // Add one extra spacer at the bottom.
+    // Add two extra spacers at the bottom.
     ModEntrySpacer *spacer = context.create_element<ModEntrySpacer>(list_scroll_container);
     mod_entry_spacers.emplace_back(spacer);
+    ModEntrySpacer *spacer2 = context.create_element<ModEntrySpacer>(list_scroll_container);
+    mod_entry_spacers.emplace_back(spacer2);
 
     mod_entry_middles.resize(mod_entry_buttons.size());
 
@@ -631,11 +651,14 @@ void ModMenu::process_event(const Event &e) {
 }
 
 ModMenu::ModMenu(Element *parent) : Element(parent) {
+    // TODO: Set game mod id dynamically.
     game_mod_id = "bk";
+    mod_menu = this;
 
     ContextId context = get_current_context();
 
     set_display(Display::Flex);
+    set_position(Position::Relative);
     set_flex(1.0f, 1.0f, 100.0f);
     set_flex_direction(FlexDirection::Column);
     set_align_items(AlignItems::Center);
@@ -645,11 +668,14 @@ ModMenu::ModMenu(Element *parent) : Element(parent) {
     
     {
         body_container = context.create_element<Container>(this, FlexDirection::Row, JustifyContent::FlexStart);
+        body_container->set_as_navigation_container(NavigationType::Horizontal);
         body_container->set_flex(1.0f, 1.0f, 100.0f);
         body_container->set_width(100.0f, Unit::Percent);
         body_container->set_height(100.0f, Unit::Percent);
         {
             list_container = context.create_element<Container>(body_container, FlexDirection::Column, JustifyContent::Center);
+            list_container->set_as_navigation_container(NavigationType::Vertical);
+            list_container->set_as_primary_focus(true);
             list_container->set_display(Display::Block);
             list_container->set_flex_basis(100.0f);
             list_container->set_align_items(AlignItems::Center);
@@ -675,6 +701,7 @@ ModMenu::ModMenu(Element *parent) : Element(parent) {
         } // body_empty_container
 
         footer_container = context.create_element<Container>(this, FlexDirection::Row, JustifyContent::FlexStart);
+        footer_container->set_as_navigation_container(NavigationType::Horizontal);
         footer_container->set_width(100.0f, recompui::Unit::Percent);
         footer_container->set_align_items(recompui::AlignItems::Center);
         footer_container->set_background_color(theme::color::BGShadow);
@@ -694,12 +721,9 @@ ModMenu::ModMenu(Element *parent) : Element(parent) {
 
             refresh_button = context.create_element<IconButton>(footer_container, "icons/Reset.svg", recompui::ButtonStyle::Secondary, recompui::IconButtonSize::XLarge);
             refresh_button->add_pressed_callback([this](){ refresh_mods(true); });
-            refresh_button->set_nav_manual(NavDirection::Up, mod_tab_id);
 
             mods_folder_button = context.create_element<Button>(footer_container, "Open Mods Folder", recompui::ButtonStyle::Tertiary);
             mods_folder_button->add_pressed_callback([this](){ open_mods_folder(); });
-            mods_folder_button->set_nav(NavDirection::Up, configure_button);
-            mods_folder_button->set_nav_manual(NavDirection::Up, mod_tab_id);
         } // footer_container
     } // this
     
@@ -708,25 +732,17 @@ ModMenu::ModMenu(Element *parent) : Element(parent) {
     mod_entry_floating_view->set_position(Position::Absolute);
     mod_entry_floating_view->set_selected(true);
 
+    refresh_mods(queue_mod_list_rescan);
+
     context.close();
-
-    sub_menu_context = recompui::create_context(recompui::file::get_asset_path("config_sub_menu.rml"));
-    sub_menu_context.open();
-    Rml::ElementDocument* sub_menu_doc = sub_menu_context.get_document();
-    Rml::Element* config_sub_menu_generic = sub_menu_doc->GetElementById("config_sub_menu");
-    ElementConfigSubMenu* config_sub_menu_element = rmlui_dynamic_cast<ElementConfigSubMenu*>(config_sub_menu_generic);
-    config_sub_menu = config_sub_menu_element->get_config_sub_menu_element();
-    sub_menu_context.close();
-
+    create_mod_config_modal();
     context.open();
 }
 
 ModMenu::~ModMenu() {
+    mod_menu = nullptr;
 }
 
-// Placeholder class until the rest of the UI refactor is finished.
-
-recompui::ModMenu* mod_menu;
 
 void update_mod_list(bool scan_mods) {
     if (mod_menu) {
@@ -739,6 +755,9 @@ void update_mod_list(bool scan_mods) {
         if (opened) {
             ui_context.close();
         }
+    } else {
+        // Queue when mod menu is opened next.
+        queue_mod_list_rescan = queue_mod_list_rescan || scan_mods;
     }
 }
 
@@ -760,19 +779,6 @@ void focus_mod_configure_button() {
     if (configure_button) {
         configure_button->focus();
     }
-}
-
-ElementModMenu::ElementModMenu(const Rml::String &tag) : Rml::Element(tag) {
-    SetProperty("width", "100%");
-    SetProperty("height", "100%");
-
-    recompui::Element this_compat(this);
-    recompui::ContextId context = get_current_context();
-    mod_menu = context.create_element<ModMenu>(&this_compat);
-}
-
-ElementModMenu::~ElementModMenu() {
-
 }
 
 } // namespace recompui

@@ -652,7 +652,7 @@ void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* s
     bool cont_interacted = false;
     bool kb_interacted = false;
 
-    bool config_was_open = recompui::is_context_shown(recompui::config::get_config_context_id()) || recompui::is_context_shown(recompui::get_config_sub_menu_context_id());
+    bool config_was_open = recompui::is_context_shown(recompui::config::get_config_context_id());
 
     using clock = std::chrono::system_clock;
 
