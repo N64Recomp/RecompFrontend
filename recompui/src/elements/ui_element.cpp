@@ -791,16 +791,80 @@ static int get_element_index(Element *el, std::vector<Element *> elements) {
     return -1;
 }
 
+static NavigationType get_effective_nav_type(NavigationType nav_type) {
+    switch (nav_type) {
+        default:
+        case NavigationType::Auto:
+        case NavigationType::Horizontal:
+        case NavigationType::Vertical:
+            return nav_type;
+        case NavigationType::GridRow:
+            return NavigationType::Horizontal;
+        case NavigationType::GridCol:
+            return NavigationType::Vertical;
+    }
+}
+
+bool are_nav_types_equal(NavigationType nav_type1, NavigationType nav_type2) {
+    return get_effective_nav_type(nav_type1) == get_effective_nav_type(nav_type2);
+}
+
+Element *Element::dive_to_best_nav_child(Element *from_element, Element *original_element) {
+    Element *cur = from_element;
+    while (cur->nav_children.size() > 0) {
+        bool found_primary = false;
+        for (auto &child : cur->nav_children) {
+            if (child->is_primary_focus) {
+                cur = child;
+                found_primary = true;
+                break;
+            }
+        }
+
+        if (!found_primary) {
+            if (original_element == nullptr) {
+                // No original element provided, so just dive into the first child.
+                cur = cur->nav_children[0];
+            } else {
+                cur = original_element->get_closest_element(cur->nav_children);
+            }
+        }
+    }
+
+    return cur;
+}
+
 void Element::get_wrapped_fallback_element(Element **fallback_wrap_element,  int nav_dir) {
     if (!is_nav_wrapping || nav_children.empty() || fallback_wrap_element == nullptr) {
         return;
     }
 
+    Element *fallback;
     if (nav_dir == 1) {
-        *fallback_wrap_element = nav_children[0];
+        fallback = nav_children[0];
     } else if (nav_dir == -1) {
-        *fallback_wrap_element = nav_children[nav_children.size() - 1];
+        fallback = nav_children[nav_children.size() - 1];
     }
+
+    bool same_nav_type = true;
+
+    while (fallback->is_nav_container && !(fallback)->nav_children.empty()) {
+        same_nav_type = same_nav_type && are_nav_types_equal(fallback->nav_type, nav_type);
+        // While its still the same nav type, we preserve the direction the navigation is going.
+        if (same_nav_type) {
+            if (nav_dir == 1) {
+                fallback = fallback->nav_children[0];
+            } else if (nav_dir == -1) {
+                fallback = fallback->nav_children[fallback->nav_children.size() - 1];
+            }
+        } else {
+            // Nav type changed at some point so grab the primary focus or next best element.
+            fallback = Element::dive_to_best_nav_child(fallback);
+            break;
+        }
+    }
+
+    *fallback_wrap_element = fallback;
 }
 
 Element *Element::try_grid_navigation(

@@ -92,6 +92,7 @@ private:
     void get_all_focusable_children(Element *nav_parent);
     void build_navigation(Element *nav_parent, Element *cur_focus_element);
     Element *get_closest_element(std::vector<Element *> &elements);
+    static Element *dive_to_best_nav_child(Element *from_element, Element *original_element = nullptr);
 protected:
     // Use of this method in inherited classes is discouraged unless it's necessary.
     void set_attribute(const Rml::String &attribute_key, const Rml::String &attribute_value);

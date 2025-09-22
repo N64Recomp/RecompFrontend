@@ -65,19 +65,7 @@ namespace recompui {
 
                 // If found, dive into the next focus element until finding the bottom most nav container
                 if (next_focus != nullptr) {
-                    while (next_focus->nav_children.size() > 0) {
-                        bool found_primary = false;
-                        for (auto &child : next_focus->nav_children) {
-                            if (child->is_primary_focus) {
-                                next_focus = child;
-                                found_primary = true;
-                                break;
-                            }
-                        }
-                        if (!found_primary) {
-                            next_focus = navigation_from_element->get_closest_element(next_focus->nav_children);
-                        }
-                    }
+                    next_focus = Element::dive_to_best_nav_child(next_focus, navigation_from_element);
                 }
 
                 if (next_focus != nullptr) {
@@ -92,19 +80,7 @@ namespace recompui {
 
             if (fallback_wrap_element != nullptr) {
                 // Wrap to the fallback element if set
-                while (fallback_wrap_element->nav_children.size() > 0) {
-                    bool found_primary = false;
-                    for (auto &child : fallback_wrap_element->nav_children) {
-                        if (child->is_primary_focus) {
-                            fallback_wrap_element = child;
-                            found_primary = true;
-                            break;
-                        }
-                    }
-                    if (!found_primary) {
-                        fallback_wrap_element = original_focused_element->get_closest_element(fallback_wrap_element->nav_children);
-                    }
-                }
+                fallback_wrap_element = Element::dive_to_best_nav_child(fallback_wrap_element, original_focused_element);
 
                 event.StopPropagation();
                 fallback_wrap_element->focus();

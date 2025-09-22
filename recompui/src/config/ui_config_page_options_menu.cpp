@@ -164,7 +164,6 @@ void ConfigPageOptionsMenu::render_config_options() {
         body_left_scroll->set_padding(16.0f);
         body_left_scroll->set_overflow_y(Overflow::Auto);
         body_left_scroll->set_as_navigation_container(NavigationType::Vertical);
-        body_left_scroll->set_nav_wrapping(true);
 
         config_option_elements.clear();
         bound_on_option_hover = [this](const std::string &option_id) {

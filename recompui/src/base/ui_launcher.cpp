@@ -33,6 +33,7 @@ namespace recompui {
         set_align_items(AlignItems::Center);
 
         set_as_navigation_container(NavigationType::Vertical);
+        set_nav_wrapping(true);
 
         switch (layout) {
             case GameOptionsMenuLayout::Left:

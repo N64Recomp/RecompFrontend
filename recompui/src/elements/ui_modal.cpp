@@ -82,6 +82,8 @@ Modal::Modal(
     modal_element->set_border_radius(theme::border::radius_lg);
     modal_element->set_border_color(theme::color::Border);
     modal_element->set_background_color(theme::color::ModalOverlay);
+    modal_element->set_as_navigation_container(NavigationType::Vertical);
+    modal_element->set_nav_wrapping(true);
 
     header = context.create_element<ConfigHeaderFooter>(modal_element, true);
     header->set_padding_top(0.0f);
