@@ -21,12 +21,31 @@ struct UICallback {
 using ElementValue = std::variant<uint32_t, float, double, std::monostate>;
 
 enum class NavigationType {
+    None,
     Auto,
     Vertical,
     Horizontal,
     GridCol,
     GridRow
 };
+
+inline NavigationType get_effective_nav_type(NavigationType nav_type) {
+    switch (nav_type) {
+        default:
+        case NavigationType::Auto:
+        case NavigationType::Horizontal:
+        case NavigationType::Vertical:
+            return nav_type;
+        case NavigationType::GridRow:
+            return NavigationType::Horizontal;
+        case NavigationType::GridCol:
+            return NavigationType::Vertical;
+    }
+}
+
+inline bool are_nav_types_equal(NavigationType nav_type1, NavigationType nav_type2) {
+    return get_effective_nav_type(nav_type1) == get_effective_nav_type(nav_type2);
+}
 
 class ContextId;
 class Element : public Style, public Rml::EventListener {
@@ -92,7 +111,15 @@ private:
     void get_all_focusable_children(Element *nav_parent);
     void build_navigation(Element *nav_parent, Element *cur_focus_element);
     Element *get_closest_element(std::vector<Element *> &elements);
-    static Element *dive_to_best_nav_child(Element *from_element, Element *original_element = nullptr);
+    // With navigation context, find the ideal focusable child element.
+    // If the nav type and direction are used, it will try to continue the direction of navigation.
+    // the original_element is used to find the closest element if there isn't one marked as primary.
+    static Element *dive_to_best_nav_child(
+        Element *from_element,
+        NavigationType preserved_nav_type = NavigationType::None,
+        int dir = 0,
+        Element *original_element = nullptr
+    );
 protected:
     // Use of this method in inherited classes is discouraged unless it's necessary.
     void set_attribute(const Rml::String &attribute_key, const Rml::String &attribute_value);
