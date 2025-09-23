@@ -142,7 +142,6 @@ ConfigOptionEnum::ConfigOptionEnum(
     update_value();
     update_enum_details();
     update_enum_disabled();
-    // enable_focus();
 };
 
 void ConfigOptionEnum::update_value() {
@@ -213,7 +212,6 @@ ConfigOptionNumber::ConfigOptionNumber(
         }
     });
     update_value();
-    // enable_focus();
     update_disabled();
 };
 
@@ -254,7 +252,6 @@ ConfigOptionString::ConfigOptionString(
             this->on_hover(this->option_id);
         }
     });
-    // enable_focus();
 };
 
 void ConfigOptionString::update_value() {
@@ -287,12 +284,6 @@ ConfigOptionBool::ConfigOptionBool(
     toggle->add_checked_callback([this](bool checked){
         this->set_option_value(this->option_id, checked);
     });
-    // toggle->set_focus_callback([this](bool active) {
-    //     if (active) {
-    //         this->on_hover(this->option_id);
-    //     }
-    // });
-    // enable_focus();
 };
 
 void ConfigOptionBool::update_value() {

@@ -40,13 +40,8 @@ namespace recompui {
         // required overrides
         virtual void update_value() = 0;
         virtual void update_disabled() = 0;
-        virtual Element *get_focus_element() = 0;
         void update_hidden();
         const std::string &get_option_id() { return option_id; }
-        void set_nav_auto(NavDirection dir) override { get_focus_element()->set_nav_auto(dir); }
-        void set_nav_none(NavDirection dir) override { get_focus_element()->set_nav_none(dir); }
-        void set_nav(NavDirection dir, Element* element) override { get_focus_element()->set_nav(dir, element); }
-        void set_nav_manual(NavDirection dir, const std::string& target) override { get_focus_element()->set_nav_manual(dir, target); }
     };
 
 class ConfigOptionEnum : public ConfigOptionElement {
@@ -65,7 +60,6 @@ public:
         on_option_hover_t on_hover
     );
 
-    Element* get_focus_element() override { return radio; }
     void update_value() override;
     void update_disabled() override;
 
@@ -88,7 +82,6 @@ public:
         on_option_hover_t on_hover
     );
 
-    Element* get_focus_element() override { return slider; }
     void update_value() override;
     void update_disabled() override;
 };
@@ -108,7 +101,6 @@ public:
         on_option_hover_t on_hover
     );
 
-    Element* get_focus_element() override { return text_input; }
     void update_value() override;
     void update_disabled() override;
 };
@@ -128,7 +120,6 @@ public:
         on_option_hover_t on_hover
     );
 
-    Element* get_focus_element() override { return toggle; }
     void update_value() override;
     void update_disabled() override;
 };

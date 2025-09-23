@@ -729,14 +729,6 @@ void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* s
                         Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
                     }
                 }
-                if (cur_event.key.keysym.scancode == SDL_Scancode::SDL_SCANCODE_F6) {
-                    // recompui::show_context(recompui::config_modal->modal_root_context, "");
-                    if (recompui::config::config_modal->is_open_now()) {
-                        recompui::config::config_modal->close();
-                    } else {
-                        recompui::config::config_modal->open();
-                    }
-                }
                 break;
             case SDL_EventType::SDL_USEREVENT:
                 if (cur_event.user.code == SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTY) {
