@@ -108,6 +108,13 @@ void ConfigPageOptionsMenu::process_event(const Event &e) {
         break;
     }
     case EventType::Update: {
+        if (apply_button != nullptr) {
+            bool apply_enabled = this->apply_button->is_enabled();
+            bool is_dirty = config->is_dirty();
+            if (apply_enabled != is_dirty) {
+                apply_button->set_enabled(is_dirty);
+            }
+        }
         perform_option_render_updates();
         break;
     }

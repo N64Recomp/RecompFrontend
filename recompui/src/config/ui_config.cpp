@@ -67,10 +67,30 @@ namespace recompui {
                 context.create_element<ConfigPageOptionsMenu>(parent, get_config_ptr(id), true);
             },
             // Can close
-            [id](TabCloseContext close_context) {
+            [id, name](TabCloseContext close_context) {
                 recomp::config::Config &config = config::get_config(id);
                 if (config.requires_confirmation && config.is_dirty()) {
-                    // TODO: Prompt the user to confirm/cancel changes.
+                    recompui::open_choice_prompt(
+                        name + " options have unapplied changes.",
+                        "Would you like to apply or discard the changes?",
+                        "Apply",
+                        "Discard",
+                        [id, close_context]() {
+                            config::get_config(id).save_config();
+                            if (close_context == TabCloseContext::ModalClose) {
+                                config::close();
+                            }
+                        },
+                        [id, close_context]() {
+                            config::get_config(id).revert_temp_config();
+                            if (close_context == TabCloseContext::ModalClose) {
+                                config::close();
+                            }
+                        },
+                        recompui::ButtonStyle::Success,
+                        recompui::ButtonStyle::Danger,
+                        true
+                    );
                     return false;
                 }
 

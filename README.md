@@ -19,7 +19,6 @@
   - `renderer`
     - remove hardcoded
   - `ui_config`
-    - need confirmation prompt when attempt to leave unapplied config
     - higher level (e.g. safe) way of queuing the config modal opening in general.
   - `ui_modal`
     - split to `TabbedModal`

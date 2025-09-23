@@ -197,7 +197,10 @@ void Modal::navigate_tab_direction(int direction) {
     }
     int next_index = tabs->get_next_tab_in_direction(tabs->get_active_tab(), direction);
     set_selected_tab(next_index);
-    tabs->focus_on_active_tab();
+    // Only focus if the tab changed to the intended tab, otherwise the tab change was cancelled.
+    if (current_tab_index == next_index) {
+        tabs->focus_on_active_tab();
+    }
 }
 
 void Modal::set_menu_action_callback(MenuAction action, std::function<void()> callback) {
