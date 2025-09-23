@@ -45,7 +45,7 @@ void config::create_controls_tab(const std::string &name) {
             );
         },
         nullptr,
-        []() {
+        [](TabCloseContext close_context) {
             // Save the current control mappings when closing the controls tab.
             recompinput::profiles::save_controls_config(recomp::get_config_path() / (config::controls::id + ".json"));
         }

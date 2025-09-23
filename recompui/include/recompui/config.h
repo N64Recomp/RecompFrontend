@@ -102,7 +102,13 @@ namespace recompui {
          * @param can_close Gets called when the user tries to either close the modal or switch to a different tab.
          * @param on_close The function to call when the tab is closed.
          */
-        void create_tab(const std::string &name, const std::string &id, create_contents_t create_contents, std::function<bool()> can_close = nullptr, std::function<void()> on_close = nullptr);
+        void create_tab(
+            const std::string &name,
+            const std::string &id,
+            tab_callbacks::create_contents_t create_contents,
+            tab_callbacks::can_close_t can_close = nullptr,
+            tab_callbacks::on_close_t on_close = nullptr
+        );
 
         // Prefab config tabs.
         // TODO: Explain how to hide/show options

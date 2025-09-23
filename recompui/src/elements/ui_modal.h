@@ -15,18 +15,28 @@ namespace recompui {
         Prompt
     };
 
-    using create_contents_t = std::function<void(recompui::ContextId context, Element* parent)>;
+    enum class TabCloseContext {
+        TabChange,
+        ModalClose,
+    };
+
+    namespace tab_callbacks {
+        using create_contents_t = std::function<void(recompui::ContextId context, Element* parent)>;
+        using can_close_t = std::function<bool(TabCloseContext close_context)>;
+        using on_close_t = std::function<void(TabCloseContext close_context)>;
+    } 
+
     struct TabCallbacks {
-        create_contents_t create_contents;
-        std::function<bool()> can_close = nullptr;
-        std::function<void()> on_close = nullptr;
+        tab_callbacks::create_contents_t create_contents;
+        tab_callbacks::can_close_t can_close = nullptr;
+        tab_callbacks::on_close_t on_close = nullptr;
     };
 
     class TabContext {
     public:
         std::string name;
         const std::string id;
-        TabContext(const std::string &name, const std::string &id, create_contents_t &&create_contents) : name(name), id(id), callbacks(std::move(create_contents)) {};
+        TabContext(const std::string &name, const std::string &id, tab_callbacks::create_contents_t &&create_contents) : name(name), id(id), callbacks(std::move(create_contents)) {};
         TabContext(const std::string &name, const std::string &id, TabCallbacks &&callbacks) : name(name), id(id), callbacks(std::move(callbacks)) {};
         virtual ~TabContext() = default;
 
@@ -34,8 +44,8 @@ namespace recompui {
             callbacks.create_contents(context, parent);
         }
 
-        bool can_close() { return callbacks.can_close ? callbacks.can_close() : true; }
-        void on_close() { if (callbacks.on_close) callbacks.on_close(); }
+        bool can_close(TabCloseContext close_context) { return callbacks.can_close ? callbacks.can_close(close_context) : true; }
+        void on_close(TabCloseContext close_context) { if (callbacks.on_close) callbacks.on_close(close_context); }
     protected:
         TabCallbacks callbacks;
     };
@@ -72,9 +82,9 @@ namespace recompui {
         void add_tab(
             const std::string &name,
             const std::string &id,
-            create_contents_t create_contents,
-            std::function<bool()> can_close = nullptr,
-            std::function<void()> on_close = nullptr
+            tab_callbacks::create_contents_t create_contents,
+            tab_callbacks::can_close_t can_close = nullptr,
+            tab_callbacks::on_close_t on_close = nullptr
         );
         void set_selected_tab(int tab_index);
         void set_selected_tab(const std::string &id);

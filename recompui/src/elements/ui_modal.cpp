@@ -122,8 +122,8 @@ void Modal::open() {
 
 bool Modal::close() {
     if (current_tab_index < tab_contexts.size() && current_tab_index >= 0) {
-        if (tab_contexts[current_tab_index].can_close()) {
-            tab_contexts[current_tab_index].on_close();
+        if (tab_contexts[current_tab_index].can_close(TabCloseContext::ModalClose)) {
+            tab_contexts[current_tab_index].on_close(TabCloseContext::ModalClose);
         } else {
             return false;
         }
@@ -206,8 +206,8 @@ void Modal::set_menu_action_callback(MenuAction action, std::function<void()> ca
 
 void Modal::on_tab_change(int tab_index) {
     if (current_tab_index < tab_contexts.size() && current_tab_index >= 0) {
-        if (tab_contexts[current_tab_index].can_close()) {
-            tab_contexts[current_tab_index].on_close();
+        if (tab_contexts[current_tab_index].can_close(TabCloseContext::TabChange)) {
+            tab_contexts[current_tab_index].on_close(TabCloseContext::TabChange);
             current_tab_index = tab_index;
         } else if (tabs != nullptr) {
             // Revert tab change
@@ -255,9 +255,9 @@ void Modal::add_tab(TabContext &&tab_context) {
 void Modal::add_tab(
     const std::string &name,
     const std::string &id,
-    create_contents_t create_contents,
-    std::function<bool()> can_close,
-    std::function<void()> on_close
+    tab_callbacks::create_contents_t create_contents,
+    tab_callbacks::can_close_t can_close,
+    tab_callbacks::on_close_t on_close
 ) {
     tab_contexts.emplace_back(name, id, TabCallbacks{
         .create_contents = create_contents,

@@ -38,7 +38,13 @@ namespace recompui {
         throw std::runtime_error("No config with ID '" + id + "' has been added to the config modal.");
     }
 
-    void config::create_tab(const std::string &name, const std::string &id, create_contents_t create_contents, std::function<bool()> can_close, std::function<void()> on_close) {
+    void config::create_tab(
+        const std::string &name,
+        const std::string &id,
+        tab_callbacks::create_contents_t create_contents,
+        tab_callbacks::can_close_t can_close,
+        tab_callbacks::on_close_t on_close
+    ) {
         pending_tabs.push_back({
             name,
             id,
@@ -61,7 +67,7 @@ namespace recompui {
                 context.create_element<ConfigPageOptionsMenu>(parent, get_config_ptr(id), true);
             },
             // Can close
-            [id]() {
+            [id](TabCloseContext close_context) {
                 recomp::config::Config &config = config::get_config(id);
                 if (config.requires_confirmation && config.is_dirty()) {
                     // TODO: Prompt the user to confirm/cancel changes.
@@ -71,7 +77,7 @@ namespace recompui {
                 return true;
             },
             // On close
-            [id]() {
+            [id](TabCloseContext close_context) {
                 recomp::config::Config &config = config::get_config(id);
                 if (!config.requires_confirmation) {
                     config.save_config();

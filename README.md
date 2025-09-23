@@ -22,7 +22,6 @@
     - need confirmation prompt when attempt to leave unapplied config
     - higher level (e.g. safe) way of queuing the config modal opening in general.
   - `ui_modal`
-    - `TabContext->can_close` needs to provide context if this cancels the modal from closing or just something like tab navigation
     - split to `TabbedModal`
     - `MenuAction` events
       - ability to show controls hints
