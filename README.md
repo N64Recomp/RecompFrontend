@@ -36,8 +36,6 @@
       - `draw_hook` is a lot.
       - controller button repeats (should only be direction nav anyways)
     - bit of a dumping ground of helper/exposed funcs that could be better categorized
-  - `ui_theme`
-    - need setters for border settings
   - `ui_prompt`
     - takes `return_element_id`, instead should store current focused element?
   - `ui_assign_players_modal`

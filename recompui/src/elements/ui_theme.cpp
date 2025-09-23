@@ -228,6 +228,11 @@ const char *recompui::theme::get_theme_color_name(recompui::theme::color color) 
     return theme_color_names[(std::size_t)color];
 }
 
+void recompui::theme::set_border_radius_sm(float radius) { border::radius_sm = radius; };
+void recompui::theme::set_border_radius_md(float radius) { border::radius_md = radius; };
+void recompui::theme::set_border_radius_lg(float radius) { border::radius_lg = radius; };
+void recompui::theme::set_border_width(float width)      { border::width = width; };
+
 using TypographyPreset = recompui::theme::TypographyPreset;
 
 constexpr TypographyPreset create_typography_preset(float font_size, float letter_spacing_percentage, uint32_t font_weight = 400, recompui::FontStyle font_style = recompui::FontStyle::Normal) {

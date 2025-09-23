@@ -109,6 +109,11 @@ namespace recompui {
             extern float width;
         }
 
+        void set_border_radius_sm(float radius);
+        void set_border_radius_md(float radius);
+        void set_border_radius_lg(float radius);
+        void set_border_width(float width);
+
         enum class Typography {
             Header1,
             Header2,
