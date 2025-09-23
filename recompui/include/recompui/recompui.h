@@ -31,6 +31,7 @@ namespace recompui {
     const std::string& get_primary_font_family();
     // Any extra fonts to load after the primary font.
     void register_extra_font(const std::string& font_filename);
+    void update_game_mod_id(const std::string &game_mod_id);
 
     // Use this to customize the launcher menu after it's created.
     // If set, you will need to initialize the launcher's options, by calling

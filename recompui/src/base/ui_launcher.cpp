@@ -2,6 +2,7 @@
 #include "recompui/config.h"
 #include "recompui/program_config.h"
 #include "base/ui_launcher.h"
+#include "composites/ui_mod_menu.h"
 #include "util/file.h"
 #include "librecomp/game.hpp"
 #include "ultramodern/ultramodern.hpp"
@@ -102,6 +103,7 @@ namespace recompui {
         option->set_callback([this, option, start_game_title]() {
             if (this->rom_valid) {
                 recomp::start_game(this->game_id);
+                recompui::update_game_mod_id(this->mod_game_id);
                 recompui::hide_all_contexts();
             } else {
                 select_rom([this, option, start_game_title](bool success) {
@@ -117,7 +119,8 @@ namespace recompui {
     }
 
     GameOption *GameOptionsMenu::add_setup_controls_option(const std::string& title) {
-        return add_option(title, []() {
+        return add_option(title, [this]() {
+            recompui::update_game_mod_id(this->mod_game_id);
             recompui::config::set_tab(recompui::config::controls::id);
             recompui::hide_all_contexts();
             recompui::config::open();
@@ -125,7 +128,8 @@ namespace recompui {
     }
 
     GameOption *GameOptionsMenu::add_settings_option(const std::string& title) {
-        return add_option(title, []() {
+        return add_option(title, [this]() {
+            recompui::update_game_mod_id(this->mod_game_id);
             recompui::config::set_tab(recompui::config::general::id);
             recompui::hide_all_contexts();
             recompui::config::open();
@@ -133,7 +137,8 @@ namespace recompui {
     }
 
     GameOption *GameOptionsMenu::add_mods_option(const std::string& title) {
-        return add_option(title, []() {
+        return add_option(title, [this]() {
+            recompui::update_game_mod_id(this->mod_game_id);
             recompui::config::set_tab(recompui::config::mods::id);
             recompui::hide_all_contexts();
             recompui::config::open();
@@ -232,6 +237,7 @@ namespace recompui {
 
     void default_launcher_init_callback(LauncherMenu *menu) {
         auto game_options_menu = menu->init_game_options_menu(supported_games[0].game_id, supported_games[0].mod_game_id, GameOptionsMenuLayout::Center);
+        recompui::update_game_mod_id(supported_games[0].mod_game_id);
         game_options_menu->add_default_options();
     }
     

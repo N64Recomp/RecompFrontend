@@ -42,8 +42,6 @@
     - should probably open and instantiate in a more integrated way. has risk of not being in a valid context
     - UI adjustments (title + padding)
     - expose mod/patch c API for opening
-  - `ui_mod_menu`
-    - need way of setting `game_mod_id`
   - `ui_config_page`
     - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
   - `ui_config_page_controls`
