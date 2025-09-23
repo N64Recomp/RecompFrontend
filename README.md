@@ -44,6 +44,8 @@
     - takes `return_element_id`, instead should store current focused element?
   - `ui_assign_players_modal`
     - should probably open and instantiate in a more integrated way. has risk of not being in a valid context
+    - UI adjustments (title + padding)
+    - expose mod/patch c API for opening
   - `ui_mod_menu`
     - need way of setting `game_mod_id`
   - `ui_config_page`
@@ -94,6 +96,9 @@
     - `Select`
     - `Modal`
       - `TabbedModal` maybe?
+      - open/close functions
+      - expose `Modal::create_modal`
+      - expose getting `Modal::modal_root_context`
     - `PillButton` (not very important)
   - expose Typography enum
   - expose more Style methods
