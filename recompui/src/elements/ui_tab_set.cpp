@@ -17,13 +17,19 @@ Tab::Tab(Element *parent, int tab_index, std::string_view text, on_change_tab_ca
     set_padding_right(tab_horizontal_padding);
     set_focusable(true);
     set_tab_index_auto();
+    set_cursor(Cursor::Pointer);
 
     set_color(theme::color::TextInactive);
     set_background_color(theme::color::Transparent);
+    set_opacity(1.0f);
 
     hover_style.set_color(theme::color::WhiteA80);
     checked_style.set_color(theme::color::White);
     pulsing_style.set_color(theme::color::WhiteA80);
+
+    disabled_style.set_cursor(Cursor::None);
+    disabled_style.set_color(theme::color::TextDim);
+    disabled_style.set_opacity(0.5f);
 
     ContextId context = get_current_context();
     label = context.create_element<Label>(this, std::string{text}, theme::Typography::Header3);
@@ -40,6 +46,7 @@ Tab::Tab(Element *parent, int tab_index, std::string_view text, on_change_tab_ca
     add_style(&hover_style, { hover_state });
     add_style(&checked_style, { checked_state });
     add_style(&pulsing_style, { focus_state });
+    add_style(&disabled_style, { disabled_state });
 }
 
 void Tab::set_visible(bool is_visible) {

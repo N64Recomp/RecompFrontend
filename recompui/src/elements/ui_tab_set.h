@@ -12,6 +12,7 @@ namespace recompui {
         Style hover_style;
         Style checked_style;
         Style pulsing_style;
+        Style disabled_style;
         int tab_index;
         bool is_selected = false;
         on_change_tab_callback on_select_tab;

@@ -53,8 +53,6 @@
   - `ui_select`
     - i think i forgor to add indication of which element in the dropdown is the current
     - need to test for new navigation system conflicts
-  - `ui_tab_set`
-    - cursor set to pointer
 - `recompinput`
   - `input_types`
     - should be able to customize `game_input_names`
