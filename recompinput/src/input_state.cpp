@@ -356,7 +356,7 @@ bool recompinput::game_input_disabled() {
 // Disable all input if an input is being polled or currently binding.
 bool recompinput::all_input_disabled() {
     return
-        recompinput::playerassignment::is_active() ||
+        recompinput::playerassignment::is_blocking_input() ||
         recompinput::binding::is_binding();
 }
 

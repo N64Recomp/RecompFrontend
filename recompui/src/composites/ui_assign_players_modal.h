@@ -25,6 +25,7 @@ protected:
     std::string_view get_type_name() override { return "AssignPlayersModal"; }
 private:
     void create_player_elements();
+    void set_fake_focus_enabled(bool enabled);
 public:
     AssignPlayersModal(Document *parent);
     virtual ~AssignPlayersModal();

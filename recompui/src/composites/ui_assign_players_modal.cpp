@@ -28,7 +28,7 @@ static void set_button_side_styles(Element *el) {
     el->set_gap(localstyles::gap::horizontal);
 }
 
-AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, 0, "div", false) {
+AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, Events(EventType::MenuAction), "div", false) {
     recompui::ContextId context = get_current_context();
     
     set_display(Display::Flex);
@@ -75,6 +75,7 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, 0, "d
     fake_focus_button->set_width(0, Unit::Dp);
     fake_focus_button->set_height(0, Unit::Dp);
     fake_focus_button->set_opacity(0);
+    fake_focus_button->enable_focus();
 
     auto header = context.create_element<Element>(modal, 0, "div", false);
     header->set_display(Display::Block);
@@ -115,11 +116,16 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, 0, "d
     set_button_side_styles(left);
     close_button = context.create_element<Button>(left, "Cancel", ButtonStyle::Tertiary);
     close_button->add_pressed_callback(recompinput::playerassignment::stop_and_close_modal);
+    close_button->set_enabled(false);
 
     auto right = context.create_element<Container>(footer, FlexDirection::Row, JustifyContent::FlexEnd, 0);
     retry_button = context.create_element<Button>(right, "Retry", ButtonStyle::Warning);
     retry_button->set_enabled(false);
-    retry_button->add_pressed_callback(recompinput::playerassignment::start);
+    retry_button->add_pressed_callback([this](){
+        this->set_fake_focus_enabled(true);
+        this->fake_focus_button->focus();
+        recompinput::playerassignment::start();
+    });
 
     confirm_button = context.create_element<Button>(right, "Confirm", ButtonStyle::Primary);
     confirm_button->set_enabled(false);
@@ -128,6 +134,11 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, 0, "d
 }
 
 AssignPlayersModal::~AssignPlayersModal() {
+}
+
+void AssignPlayersModal::set_fake_focus_enabled(bool enabled) {
+    fake_focus_button->set_enabled(enabled);
+    fake_focus_button->set_focusable(enabled);
 }
 
 void AssignPlayersModal::process_event(const Event &e) {
@@ -144,6 +155,7 @@ void AssignPlayersModal::process_event(const Event &e) {
         }
 
         bool min_players_assigned = recompinput::playerassignment::met_assignment_requirements();
+        bool had_enough_players_assigned = recompinput::players::has_enough_players_assigned();
 
         if (min_players_assigned) {
             confirm_button->set_enabled(true);
@@ -153,6 +165,22 @@ void AssignPlayersModal::process_event(const Event &e) {
             retry_button->set_enabled(false);
         }
 
+        close_button->set_enabled(had_enough_players_assigned);
+
+        if (had_enough_players_assigned || min_players_assigned) {
+            Element *fake_focus_as_element = static_cast<Element*>(fake_focus_button);
+            // Remove fake focus button if focus is elsewhere.
+            if (fake_focus_button->is_enabled() && fake_focus_as_element != get_current_context().get_focused_element()) {
+                set_fake_focus_enabled(false);
+            }
+        } else {
+            // Force focus on fake button until min player count is hit.
+            if (!fake_focus_button->is_enabled()) {
+                set_fake_focus_enabled(true);
+            }
+            fake_focus_button->focus();
+        }
+
         if (!recompinput::playerassignment::is_active()) {
             if (min_players_assigned && was_assigning) {
                 confirm_button->focus();
@@ -160,12 +188,28 @@ void AssignPlayersModal::process_event(const Event &e) {
 
             was_assigning = false;
         } else if (!min_players_assigned) {
-            // Force focus on fake button until min player count is hit
-            fake_focus_button->focus();
             was_assigning = true;
         }
 
         queue_update();
+    } else if (e.type == EventType::MenuAction) {
+        if (recompinput::playerassignment::is_blocking_input()) {
+            return;
+        }
+
+        auto& action = std::get<EventMenuAction>(e.variant);
+        switch (action.action) {
+            case MenuAction::Back: {
+                ContextId context = get_current_context();
+                Element *close_as_element = static_cast<Element*>(close_button);
+                if (context.get_focused_element() == close_as_element) {
+                    recompinput::playerassignment::stop_and_close_modal();
+                } else {
+                    close_button->focus();
+                }
+                break;
+            }
+        }
     }
 }
 

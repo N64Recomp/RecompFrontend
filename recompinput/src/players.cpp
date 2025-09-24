@@ -99,6 +99,10 @@ bool players::get_player_is_assigned(int player_index, bool temp_player) {
     return PlayerState.get_player_array(temp_player).player_is_assigned(player_index);
 }
 
+bool players::has_enough_players_assigned() {
+    return PlayerState.players.get_count() >= PlayerState.min_players;
+}
+
 InputDevice players::get_player_input_device(int player_index, bool temp_player) {
     auto player_array = PlayerState.get_player_array(temp_player);
     if (!player_array.player_is_assigned(player_index)) {
@@ -115,115 +119,120 @@ InputDevice players::get_player_input_device(int player_index, bool temp_player)
     }
 }
 
-namespace playerassignment {
-    bool playerassignment::is_active() {
-        return PlayerState.is_assigning;
-    }
+// playerassignment start
 
-    void playerassignment::start(void) {
-        PlayerState.is_assigning = true;
-        PlayerState.temp_players = PlayerArray{};
-    }
+bool playerassignment::is_active() {
+    return PlayerState.is_assigning;
+}
 
-    void playerassignment::stop(void) {
-        PlayerState.is_assigning = false;
-    }
+void playerassignment::start(void) {
+    PlayerState.is_assigning = true;
+    PlayerState.temp_players = PlayerArray{};
+}
 
-    void playerassignment::stop_and_close_modal() {
-        playerassignment::stop();
-        PlayerState.queue_close_player_assignment_modal = true;
-    }
+void playerassignment::stop(void) {
+    PlayerState.is_assigning = false;
+}
 
-    void playerassignment::commit_player_assignment() {
-        stop_and_close_modal();
+void playerassignment::stop_and_close_modal() {
+    playerassignment::stop();
+    PlayerState.queue_close_player_assignment_modal = true;
+}
 
-        PlayerState.players = PlayerState.temp_players;
-        for (int i = 0; i < players::get_number_of_assigned_players(); i++) {
-            Player &player = PlayerState.players[i];
-            if (player.controller != nullptr) {
-                int cont_profile_index = profiles::get_controller_profile_index_from_sdl_controller(player.controller);
-                if (cont_profile_index >= 0) {
-                    profiles::set_input_profile_for_player(i, cont_profile_index, InputDevice::Controller);
-                }
-            } else {
-                profiles::set_input_profile_for_player(i, profiles::get_mp_keyboard_profile_index(i), InputDevice::Keyboard);
+void playerassignment::commit_player_assignment() {
+    stop_and_close_modal();
+
+    PlayerState.players = PlayerState.temp_players;
+    for (int i = 0; i < players::get_number_of_assigned_players(); i++) {
+        Player &player = PlayerState.players[i];
+        if (player.controller != nullptr) {
+            int cont_profile_index = profiles::get_controller_profile_index_from_sdl_controller(player.controller);
+            if (cont_profile_index >= 0) {
+                profiles::set_input_profile_for_player(i, cont_profile_index, InputDevice::Controller);
             }
-        }
-    }
-
-    bool playerassignment::met_assignment_requirements() {
-        return PlayerState.temp_players.get_count() >= PlayerState.min_players;
-    }
-
-    std::chrono::steady_clock::duration playerassignment::get_player_time_since_last_button_press(int player_index) {
-        if (!PlayerState.temp_players.player_is_assigned(player_index)) {
-            return std::chrono::steady_clock::duration::zero();
-        }
-        return ultramodern::time_since_start() - PlayerState.temp_players[player_index].last_button_press_timestamp;
-    }
-
-    void playerassignment::process_sdl_event(SDL_Event* event) {
-        if (PlayerState.queue_close_player_assignment_modal) {
-            recompui::assign_players_modal->close();
-            PlayerState.queue_close_player_assignment_modal = false;
-            if (recompui::controls_page != nullptr) {
-                recompui::controls_page->force_update();
-            }
-            return;
-        }
-    
-        if (!playerassignment::is_active()) {
-            return;
-        }
-    
-        switch (event->type) {
-        case SDL_EventType::SDL_KEYDOWN: {
-            SDL_KeyboardEvent* keyevent = &event->key;
-    
-            switch (keyevent->keysym.scancode) {
-            case SDL_Scancode::SDL_SCANCODE_ESCAPE:
-                // TODO: Restore previous assignment?
-                playerassignment::stop();
-                return;
-            case SDL_Scancode::SDL_SCANCODE_SPACE:
-                PlayerState.temp_players.add_keyboard_player();
-                break;
-            default:
-                for (size_t i = 0; i < PlayerState.temp_players.size(); i++) {
-                    if (PlayerState.temp_players[i].keyboard_enabled && PlayerState.temp_players[i].controller == nullptr) {
-                        PlayerState.temp_players[i].button_pressed();
-                    }
-                }
-                break;
-            }
-            break;
-        }
-        case SDL_EventType::SDL_CONTROLLERBUTTONDOWN: {
-            SDL_ControllerButtonEvent* button_event = &event->cbutton;
-            SDL_JoystickID joystick_id = button_event->which;
-            auto controller = recompinput::get_controller_from_joystick_id(joystick_id);
-    
-            bool can_be_mapped = true;
-            for (size_t i = 0; i < PlayerState.temp_players.size(); i++) {
-                if (PlayerState.temp_players[i].controller == controller) {
-                    can_be_mapped = false;
-                    PlayerState.temp_players[i].button_pressed();
-                    break;
-                }
-            }
-    
-            if (can_be_mapped) {
-                PlayerState.temp_players.add_controller_player(controller);
-            }
-    
-            break;
-        }
-        }
-    
-        if (PlayerState.temp_players.get_count() >= PlayerState.max_players) {
-            playerassignment::stop();
+        } else {
+            profiles::set_input_profile_for_player(i, profiles::get_mp_keyboard_profile_index(i), InputDevice::Keyboard);
         }
     }
 }
+
+bool playerassignment::met_assignment_requirements() {
+    return PlayerState.temp_players.get_count() >= PlayerState.min_players;
+}
+
+bool playerassignment::is_blocking_input() {
+    return playerassignment::is_active() && !playerassignment::met_assignment_requirements();
+}
+
+std::chrono::steady_clock::duration playerassignment::get_player_time_since_last_button_press(int player_index) {
+    if (!PlayerState.temp_players.player_is_assigned(player_index)) {
+        return std::chrono::steady_clock::duration::zero();
+    }
+    return ultramodern::time_since_start() - PlayerState.temp_players[player_index].last_button_press_timestamp;
+}
+
+void playerassignment::process_sdl_event(SDL_Event* event) {
+    if (PlayerState.queue_close_player_assignment_modal) {
+        recompui::assign_players_modal->close();
+        PlayerState.queue_close_player_assignment_modal = false;
+        if (recompui::controls_page != nullptr) {
+            recompui::controls_page->force_update();
+        }
+        return;
+    }
+
+    if (!playerassignment::is_active()) {
+        return;
+    }
+
+    switch (event->type) {
+    case SDL_EventType::SDL_KEYDOWN: {
+        SDL_KeyboardEvent* keyevent = &event->key;
+
+        switch (keyevent->keysym.scancode) {
+        case SDL_Scancode::SDL_SCANCODE_ESCAPE:
+            // TODO: Restore previous assignment?
+            playerassignment::stop();
+            return;
+        case SDL_Scancode::SDL_SCANCODE_SPACE:
+            PlayerState.temp_players.add_keyboard_player();
+            break;
+        default:
+            for (size_t i = 0; i < PlayerState.temp_players.size(); i++) {
+                if (PlayerState.temp_players[i].keyboard_enabled && PlayerState.temp_players[i].controller == nullptr) {
+                    PlayerState.temp_players[i].button_pressed();
+                }
+            }
+            break;
+        }
+        break;
+    }
+    case SDL_EventType::SDL_CONTROLLERBUTTONDOWN: {
+        SDL_ControllerButtonEvent* button_event = &event->cbutton;
+        SDL_JoystickID joystick_id = button_event->which;
+        auto controller = recompinput::get_controller_from_joystick_id(joystick_id);
+
+        bool can_be_mapped = true;
+        for (size_t i = 0; i < PlayerState.temp_players.size(); i++) {
+            if (PlayerState.temp_players[i].controller == controller) {
+                can_be_mapped = false;
+                PlayerState.temp_players[i].button_pressed();
+                break;
+            }
+        }
+
+        if (can_be_mapped) {
+            PlayerState.temp_players.add_controller_player(controller);
+        }
+
+        break;
+    }
+    }
+
+    if (PlayerState.temp_players.get_count() >= PlayerState.max_players) {
+        playerassignment::stop();
+    }
+}
+// player assignment end
 
 }

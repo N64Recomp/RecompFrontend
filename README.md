@@ -42,9 +42,10 @@
     - should probably open and instantiate in a more integrated way. has risk of not being in a valid context
     - expose mod/patch c API for opening
     - Button press feedback isn't working when modal first opens (if no players have been assigned yet?)
-    - functionality
-      - Only disable interacting with `Cancel` if the previous assignment is invalid with the current minimum number of players
-      - Only disable input when assigning _and_ min requirements haven't been met
+    - Add help text to explain how to assign controller/keyboard players
+    - Better indication (show focus outline?) on which player is being focused
+    - Better indication what the previous configuration was, make it easier to cancel
+    - Utilize non-confirm button for keyboard assignment
   - `ui_config_page`
     - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
   - `ui_config_page_controls`
