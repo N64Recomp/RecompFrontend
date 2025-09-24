@@ -7,15 +7,25 @@ namespace recompui {
 
 recompui::ContextId assign_players_modal_context;
 
-static const float assignPlayersHFPaddingVert = 20.0f;
-static const float assignPlayersHFPaddingHorz = 20.0f;
+namespace localstyles {
+    namespace padding {
+        static const float horizontal = 20.0f;
+        static const float footer_vertical = 20.0f;
+        static const float header_vertical = 16.0f;
+    }
+
+    namespace gap {
+        static const float horizontal = 12.0f;
+        static const float vertical = 20.0f;
+    }
+}
 
 static void set_button_side_styles(Element *el) {
     el->set_align_items(AlignItems::Center);
     el->set_width_auto();
     el->set_height_auto();
     el->set_flex_basis_auto();
-    el->set_gap(8.0f);
+    el->set_gap(localstyles::gap::horizontal);
 }
 
 AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, 0, "div", false) {
@@ -51,12 +61,13 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, 0, "d
     modal->set_flex_basis(100, Unit::Percent);
     modal->set_flex_direction(FlexDirection::Column);
     modal->set_width(100, Unit::Percent);
+    modal->set_gap(localstyles::gap::vertical);
     modal->set_max_width(700, Unit::Dp);
     modal->set_height_auto();
     modal->set_margin_auto();
-    modal->set_border_width(theme::border::width, Unit::Dp);
-    modal->set_border_radius(theme::border::radius_lg, Unit::Dp);
-    modal->set_border_color(theme::color::WhiteA20);
+    modal->set_border_width(theme::border::width);
+    modal->set_border_radius(theme::border::radius_lg);
+    modal->set_border_color(theme::color::Border);
     modal->set_background_color(theme::color::ModalOverlay);
 
     fake_focus_button = context.create_element<Element>(modal, 0, "button", false);
@@ -65,7 +76,15 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, 0, "d
     fake_focus_button->set_height(0, Unit::Dp);
     fake_focus_button->set_opacity(0);
 
-    context.create_element<Label>(modal, "Assign Players", LabelStyle::Large);
+    auto header = context.create_element<Element>(modal, 0, "div", false);
+    header->set_display(Display::Block);
+    header->set_width(100, Unit::Percent);
+    header->set_height_auto();
+    header->set_padding_top(localstyles::padding::header_vertical);
+    header->set_padding_left(localstyles::padding::horizontal);
+    header->set_padding_right(localstyles::padding::horizontal);
+
+    context.create_element<Label>(header, "Assign Players", theme::Typography::Header3);
 
     player_elements_wrapper = context.create_element<Element>(modal, 0, "div", false);
     player_elements_wrapper->set_display(Display::Flex);
@@ -73,7 +92,10 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, 0, "d
     player_elements_wrapper->set_justify_content(JustifyContent::SpaceBetween);
     player_elements_wrapper->set_align_items(AlignItems::Center);
     player_elements_wrapper->set_width(100, Unit::Percent);
-    player_elements_wrapper->set_padding(24, Unit::Dp);
+    player_elements_wrapper->set_padding_left(localstyles::padding::horizontal);
+    player_elements_wrapper->set_padding_right(localstyles::padding::horizontal);
+    player_elements_wrapper->set_padding_top(0);
+    player_elements_wrapper->set_padding_bottom(0);
 
     Element* footer = context.create_element<Element>(modal, 0, "div", false);
     footer->set_display(Display::Flex);
@@ -84,10 +106,10 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, 0, "d
     footer->set_width(100.0f, Unit::Percent);
     footer->set_height_auto();
 
-    footer->set_padding_top(assignPlayersHFPaddingVert);
-    footer->set_padding_bottom(assignPlayersHFPaddingVert);
-    footer->set_padding_left(assignPlayersHFPaddingHorz);
-    footer->set_padding_right(assignPlayersHFPaddingHorz);
+    footer->set_padding_top(0);
+    footer->set_padding_bottom(localstyles::padding::footer_vertical);
+    footer->set_padding_left(localstyles::padding::horizontal);
+    footer->set_padding_right(localstyles::padding::horizontal);
 
     auto left = context.create_element<Container>(footer, FlexDirection::Row, JustifyContent::FlexStart, 0);
     set_button_side_styles(left);
