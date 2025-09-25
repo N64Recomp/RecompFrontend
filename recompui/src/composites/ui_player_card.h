@@ -13,6 +13,14 @@ using on_select_player_profile_callback = std::function<void(int, int)>;
 // player index
 using on_edit_player_profile_callback = std::function<void(int)>;
 
+enum class PlayerCardIcon {
+    None,
+    Keyboard,
+    Controller,
+    Waiting,
+    Recording
+};
+
 class PlayerCard : public Element {
 protected:
     bool is_open = false;
@@ -21,6 +29,7 @@ protected:
     Select *profile_select = nullptr;
     int player_index = -1;
     bool is_assignment_card = false;
+    PlayerCardIcon cur_icon = PlayerCardIcon::None;
 
     on_select_player_profile_callback on_select_profile_callback;
     on_edit_player_profile_callback on_edit_profile_callback;

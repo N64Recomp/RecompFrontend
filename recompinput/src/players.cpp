@@ -164,6 +164,10 @@ bool playerassignment::is_blocking_input() {
     return playerassignment::is_active() && !playerassignment::met_assignment_requirements();
 }
 
+bool playerassignment::is_player_currently_assigning(int player_index) {
+    return playerassignment::is_active() && player_index == (int)(PlayerState.temp_players.get_count());
+}
+
 std::chrono::steady_clock::duration playerassignment::get_player_time_since_last_button_press(int player_index) {
     if (!PlayerState.temp_players.player_is_assigned(player_index)) {
         return std::chrono::steady_clock::duration::zero();

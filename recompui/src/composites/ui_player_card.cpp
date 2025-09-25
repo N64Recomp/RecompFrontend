@@ -2,6 +2,7 @@
 #include "recompinput/recompinput.h"
 #include "recompinput/profiles.h"
 #include "elements/ui_label.h"
+#include "ultramodern/ultramodern.hpp"
 
 namespace recompui {
 
@@ -139,19 +140,40 @@ void PlayerCard::on_edit_profile() {
 void PlayerCard::update_player_card_icon() {
     if (recompinput::players::get_player_is_assigned(player_index, is_assignment_card)) {
         if (recompinput::players::get_player_input_device(player_index, is_assignment_card) == recompinput::InputDevice::Controller) {
-            icon->set_display(Display::Block);
-            icon->set_src("icons/Cont.svg");
+            cur_icon = PlayerCardIcon::Controller;
         } else {
-            icon->set_display(Display::Block);
-            icon->set_src("icons/Keyboard.svg");
+            cur_icon = PlayerCardIcon::Keyboard;
         }
     } else {
         if (is_assignment_card) {
+            cur_icon = recompinput::playerassignment::is_player_currently_assigning(player_index)
+                ? PlayerCardIcon::Recording
+                : PlayerCardIcon::Waiting;
+        } else {
+            cur_icon = PlayerCardIcon::None;
+        }
+    }
+
+    switch (cur_icon) {
+        case PlayerCardIcon::None:
+            icon->set_display(Display::None);
+            break;
+        case PlayerCardIcon::Keyboard:
+            icon->set_display(Display::Block);
+            icon->set_src("icons/Keyboard.svg");
+            break;
+        case PlayerCardIcon::Controller:
+            icon->set_display(Display::Block);
+            icon->set_src("icons/Cont.svg");
+            break;
+        case PlayerCardIcon::Waiting:
             icon->set_display(Display::Block);
             icon->set_src("icons/RecordBorder.svg");
-        } else {
-            icon->set_display(Display::None);
-        }
+            break;
+        case PlayerCardIcon::Recording:
+            icon->set_display(Display::Block);
+            icon->set_src("icons/RecordSpinner.svg");
+            break;
     }
 }
 
@@ -160,10 +182,23 @@ void PlayerCard::update_assignment_player_card() {
 
     update_player_card_icon();
 
-    if (!recompinput::players::get_player_is_assigned(player_index)) {
-        icon->set_scale_2D(1.0f, 1.0f);
-        card->set_background_color(theme::color::Transparent);
-        icon->set_color(theme::color::TextDim);
+    if (cur_icon == PlayerCardIcon::Recording) {
+        auto millis_since_start = std::chrono::duration_cast<std::chrono::milliseconds>(ultramodern::time_since_start()).count();
+        icon->set_rotation(millis_since_start * 0.001f * 360.0f / 2.0f);
+    } else {
+        icon->set_rotation(0.0f);
+    }
+
+    if (!recompinput::players::get_player_is_assigned(player_index, is_assignment_card)) {
+        if (recompinput::playerassignment::is_player_currently_assigning(player_index)) {
+            icon->set_scale_2D(1.1f, 1.1f);
+            card->set_background_color(theme::color::PrimaryL, 255/5);
+            icon->set_color(theme::color::PrimaryL);
+        } else {
+            icon->set_scale_2D(1.0f, 1.0f);
+            card->set_background_color(theme::color::Transparent);
+            icon->set_color(theme::color::TextDim);
+        }
         return;
     }
 

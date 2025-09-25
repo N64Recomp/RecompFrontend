@@ -43,7 +43,6 @@
     - expose mod/patch c API for opening
     - Button press feedback isn't working when modal first opens (if no players have been assigned yet?)
     - Add help text to explain how to assign controller/keyboard players
-    - Better indication (show focus outline?) on which player is being focused
     - Better indication what the previous configuration was, make it easier to cancel
     - Utilize non-confirm button for keyboard assignment
   - `ui_config_page`

@@ -34,6 +34,7 @@ namespace recompinput {
         void commit_player_assignment();
         bool met_assignment_requirements();
         bool is_blocking_input();
+        bool is_player_currently_assigning(int player_index);
         std::chrono::steady_clock::duration get_player_time_since_last_button_press(int player_index);
 
         void process_sdl_event(SDL_Event* event);
