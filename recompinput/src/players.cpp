@@ -156,6 +156,10 @@ void playerassignment::commit_player_assignment() {
     }
 }
 
+void playerassignment::add_keyboard_player() {
+    PlayerState.temp_players.add_keyboard_player();
+}
+
 bool playerassignment::met_assignment_requirements() {
     return PlayerState.temp_players.get_count() >= PlayerState.min_players;
 }
@@ -166,6 +170,21 @@ bool playerassignment::is_blocking_input() {
 
 bool playerassignment::is_player_currently_assigning(int player_index) {
     return playerassignment::is_active() && player_index == (int)(PlayerState.temp_players.get_count());
+}
+
+bool playerassignment::was_keyboard_assigned() {
+    size_t num_temp = PlayerState.temp_players.size();
+    if (num_temp == 0) {
+        return false;
+    }
+
+    for (size_t i = 0; i < num_temp; i++) {
+        if (PlayerState.temp_players[i].keyboard_enabled) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 std::chrono::steady_clock::duration playerassignment::get_player_time_since_last_button_press(int player_index) {
@@ -198,14 +217,20 @@ void playerassignment::process_sdl_event(SDL_Event* event) {
             // TODO: Restore previous assignment?
             playerassignment::stop();
             return;
-        case SDL_Scancode::SDL_SCANCODE_SPACE:
-            PlayerState.temp_players.add_keyboard_player();
+        case SDL_Scancode::SDL_SCANCODE_RIGHT:
+        case SDL_Scancode::SDL_SCANCODE_LEFT:
+        case SDL_Scancode::SDL_SCANCODE_UP:
+        case SDL_Scancode::SDL_SCANCODE_DOWN:
             break;
         default:
-            for (size_t i = 0; i < PlayerState.temp_players.size(); i++) {
-                if (PlayerState.temp_players[i].keyboard_enabled && PlayerState.temp_players[i].controller == nullptr) {
-                    PlayerState.temp_players[i].button_pressed();
+            if (playerassignment::was_keyboard_assigned()) {
+                for (size_t i = 0; i < PlayerState.temp_players.size(); i++) {
+                    if (PlayerState.temp_players[i].keyboard_enabled && PlayerState.temp_players[i].controller == nullptr) {
+                        PlayerState.temp_players[i].button_pressed();
+                    }
                 }
+            } else {
+                playerassignment::add_keyboard_player();
             }
             break;
         }

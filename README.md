@@ -44,7 +44,6 @@
     - Button press feedback isn't working when modal first opens (if no players have been assigned yet?)
     - Add help text to explain how to assign controller/keyboard players
     - Better indication what the previous configuration was, make it easier to cancel
-    - Utilize non-confirm button for keyboard assignment
   - `ui_config_page`
     - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
   - `ui_config_page_controls`

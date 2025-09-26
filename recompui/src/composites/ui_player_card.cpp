@@ -39,6 +39,7 @@ PlayerCard::PlayerCard(
 
     card = context.create_element<Element>(this, 0, "div", false);
     card->set_display(Display::Flex);
+    card->set_position(Position::Relative);
     card->set_flex_direction(FlexDirection::Column);
     card->set_align_items(AlignItems::Center);
     card->set_justify_content(JustifyContent::Center);
@@ -177,6 +178,22 @@ void PlayerCard::update_player_card_icon() {
     }
 }
 
+void PlayerCard::create_add_multiplayer_pill() {
+    if (multiplayer_pill != nullptr) {
+        return;
+    }
+
+    ContextId cur_context = get_current_context();
+    multiplayer_pill = cur_context.create_element<PillButton>(
+        card, "", "icons/PlusKeyboard.svg",
+        ButtonStyle::Tertiary,
+        PillButtonSize::Small);
+    multiplayer_pill->add_pressed_callback(recompinput::playerassignment::add_keyboard_player);
+    multiplayer_pill->set_position(Position::Absolute);
+    multiplayer_pill->set_right(4);
+    multiplayer_pill->set_bottom(4);
+}
+
 void PlayerCard::update_assignment_player_card() {
     static const float scale_anim_duration = 0.25f;
 
@@ -189,8 +206,19 @@ void PlayerCard::update_assignment_player_card() {
         icon->set_rotation(0.0f);
     }
 
+    bool player_is_currently_assigning = recompinput::playerassignment::is_player_currently_assigning(player_index);
+
+    if (player_is_currently_assigning) {
+        if (recompinput::playerassignment::was_keyboard_assigned()) {
+            create_add_multiplayer_pill();
+        }
+    } else if (multiplayer_pill != nullptr) {
+        card->remove_child(multiplayer_pill);
+        multiplayer_pill = nullptr;
+    }
+
     if (!recompinput::players::get_player_is_assigned(player_index, is_assignment_card)) {
-        if (recompinput::playerassignment::is_player_currently_assigning(player_index)) {
+        if (player_is_currently_assigning) {
             icon->set_scale_2D(1.1f, 1.1f);
             card->set_background_color(theme::color::PrimaryL, 255/5);
             icon->set_color(theme::color::PrimaryL);

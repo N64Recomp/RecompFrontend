@@ -4,6 +4,7 @@
 #include "elements/ui_element.h"
 #include "elements/ui_svg.h"
 #include "elements/ui_button.h"
+#include "elements/ui_pill_button.h"
 #include "elements/ui_select.h"
 
 namespace recompui {
@@ -27,6 +28,7 @@ protected:
     Element *card = nullptr;
     Svg* icon = nullptr;
     Select *profile_select = nullptr;
+    PillButton *multiplayer_pill = nullptr;
     int player_index = -1;
     bool is_assignment_card = false;
     PlayerCardIcon cur_icon = PlayerCardIcon::None;
@@ -38,6 +40,7 @@ protected:
 private:
     void on_select_player_profile(int profile_index);
     void on_edit_profile();
+    void create_add_multiplayer_pill();
 public:
     PlayerCard(Element *parent, int player_index, bool is_assignment_card = false);
     virtual ~PlayerCard();

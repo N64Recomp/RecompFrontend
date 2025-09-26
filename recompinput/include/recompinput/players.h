@@ -32,9 +32,11 @@ namespace recompinput {
         void stop();
         void stop_and_close_modal();
         void commit_player_assignment();
+        void add_keyboard_player();
         bool met_assignment_requirements();
         bool is_blocking_input();
         bool is_player_currently_assigning(int player_index);
+        bool was_keyboard_assigned();
         std::chrono::steady_clock::duration get_player_time_since_last_button_press(int player_index);
 
         void process_sdl_event(SDL_Event* event);

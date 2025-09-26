@@ -1,10 +1,14 @@
 #include "ui_pill_button.h"
 #include "ui_label.h"
+#include "ui_pseudo_border.h"
 
 #include <cassert>
 
 namespace recompui {
     static constexpr float pill_padding = 16.0f;
+    static constexpr float pill_padding_small_h = 6.0f;
+    static constexpr float pill_padding_small_v = 4.0f;
+    static constexpr float pill_padding_mini = 2.0f;
 
     PillButton::PillButton(Element *parent, const std::string &text, const std::string &svg_src, ButtonStyle style, PillButtonSize size) : Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button") {
         this->style = style;
@@ -19,8 +23,22 @@ namespace recompui {
         set_justify_content(JustifyContent::Center);
         set_min_width(float_size_internal);
         set_width_auto();
-        set_padding_right(pill_padding);
-        set_padding_left(pill_padding);
+
+        switch (size) {
+            case PillButtonSize::Mini:
+                set_padding_right(pill_padding_mini);
+                set_padding_left(pill_padding_mini);
+                break;
+            case PillButtonSize::Small:
+                set_padding_right(pill_padding_small_h);
+                set_padding_left(pill_padding_small_h);
+                break;
+            default:
+                set_padding_right(pill_padding);
+                set_padding_left(pill_padding);
+                break;
+        }
+
         set_height(float_size_internal);
         set_min_height(float_size_internal);
         set_max_height(float_size_internal);
@@ -39,7 +57,11 @@ namespace recompui {
         disabled_style.set_cursor(Cursor::None);
         disabled_style.set_opacity(0.5f);
         hover_disabled_style.set_color(theme::color::TextDim);
+
         ContextId context = get_current_context();
+
+        auto focus_border = context.create_element<FocusBorder>(this, true);
+        focus_border->set_border_radius(float_size_internal * 0.5f + theme::border::width * 4.0f);
 
         bool has_svg = !svg_src.empty();
         bool has_text = !text.empty();
@@ -48,10 +70,10 @@ namespace recompui {
             float icon_size = 0;
             switch (size) {
                 case PillButtonSize::Mini:
-                    icon_size = 16.0f;
+                    icon_size = static_cast<float>(PillButtonSize::Mini) - (pill_padding_mini * 2);
                     break;
                 case PillButtonSize::Small:
-                    icon_size = 24.0f;
+                    icon_size = static_cast<float>(PillButtonSize::Mini) - (pill_padding_small_v * 2);
                     break;
                 case PillButtonSize::Medium:
                     icon_size = 32.0f;
@@ -66,7 +88,7 @@ namespace recompui {
             }
 
             svg = context.create_element<Svg>(this, svg_src);
-            svg->set_width(icon_size);
+            svg->set_height(icon_size);
             svg->set_image_color(theme::color::TextDim);
         }
 
