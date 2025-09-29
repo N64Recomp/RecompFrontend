@@ -196,7 +196,7 @@ std::chrono::steady_clock::duration playerassignment::get_player_time_since_last
 
 void playerassignment::process_sdl_event(SDL_Event* event) {
     if (PlayerState.queue_close_player_assignment_modal) {
-        recompui::assign_players_modal->close();
+        recompui::AssignPlayersModal::close();
         PlayerState.queue_close_player_assignment_modal = false;
         if (recompui::controls_page != nullptr) {
             recompui::controls_page->force_update();
@@ -256,10 +256,6 @@ void playerassignment::process_sdl_event(SDL_Event* event) {
 
         break;
     }
-    }
-
-    if (PlayerState.temp_players.get_count() >= PlayerState.max_players) {
-        playerassignment::stop();
     }
 }
 // player assignment end

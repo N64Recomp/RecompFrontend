@@ -215,8 +215,10 @@ void ConfigPageControls::render_header() {
         } else {
             Button* assign_players_button = context.create_element<Button>(header_right, "Assign players", ButtonStyle::Primary);
             assign_players_button->add_pressed_callback([]() {
-                recompui::assign_players_modal->open();
-                recompinput::playerassignment::start();
+                if (!recompinput::players::has_enough_players_assigned()) {
+                    recompinput::playerassignment::start();
+                }
+                recompui::AssignPlayersModal::open();
             });
             assign_players_button->set_as_primary_focus(true);
         }

@@ -17,24 +17,24 @@ protected:
     Element* fake_focus_button = nullptr;
     std::vector<PlayerCard*> player_elements = {};
 
-    Button* close_button = nullptr;
+    Button* keep_players_button = nullptr;
     Button* retry_button = nullptr;
     Button* confirm_button = nullptr;
 
     virtual void process_event(const Event &e) override;
     std::string_view get_type_name() override { return "AssignPlayersModal"; }
 private:
+    void init_pending_state();
     void create_player_elements();
     void set_fake_focus_enabled(bool enabled);
+    void lock_focus(bool lock);
 public:
     AssignPlayersModal(Document *parent);
     virtual ~AssignPlayersModal();
-    void open();
-    void close();
+    static void init();
+    // Pass false to force player assignment.
+    static void open();
+    static void close();
 };
-
-extern AssignPlayersModal *assign_players_modal;
-
-void init_assign_players_modal();
 
 } // namespace recompui

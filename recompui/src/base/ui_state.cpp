@@ -284,7 +284,7 @@ public:
         recompui::init_styling(recompui::file::get_asset_path("recomp.rcss"));
         recompui::init_launcher_menu();
         recompui::init_prompt_context();
-        recompui::init_assign_players_modal();
+        recompui::AssignPlayersModal::init();
         recompui::config::init_modal();
     }
 

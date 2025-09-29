@@ -6,6 +6,7 @@
 namespace recompui {
 
 recompui::ContextId assign_players_modal_context;
+AssignPlayersModal* assign_players_modal_instance = nullptr;
 
 namespace localstyles {
     namespace padding {
@@ -29,6 +30,7 @@ static void set_button_side_styles(Element *el) {
 }
 
 AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, Events(EventType::MenuAction), "div", false) {
+    assign_players_modal_instance = this;
     recompui::ContextId context = get_current_context();
     
     set_display(Display::Flex);
@@ -114,9 +116,9 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, Event
 
     auto left = context.create_element<Container>(footer, FlexDirection::Row, JustifyContent::FlexStart, 0);
     set_button_side_styles(left);
-    close_button = context.create_element<Button>(left, "Cancel", ButtonStyle::Tertiary);
-    close_button->add_pressed_callback(recompinput::playerassignment::stop_and_close_modal);
-    close_button->set_enabled(false);
+    keep_players_button = context.create_element<Button>(left, "Keep players", ButtonStyle::Tertiary);
+    keep_players_button->add_pressed_callback(recompinput::playerassignment::stop_and_close_modal);
+    keep_players_button->set_enabled(false);
 
     auto right = context.create_element<Container>(footer, FlexDirection::Row, JustifyContent::FlexEnd, 0);
     retry_button = context.create_element<Button>(right, "Retry", ButtonStyle::Warning);
@@ -125,6 +127,7 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, Event
         this->set_fake_focus_enabled(true);
         this->fake_focus_button->focus();
         recompinput::playerassignment::start();
+        this->init_pending_state();
     });
 
     confirm_button = context.create_element<Button>(right, "Confirm", ButtonStyle::Primary);
@@ -134,11 +137,52 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, Event
 }
 
 AssignPlayersModal::~AssignPlayersModal() {
+    assign_players_modal_instance = nullptr;
 }
 
 void AssignPlayersModal::set_fake_focus_enabled(bool enabled) {
     fake_focus_button->set_enabled(enabled);
     fake_focus_button->set_focusable(enabled);
+}
+
+void AssignPlayersModal::init_pending_state() {
+    if (recompinput::playerassignment::is_active()) {
+        keep_players_button->set_display(Display::None);
+        keep_players_button->set_enabled(false);
+        retry_button->set_enabled(false);
+        retry_button->set_text("Retry");
+        confirm_button->set_display(Display::Flex);
+    } else {
+        keep_players_button->set_display(Display::Flex);
+        retry_button->set_enabled(true);
+        retry_button->set_text("Reassign");
+
+        if (recompinput::players::has_enough_players_assigned()) {
+            keep_players_button->set_enabled(true);
+            keep_players_button->focus();
+        } else {
+            keep_players_button->set_enabled(false);
+            retry_button->focus();
+        }
+
+        confirm_button->set_display(Display::None);
+    }
+}
+
+void AssignPlayersModal::lock_focus(bool lock) {
+    if (lock) {
+        // Force focus on fake button until min player count is hit.
+        if (!fake_focus_button->is_enabled()) {
+            set_fake_focus_enabled(true);
+        }
+        fake_focus_button->focus();
+    } else {
+        Element *fake_focus_as_element = static_cast<Element*>(fake_focus_button);
+        // Remove fake focus button if focus is elsewhere.
+        if (fake_focus_button->is_enabled() && fake_focus_as_element != get_current_context().get_focused_element()) {
+            set_fake_focus_enabled(false);
+        }
+    }
 }
 
 void AssignPlayersModal::process_event(const Event &e) {
@@ -154,41 +198,13 @@ void AssignPlayersModal::process_event(const Event &e) {
             player_elements[i]->update_assignment_player_card();
         }
 
-        bool min_players_assigned = recompinput::playerassignment::met_assignment_requirements();
-        bool had_enough_players_assigned = recompinput::players::has_enough_players_assigned();
-
-        if (min_players_assigned) {
-            confirm_button->set_enabled(true);
-            retry_button->set_enabled(true);
+        if (recompinput::playerassignment::is_active()) {
+            bool met_assignment_reqs = recompinput::playerassignment::met_assignment_requirements();
+            lock_focus(!met_assignment_reqs);
+            confirm_button->set_enabled(met_assignment_reqs);
+            retry_button->set_enabled(met_assignment_reqs);
         } else {
-            confirm_button->set_enabled(false);
-            retry_button->set_enabled(false);
-        }
-
-        close_button->set_enabled(had_enough_players_assigned);
-
-        if (had_enough_players_assigned || min_players_assigned) {
-            Element *fake_focus_as_element = static_cast<Element*>(fake_focus_button);
-            // Remove fake focus button if focus is elsewhere.
-            if (fake_focus_button->is_enabled() && fake_focus_as_element != get_current_context().get_focused_element()) {
-                set_fake_focus_enabled(false);
-            }
-        } else {
-            // Force focus on fake button until min player count is hit.
-            if (!fake_focus_button->is_enabled()) {
-                set_fake_focus_enabled(true);
-            }
-            fake_focus_button->focus();
-        }
-
-        if (!recompinput::playerassignment::is_active()) {
-            if (min_players_assigned && was_assigning) {
-                confirm_button->focus();
-            }
-
-            was_assigning = false;
-        } else if (!min_players_assigned) {
-            was_assigning = true;
+            lock_focus(false);
         }
 
         queue_update();
@@ -201,11 +217,11 @@ void AssignPlayersModal::process_event(const Event &e) {
         switch (action.action) {
             case MenuAction::Back: {
                 ContextId context = get_current_context();
-                Element *close_as_element = static_cast<Element*>(close_button);
+                Element *close_as_element = static_cast<Element*>(keep_players_button);
                 if (context.get_focused_element() == close_as_element) {
                     recompinput::playerassignment::stop_and_close_modal();
                 } else {
-                    close_button->focus();
+                    keep_players_button->focus();
                 }
                 break;
             }
@@ -225,30 +241,45 @@ void AssignPlayersModal::create_player_elements() {
 }
 
 void AssignPlayersModal::open() {
+    if (assign_players_modal_instance == nullptr) {
+        return;
+    }
+
+    ContextId prev_context = try_close_current_context();
     if (!recompui::is_context_shown(assign_players_modal_context)) {
         recompui::show_context(assign_players_modal_context, "");
     }
+    
+    assign_players_modal_context.open();
+    assign_players_modal_instance->is_open = true;
+    assign_players_modal_instance->set_display(Display::Block);
+    assign_players_modal_instance->create_player_elements();
+    assign_players_modal_instance->init_pending_state();
+    assign_players_modal_instance->queue_update();
+    assign_players_modal_context.close();
 
-    is_open = true;
-    set_display(Display::Block);
-    create_player_elements();
-    queue_update();
+    if (prev_context != ContextId::null()) {
+        prev_context.open();
+    }
 }
+
 void AssignPlayersModal::close() {
+    if (assign_players_modal_instance == nullptr) {
+        return;
+    }
+
     if (recompui::is_context_shown(assign_players_modal_context)) {
-        set_display(Display::None);
+        assign_players_modal_instance->set_display(Display::None);
         recompui::hide_context(assign_players_modal_context);
     }
 
-    is_open = false;
+    assign_players_modal_instance->is_open = false;
 }
 
-recompui::AssignPlayersModal *assign_players_modal = nullptr;
-
-void init_assign_players_modal() {
+void AssignPlayersModal::init() {
     assign_players_modal_context = recompui::create_context();
     assign_players_modal_context.open();
-    assign_players_modal = assign_players_modal_context.create_element<AssignPlayersModal>(assign_players_modal_context.get_root_element());
+    assign_players_modal_context.create_element<AssignPlayersModal>(assign_players_modal_context.get_root_element());
     assign_players_modal_context.close();
 }
 

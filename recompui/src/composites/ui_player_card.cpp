@@ -139,8 +139,9 @@ void PlayerCard::on_edit_profile() {
 }
 
 void PlayerCard::update_player_card_icon() {
-    if (recompinput::players::get_player_is_assigned(player_index, is_assignment_card)) {
-        if (recompinput::players::get_player_input_device(player_index, is_assignment_card) == recompinput::InputDevice::Controller) {
+    bool use_temp_state = is_assignment_card && recompinput::playerassignment::is_active();
+    if (recompinput::players::get_player_is_assigned(player_index, use_temp_state)) {
+        if (recompinput::players::get_player_input_device(player_index, use_temp_state) == recompinput::InputDevice::Controller) {
             cur_icon = PlayerCardIcon::Controller;
         } else {
             cur_icon = PlayerCardIcon::Keyboard;
@@ -217,7 +218,8 @@ void PlayerCard::update_assignment_player_card() {
         multiplayer_pill = nullptr;
     }
 
-    if (!recompinput::players::get_player_is_assigned(player_index, is_assignment_card)) {
+    bool use_temp_state = is_assignment_card && recompinput::playerassignment::is_active();
+    if (!recompinput::players::get_player_is_assigned(player_index, use_temp_state)) {
         if (player_is_currently_assigning) {
             icon->set_scale_2D(1.1f, 1.1f);
             card->set_background_color(theme::color::PrimaryL, 255/5);
@@ -232,7 +234,7 @@ void PlayerCard::update_assignment_player_card() {
 
     card->set_background_color(theme::color::PrimaryA20);
 
-    bool has_controller = recompinput::players::get_player_input_device(player_index, is_assignment_card) == recompinput::InputDevice::Controller;
+    bool has_controller = recompinput::players::get_player_input_device(player_index, use_temp_state) == recompinput::InputDevice::Controller;
 
     std::chrono::steady_clock::duration time_since_last_button_press = recompinput::playerassignment::get_player_time_since_last_button_press(player_index);
     auto millis = static_cast<float>(std::chrono::duration_cast<std::chrono::milliseconds>(time_since_last_button_press).count());
