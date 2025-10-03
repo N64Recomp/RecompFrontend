@@ -48,6 +48,7 @@
     - Needs to use `game_input_contexts` descriptions on row hover
     - Needs to hide (or disable?) menu controls for keyboard
     - Should check `recompinput::players::is_single_player_mode()` if single player mode is active
+    - Should check for player count changes and not rely on initial input
   - `ui_config_tab_controls`
     - `create_controls_tab` hardcodes descriptions when adding the available GameInput inputs, and also determines whether or not an input should be able to be cleared, and doesn't specify if its only changeable on controller (see `input_types`)
   - `ui_select`
@@ -71,6 +72,7 @@
   - `players`
     - `single_player_mode` should be separate from max players
     - concept of players and profiles are disjointed, maybe thats okay? controller reconnects should attempt to preserve the last player's profile
+    - pressing escape stops the process and creates a softlock
 
 ## before public wishlist
 

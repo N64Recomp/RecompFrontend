@@ -6,17 +6,11 @@
 
 namespace recompui {
 
-static constexpr float assign_player_card_size = 128.0f;
-static constexpr float assign_player_card_icon_size = 64.0f;
-
-static constexpr float static_player_card_size = 256.0f;
-static constexpr float static_player_card_icon_size = 128.0f;
-
 PlayerCard::PlayerCard(
     Element *parent,
     int player_index,
     bool is_assignment_card
-) : Element(parent, 0, "div", false),
+) : Element(parent, Events(EventType::Focus), "div", false),
     player_index(player_index),
     is_assignment_card(is_assignment_card)
 {
@@ -32,8 +26,9 @@ PlayerCard::PlayerCard(
     set_width(size);
     set_height_auto();
     set_gap(8.0f);
-
+    
     if (!is_assignment_card) {
+        set_as_navigation_container(NavigationType::GridCol);
         auto player_label = context.create_element<Label>(this, "Player " + std::to_string(player_index + 1), LabelStyle::Small);
     }
 
@@ -126,6 +121,24 @@ PlayerCard::PlayerCard(
 PlayerCard::~PlayerCard() {
 }
 
+void PlayerCard::process_event(const Event &e) {
+    switch (e.type) {
+    case EventType::Focus: {
+        bool focus_active = std::get<EventFocus>(e.variant).active;
+        if (!is_assignment_card) {
+            if (focus_active) {
+                scroll_into_view(true);
+            }
+        } 
+        break;
+    }
+    case EventType::Update:
+        break;
+    default:
+        break;
+    }
+}
+
 void PlayerCard::on_select_player_profile(int profile_index) {
     if (this->on_select_profile_callback) {
         this->on_select_profile_callback(this->player_index, profile_index);
@@ -213,10 +226,15 @@ void PlayerCard::update_assignment_player_card() {
         if (recompinput::playerassignment::was_keyboard_assigned()) {
             create_add_multiplayer_pill();
         }
+        if (!was_player_assigning) {
+            scroll_into_view(true);
+        }
     } else if (multiplayer_pill != nullptr) {
         card->remove_child(multiplayer_pill);
         multiplayer_pill = nullptr;
     }
+
+    was_player_assigning = player_is_currently_assigning;
 
     bool use_temp_state = is_assignment_card && recompinput::playerassignment::is_active();
     if (!recompinput::players::get_player_is_assigned(player_index, use_temp_state)) {

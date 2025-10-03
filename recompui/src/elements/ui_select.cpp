@@ -111,7 +111,6 @@ namespace recompui {
         set_padding_left(select_element_padding);
         set_height(select_element_height);
         set_width_auto();
-        set_overflow(Overflow::Hidden);
 
         set_min_width(select_element_min_width);
 

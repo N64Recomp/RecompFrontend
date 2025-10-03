@@ -143,6 +143,8 @@ ConfigPageControls::ConfigPageControls(
 
     set_selected_player(selected_player);
 
+    set_as_navigation_container(NavigationType::Vertical);
+
     recompui::ContextId context = get_current_context();
 
     render_all();
@@ -184,6 +186,7 @@ void ConfigPageControls::render_header() {
 
     recompui::ContextId context = get_current_context();
     add_header();
+    header->set_as_navigation_container(NavigationType::Horizontal);
 
     // header left
     {
@@ -266,36 +269,57 @@ void ConfigPageControls::render_body_mappings() {
 void ConfigPageControls::render_body_players() {
     recompui::ContextId context = get_current_context();
     body->set_as_navigation_container(NavigationType::Horizontal);
+    body->set_max_height(100.0f, Unit::Percent);
 
     auto body_left = body->get_left();
     body_left->clear_children();
+    player_cards.clear();
+    body_left->set_padding(64.0f);
+    body_left->set_as_navigation_container(NavigationType::GridCol);
+    body_left->set_max_height(100.0f, Unit::Percent);
+    body_left->set_overflow_y(Overflow::Auto);
 
-    auto player_grid = context.create_element<Element>(body_left, 0, "div", false);
-    player_grid->set_as_navigation_container(NavigationType::Auto);
-    player_grid->set_display(Display::Flex);
-    player_grid->set_flex_direction(FlexDirection::Row);
-    player_grid->set_flex_wrap(FlexWrap::Wrap);
-    player_grid->set_justify_content(JustifyContent::SpaceBetween);
-    player_grid->set_align_items(AlignItems::Center);
-    player_grid->set_width(100.0f, Unit::Percent);
-    player_grid->set_height_auto();
-    player_grid->set_gap(64.0f);
+    bool make_fakes = num_players > 4;
 
-    for (int i = 0; i < num_players; i++) {
-        auto player_card = context.create_element<PlayerCard>(
-            player_grid,
-            i,
-            false
-        );
-        player_card->set_on_select_profile_callback([this](int player_index, int profile_index) {
-            this->on_select_player_profile(player_index, profile_index);
-        });
-        player_card->set_on_edit_profile_callback([this](int player_index) {
-            this->on_edit_player_profile(player_index);
-        });
-        player_cards.push_back(player_card);
-        if (i == 0) {
-            player_card->set_as_primary_focus(true);
+    // Grid supports groups of 4
+    for (int i = 0; i < num_players; i += 4) {
+        auto player_grid = context.create_element<Element>(body_left, 0, "div", false);
+        player_grid->set_as_navigation_container(NavigationType::GridRow);
+        player_grid->set_display(Display::Flex);
+        player_grid->set_flex_direction(FlexDirection::Row);
+        player_grid->set_justify_content(JustifyContent::Center);
+        player_grid->set_align_items(AlignItems::Center);
+        player_grid->set_width(100.0f, Unit::Percent);
+        player_grid->set_height_auto();
+        player_grid->set_gap(64.0f);
+        player_grid->set_padding_bottom(64.0f);
+
+        for (int j = i; j < i + 4; j++) {
+            if (!make_fakes && j >= num_players) {
+                break;
+            }
+
+            if (make_fakes && j >= 4 && j >= num_players) {
+                auto fake = context.create_element<Element>(player_grid);
+                fake->set_width(PlayerCard::static_player_card_size, Unit::Dp);
+                break;
+            }
+
+            auto player_card = context.create_element<PlayerCard>(
+                player_grid,
+                j,
+                false
+            );
+            player_card->set_on_select_profile_callback([this](int player_index, int profile_index) {
+                this->on_select_player_profile(player_index, profile_index);
+            });
+            player_card->set_on_edit_profile_callback([this](int player_index) {
+                this->on_edit_player_profile(player_index);
+            });
+            player_cards.push_back(player_card);
+            if (i == 0 && j == 0) {
+                player_card->set_as_primary_focus(true);
+            }
         }
     }
 }

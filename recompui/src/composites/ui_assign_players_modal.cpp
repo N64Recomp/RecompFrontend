@@ -90,10 +90,6 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, Event
     context.create_element<Label>(header, "Assign Players", theme::Typography::Header3);
 
     player_elements_wrapper = context.create_element<Element>(modal, 0, "div", false);
-    player_elements_wrapper->set_display(Display::Flex);
-    player_elements_wrapper->set_flex_direction(FlexDirection::Row);
-    player_elements_wrapper->set_justify_content(JustifyContent::SpaceBetween);
-    player_elements_wrapper->set_align_items(AlignItems::Center);
     player_elements_wrapper->set_width(100, Unit::Percent);
     player_elements_wrapper->set_padding_left(localstyles::padding::horizontal);
     player_elements_wrapper->set_padding_right(localstyles::padding::horizontal);
@@ -234,9 +230,55 @@ void AssignPlayersModal::create_player_elements() {
     player_elements.clear();
     recompui::ContextId context = get_current_context();
 
-    for (int i = 0; i < recompinput::players::get_max_number_of_players(); i++) {
-        PlayerCard* player_element = context.create_element<PlayerCard>(player_elements_wrapper, i, true);
+    Element *row_wrapper = nullptr;
+
+    int max_players = static_cast<int>(recompinput::players::get_max_number_of_players());
+
+    if (max_players > 12) {
+        player_elements_wrapper->set_overflow_y(Overflow::Auto);
+        player_elements_wrapper->set_max_height(
+            PlayerCard::assign_player_card_size * 3.5f + localstyles::gap::vertical * 2 + localstyles::gap::vertical * 2);
+        player_elements_wrapper->set_padding_top(localstyles::gap::vertical);
+        player_elements_wrapper->set_padding_bottom(localstyles::gap::vertical);
+        player_elements_wrapper->set_border_top_width(theme::border::width);
+        player_elements_wrapper->set_border_bottom_width(theme::border::width);
+        player_elements_wrapper->set_border_color(theme::color::Border);
+    } else {
+        player_elements_wrapper->set_max_height(1080); // Arbitrary large number to disable max height.
+        player_elements_wrapper->set_overflow_y(Overflow::Auto);
+        player_elements_wrapper->set_padding_top(0);
+        player_elements_wrapper->set_padding_bottom(0);
+        player_elements_wrapper->set_border_top_width(0);
+        player_elements_wrapper->set_border_bottom_width(0);
+        player_elements_wrapper->set_border_color(theme::color::Transparent);
+    }
+
+    for (int i = 0; i < max_players; i++) {
+        if (i % 4 == 0) {
+            row_wrapper = context.create_element<Element>(player_elements_wrapper, 0, "div", false);
+            row_wrapper->set_display(Display::Flex);
+            row_wrapper->set_flex_direction(FlexDirection::Row);
+            row_wrapper->set_justify_content(JustifyContent::SpaceBetween);
+            row_wrapper->set_align_items(AlignItems::Center);
+            row_wrapper->set_width(100.0f, Unit::Percent);
+            row_wrapper->set_gap(localstyles::gap::horizontal);
+            row_wrapper->set_as_navigation_container(NavigationType::Horizontal);
+            if (max_players > 12 || i + 4 < max_players) {
+                row_wrapper->set_padding_bottom(localstyles::gap::vertical);
+            }
+        }
+
+        PlayerCard* player_element = context.create_element<PlayerCard>(row_wrapper, i, true);
         player_elements.push_back(player_element);
+    }
+
+    if (max_players > 4 && max_players % 4 != 0) {
+        // Add empty cards to keep grid alignment.
+        int num_fakes = 4 - (max_players % 4);
+        for (int i = 0; i < num_fakes; i++) {
+            auto fake = context.create_element<Element>(row_wrapper);
+            fake->set_width(PlayerCard::assign_player_card_size);
+        }
     }
 }
 

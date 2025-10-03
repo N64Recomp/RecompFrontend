@@ -4,8 +4,7 @@
 #include "chrono"
 
 namespace recompinput {
-    // UI only supports up to 8 players for now
-    constexpr size_t max_num_players_supported = 8;
+    constexpr size_t max_num_players_supported = 128;
     constexpr size_t num_bindings_per_input = 2;
     inline const std::string unknown_device_input = "UNKNOWN";
     constexpr float axis_digital_threshold = 0.5f;
