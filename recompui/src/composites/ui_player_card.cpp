@@ -206,6 +206,7 @@ void PlayerCard::create_add_multiplayer_pill() {
     multiplayer_pill->set_position(Position::Absolute);
     multiplayer_pill->set_right(4);
     multiplayer_pill->set_bottom(4);
+    multiplayer_pill->set_debug_id("AddMultiplayerPill");
 }
 
 void PlayerCard::update_assignment_player_card() {

@@ -39,7 +39,7 @@ protected:
     std::vector<BindingButton*> binding_buttons = {};
 
     Style active_style;
-    std::function<void()> on_hover_callback;
+    std::function<void()> on_active_callback;
 
     virtual void process_event(const Event &e) override;
     std::string_view get_type_name() override { return "GameInputRow"; }
@@ -47,7 +47,7 @@ public:
     GameInputRow(
         Element *parent,
         GameInputContext *input_ctx,
-        std::function<void()> on_hover_callback,
+        std::function<void()> on_active_callback,
         on_bind_click_callback on_bind_click,
         on_clear_or_reset_callback on_clear_or_reset
     );

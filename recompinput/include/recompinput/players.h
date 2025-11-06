@@ -18,8 +18,10 @@ namespace recompinput {
         size_t get_number_of_assigned_players();
         size_t get_max_number_of_players();
         bool is_single_player_mode();
+        void set_single_player_mode(bool single_player);
         void set_min_number_of_players(size_t min_players);
         void set_max_number_of_players(size_t max_players);
+        void set_player_count_range(size_t min_players, size_t max_players);
         const Player& get_player(int player_index, bool temp_player = false);
         bool get_player_is_assigned(int player_index, bool temp_player = false);
         bool has_enough_players_assigned();

@@ -76,6 +76,10 @@ bool players::is_single_player_mode() {
     return PlayerState.single_player_mode;
 }
 
+void players::set_single_player_mode(bool single_player) {
+    PlayerState.single_player_mode = single_player;
+}
+
 void players::set_min_number_of_players(size_t min_players) {
     assert(min_players >= 1 && min_players <= PlayerState.max_players);
     PlayerState.min_players = min_players;
@@ -84,11 +88,12 @@ void players::set_min_number_of_players(size_t min_players) {
 void players::set_max_number_of_players(size_t max_players) {
     assert(max_players >= PlayerState.min_players && max_players <= recompinput::max_num_players_supported);
     PlayerState.max_players = max_players;
-    if (max_players == 1) {
-        PlayerState.single_player_mode = true;
-    } else {
-        PlayerState.single_player_mode = false;
-    }
+}
+
+void players::set_player_count_range(size_t min_players, size_t max_players) {
+    assert(min_players >= 1 && max_players <= recompinput::max_num_players_supported && min_players <= max_players);
+    PlayerState.min_players = min_players;
+    PlayerState.max_players = max_players;
 }
 
 const recompinput::Player& players::get_player(int player_index, bool temp_player) {

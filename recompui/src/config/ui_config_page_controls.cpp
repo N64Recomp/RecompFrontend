@@ -17,12 +17,12 @@ const std::string_view active_state_style_name = "cont_opt_active";
 GameInputRow::GameInputRow(
     Element *parent,
     GameInputContext *input_ctx,
-    std::function<void()> on_hover_callback,
+    std::function<void()> on_active_callback,
     on_bind_click_callback on_bind_click,
     on_clear_or_reset_callback on_clear_or_reset
-) : Element(parent, Events(EventType::Hover), "div", false) {
+) : Element(parent, Events(EventType::Hover, EventType::Focus), "div", false) {
     this->input_id = input_ctx->input_id;
-    this->on_hover_callback = on_hover_callback;
+    this->on_active_callback = on_active_callback;
 
     set_display(Display::Flex);
     set_position(Position::Relative);
@@ -43,6 +43,8 @@ GameInputRow::GameInputRow(
     add_style(&active_style, active_state_style_name);
 
     recompui::ContextId context = get_current_context();
+
+    set_debug_id("GameInputRow (" + input_ctx->name + ")");
 
     auto label = context.create_element<Label>(this, input_ctx->name, LabelStyle::Normal);
     label->set_flex_grow(2.0f);
@@ -72,8 +74,10 @@ GameInputRow::GameInputRow(
             binding_button->add_pressed_callback([this, i, on_bind_click]() {
                on_bind_click(this->input_id, i);
             });
+            binding_button->set_debug_id("BindingButton (" + input_ctx->name + " Binding " + std::to_string(i) + ")");
             binding_buttons.push_back(binding_button);
         }
+        binding_buttons[0]->set_as_primary_focus(true);
     }
 
     if (input_ctx->clearable) {
@@ -119,9 +123,19 @@ void GameInputRow::process_event(const Event &e) {
         {
             bool hover_active = std::get<EventHover>(e.variant).active;
             set_style_enabled(active_state_style_name, hover_active);
-            if (hover_active && on_hover_callback) {
-                on_hover_callback();
+            if (hover_active && on_active_callback) {
+                on_active_callback();
             }
+        }
+        break;
+    case EventType::Focus:
+        {
+            bool focus_active = std::get<EventFocus>(e.variant).active;
+            set_style_enabled(active_state_style_name, focus_active);
+            if (focus_active && on_active_callback) {
+                on_active_callback();
+            }
+            scroll_into_view();
         }
         break;
     default:
@@ -144,6 +158,7 @@ ConfigPageControls::ConfigPageControls(
     set_selected_player(selected_player);
 
     set_as_navigation_container(NavigationType::Vertical);
+    set_debug_id("ConfigPageControls");
 
     recompui::ContextId context = get_current_context();
 
@@ -255,14 +270,7 @@ void ConfigPageControls::render_body_mappings() {
     {
         body->get_right()->clear_children();
         description_container = context.create_element<Element>(body->get_right(), 0, "p", true);
-        description_container->set_text(
-            "Sometimes, the windows combine with the seams in a way\n"
-            "That twitches on a peak at the place where the spirit was slain\n"
-            "Hey, one foot leads to another\n"
-            "Night's for sleep, blue curtains, covers, sequins in the eyes\n"
-            "That's a fine time to dine\n"
-            "Divine who's circling, feeding the cards to the midwives"
-        );
+        description_container->set_text("");
     }
 }
 
@@ -274,8 +282,12 @@ void ConfigPageControls::render_body_players() {
     auto body_left = body->get_left();
     body_left->clear_children();
     player_cards.clear();
+
+    body_left->set_display(Display::Block);
     body_left->set_padding(64.0f);
     body_left->set_as_navigation_container(NavigationType::GridCol);
+    body_left->set_position(Position::Relative);
+    body_left->set_height_auto();
     body_left->set_max_height(100.0f, Unit::Percent);
     body_left->set_overflow_y(Overflow::Auto);
 
@@ -384,8 +396,12 @@ void ConfigPageControls::render_control_mappings() {
     body_left->clear_children();
 
     body_left->set_display(Display::Block);
+    body_left->set_padding(0.0f);
+    body_left->set_as_navigation_container(NavigationType::Vertical);
     body_left->set_position(Position::Relative);
     body_left->set_height(100.0f, Unit::Percent);
+    body_left->set_max_height(100.0f, Unit::Percent);
+    body_left->set_overflow_y(Overflow::Auto);
     
     {
         auto body_left_scroll = context.create_element<Element>(body_left, 0, "div", false);
@@ -394,6 +410,7 @@ void ConfigPageControls::render_control_mappings() {
         body_left_scroll->set_max_height(100.0f, Unit::Percent);
         body_left_scroll->set_overflow_y(Overflow::Scroll);
         body_left_scroll->set_as_navigation_container(NavigationType::GridCol);
+        body_left_scroll->set_debug_id("Mappings Scroll Container");
 
         game_input_rows.clear();
         for (int i = 0; i < game_input_contexts.size(); i++) {

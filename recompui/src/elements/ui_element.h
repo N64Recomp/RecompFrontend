@@ -20,39 +20,38 @@ struct UICallback {
 
 using ElementValue = std::variant<uint32_t, float, double, std::monostate>;
 
+// Defines how navigation works within the focusable children of an element, or between navigation containers.
+// This makes controller/arrow navigation a lot more intuitive and reliable than guessing.
 enum class NavigationType {
     None,
+    // Navigating automatically based on distance and input direction.
+    // It is almost always better to specify a direction.
     Auto,
+    // Children are arranged in a vertical list.
     Vertical,
+    // Children are arranged in a horizontal list.
     Horizontal,
+
+    // The next two types are for grid layouts.
+    // They behave like the base direction but preserve the index when navigating across the other axis.
+    // For example, you can set the wrapper element around rows to GridCol, and each row to GridRow,
+    // and the focusable elements within each row will keep their column index when navigating up/down.
+
+    // Grid navigation: Vertical grouping of elements
     GridCol,
+    // Grid navigation: Horizontal grouping of elements
     GridRow
 };
 
-inline NavigationType get_effective_nav_type(NavigationType nav_type) {
-    switch (nav_type) {
-        default:
-        case NavigationType::Auto:
-        case NavigationType::Horizontal:
-        case NavigationType::Vertical:
-            return nav_type;
-        case NavigationType::GridRow:
-            return NavigationType::Horizontal;
-        case NavigationType::GridCol:
-            return NavigationType::Vertical;
-    }
-}
-
-inline bool are_nav_types_equal(NavigationType nav_type1, NavigationType nav_type2) {
-    return get_effective_nav_type(nav_type1) == get_effective_nav_type(nav_type2);
-}
-
 class ContextId;
+class RecompNav;
+
 class Element : public Style, public Rml::EventListener {
     friend ContextId create_context(const std::filesystem::path& path);
     friend ContextId create_context();
     friend class ContextId; // To allow ContextId to call the handle_event method directly.
-    friend class Document;
+    friend class Document; // For navigation needs access to more properties than other elements should be able to.
+    friend class RecompNav; // Same as above.
 private:
     Rml::Element *base = nullptr;
     Rml::ElementPtr base_owning = {};
@@ -65,6 +64,7 @@ private:
     Element *parent = nullptr;
     std::vector<Element *> children;
     std::string id;
+    std::string debug_id = "";
     bool shim = false;
     bool enabled = true;
     bool disabled_attribute = false;
@@ -85,18 +85,6 @@ private:
     void handle_event(const Event &e);
     void set_id(const std::string& new_id);
     void set_as_root_document(NavigationType nav_type = NavigationType::Vertical);
-    void get_wrapped_fallback_element(Element **fallback_wrap_element, int nav_dir);
-    Element *try_grid_navigation(
-        int nav_dir,
-        int cur_element_index,
-        Element **fallback_wrap_element
-    );   
-    Element *try_get_nav_direction(   
-        int vertical_nav,
-        int horizontal_nav,
-        Element *cur_nav_child,
-        Element **fallback_wrap_element
-    );
 
     // Style overrides.
     virtual void set_property(Rml::PropertyId property_id, const Rml::Property &property) override;
@@ -110,16 +98,6 @@ private:
     Element *get_nav_parent();
     void get_all_focusable_children(Element *nav_parent);
     void build_navigation(Element *nav_parent, Element *cur_focus_element);
-    Element *get_closest_element(std::vector<Element *> &elements);
-    // With navigation context, find the ideal focusable child element.
-    // If the nav type and direction are used, it will try to continue the direction of navigation.
-    // the original_element is used to find the closest element if there isn't one marked as primary.
-    static Element *dive_to_best_nav_child(
-        Element *from_element,
-        NavigationType preserved_nav_type = NavigationType::None,
-        int dir = 0,
-        Element *original_element = nullptr
-    );
 protected:
     // Use of this method in inherited classes is discouraged unless it's necessary.
     void set_attribute(const Rml::String &attribute_key, const Rml::String &attribute_value);
@@ -181,17 +159,27 @@ public:
     bool is_pseudo_class_set(Rml::String pseudo_class);
     void scroll_into_view(bool smooth = false);
 
+    void set_debug_id(const std::string& new_debug_id) { debug_id = new_debug_id; }
+    const std::string& get_debug_id() const { return debug_id; }
+
+    // Marks an element as a container around navigatable elements.
+    // It tells the navigation system how directional input should be handled within this element's focusable children.
     void set_as_navigation_container(NavigationType nav_type);
+    // Sets if the navigation container should wrap when reaching the end of its children.
     void set_nav_wrapping(bool wrapping);
+    // Within a group of navigatable elements, if the parent is navigated to, this one will be prioritized.
+    // Note: Going across the same nav types (like from one Horizontal to another) will override this.
+    // This is more used to decide which element to focus on when any element could be picked,
+    // like vertically navigating to the selected tab in a tab list.
     void set_as_primary_focus(bool is_primary_focus = true);
 
     Element *select_add_option(std::string_view text, std::string_view value);
     void select_set_selection(std::string_view option_value);
+
     std::vector<Element *> *get_nav_children() { return &nav_children; }
 
     enum class CanFocus { No, Yes, NoAndNoChildren };
     CanFocus is_focusable();
-    Element *get_first_focusable_child();
 };
 
 void queue_ui_callback(recompui::ResourceId resource, const Event& e, const UICallback& callback);

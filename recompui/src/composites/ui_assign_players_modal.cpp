@@ -37,6 +37,8 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, Event
     set_flex_direction(FlexDirection::Column);
     set_background_color(theme::color::Transparent);
     set_display(Display::None);
+    set_as_navigation_container(NavigationType::Auto);
+    set_debug_id("AssignPlayersModal");
 
     Element* modal_overlay = context.create_element<Element>(this);
     modal_overlay->set_background_color(theme::color::BGOverlay);
@@ -100,6 +102,7 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, Event
     footer->set_display(Display::Flex);
     footer->set_position(Position::Relative);
     footer->set_flex_direction(FlexDirection::Row);
+    footer->set_as_navigation_container(NavigationType::Horizontal);
     footer->set_align_items(AlignItems::Center);
     footer->set_justify_content(JustifyContent::SpaceBetween);
     footer->set_width(100.0f, Unit::Percent);
@@ -113,11 +116,13 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, Event
     auto left = context.create_element<Container>(footer, FlexDirection::Row, JustifyContent::FlexStart, 0);
     set_button_side_styles(left);
     keep_players_button = context.create_element<Button>(left, "Keep players", ButtonStyle::Tertiary);
+    keep_players_button->set_debug_id("KeepPlayersButton");
     keep_players_button->add_pressed_callback(recompinput::playerassignment::stop_and_close_modal);
     keep_players_button->set_enabled(false);
 
     auto right = context.create_element<Container>(footer, FlexDirection::Row, JustifyContent::FlexEnd, 0);
     retry_button = context.create_element<Button>(right, "Retry", ButtonStyle::Warning);
+    retry_button->set_debug_id("RetryPlayerAssignmentButton");
     retry_button->set_enabled(false);
     retry_button->add_pressed_callback([this](){
         this->set_fake_focus_enabled(true);
@@ -127,6 +132,7 @@ AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, Event
     });
 
     confirm_button = context.create_element<Button>(right, "Confirm", ButtonStyle::Primary);
+    confirm_button->set_debug_id("ConfirmPlayerAssignmentButton");
     confirm_button->set_enabled(false);
     confirm_button->add_pressed_callback(recompinput::playerassignment::commit_player_assignment);
     set_button_side_styles(right);
@@ -263,6 +269,7 @@ void AssignPlayersModal::create_player_elements() {
             row_wrapper->set_width(100.0f, Unit::Percent);
             row_wrapper->set_gap(localstyles::gap::horizontal);
             row_wrapper->set_as_navigation_container(NavigationType::Horizontal);
+            row_wrapper->set_debug_id("PlayerCardRowWrapper" + std::to_string(i / 4));
             if (max_players > 12 || i + 4 < max_players) {
                 row_wrapper->set_padding_bottom(localstyles::gap::vertical);
             }

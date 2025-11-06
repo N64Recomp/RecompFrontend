@@ -15,7 +15,12 @@
   - `include/recompui/recompui.h`
     - audit exposed funcs, potentially only include functions a base project might need? then the rest could go somewhere else
   - `ui_element`
-    - new nav system could go somewhere else (currently at the bottom of `ui_element.c`)
+  - `ui_game_option`
+    - specific focus styling (use pulse?)
+  - `ui_binding_button`
+    - specific focus styling (pulse)
+  - `ui_select`
+    - specific focus styling (pulse border)
   - `renderer`
     - remove hardcoded
   - `ui_config`
@@ -42,6 +47,7 @@
     - should probably open and instantiate in a more integrated way. has risk of not being in a valid context
     - expose mod/patch c API for opening
     - Add help text to explain how to assign controller/keyboard players
+    - softlock when hitting escape?
   - `ui_config_page`
     - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
   - `ui_config_page_controls`
@@ -49,6 +55,8 @@
     - Needs to hide (or disable?) menu controls for keyboard
     - Should check `recompinput::players::is_single_player_mode()` if single player mode is active
     - Should check for player count changes and not rely on initial input
+  - `ui_config_page_controls` & `ui_player_card`
+    - player cards should contain some padding so when scrolling into view it has some headroom
   - `ui_config_tab_controls`
     - `create_controls_tab` hardcodes descriptions when adding the available GameInput inputs, and also determines whether or not an input should be able to be cleared, and doesn't specify if its only changeable on controller (see `input_types`)
   - `ui_select`
@@ -83,9 +91,6 @@
 - Mod recompui: expose functionality
   - new nav system (very important)
     - Document api usage.
-    - `set_as_navigation_container` w/ enum for `NavigationType`s
-    - `set_as_primary_focus`
-    - `set_nav_wrapping`?
   - new button styles `ButtonStyle` + `ButtonSize`
   - new components
     - `IconButton`

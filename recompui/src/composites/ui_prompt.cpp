@@ -108,6 +108,7 @@ void recompui::init_prompt_context() {
     
     prompt_state.prompt_controls->set_display(Display::Flex);
     prompt_state.prompt_controls->set_flex_direction(FlexDirection::Row);
+    prompt_state.prompt_controls->set_as_navigation_container(NavigationType::Horizontal);
     prompt_state.prompt_controls->set_justify_content(JustifyContent::SpaceBetween);
     prompt_state.prompt_controls->set_align_items(AlignItems::Center);
     prompt_state.prompt_controls->set_padding(24, Unit::Dp);
