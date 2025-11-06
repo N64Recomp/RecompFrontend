@@ -18,7 +18,7 @@ static std::vector<PendingTab> pending_tabs;
 static bool loaded_configs = false;
 
 namespace recompui {
-    recompui::Modal *config::config_modal = nullptr;
+    recompui::TabbedModal *config::config_modal = nullptr;
 
     recomp::config::Config &config::get_config(const std::string &id) {
         for (auto &[config_id, config] : configs) {
@@ -144,7 +144,7 @@ namespace recompui {
             throw std::runtime_error("Config modal has already been initialized.");
         }
 
-        config_modal = Modal::create_modal(ModalType::Fullscreen);
+        config_modal = TabbedModal::create_modal(ModalType::Fullscreen);
         config_modal->modal_root_context.open();
         for (auto &tab : pending_tabs) {
             config_modal->add_tab(tab.name, tab.id, tab.callbacks.create_contents, tab.callbacks.can_close, tab.callbacks.on_close);

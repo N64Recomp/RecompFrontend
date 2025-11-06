@@ -50,34 +50,54 @@ namespace recompui {
         TabCallbacks callbacks;
     };
 
+    class TabbedModal;
+
     class Modal : public Element {
+        friend class TabbedModal;
     protected:
         bool is_open = false;
         Element *modal_element = nullptr;
         ConfigHeaderFooter *header = nullptr;
         Element *body = nullptr;
         ModalType modal_type;
-        std::vector<TabContext> tab_contexts;
         std::function<void()> on_close_callback;
         std::unordered_map<MenuAction, std::function<void()>> menu_action_callbacks;
-        TabSet *tabs = nullptr;
-        int previous_tab_index = -1;
-        int current_tab_index = -1;
 
         virtual void process_event(const Event &e) override;
         std::string_view get_type_name() override { return "Modal"; }
-        void on_tab_change(int tab_index);
-        void navigate_tab_direction(int direction);
-        void initialize_tab(TabContext &tab_context);
+
     public:
         recompui::ContextId modal_root_context;
         Modal(Document *parent, recompui::ContextId modal_root_context, ModalType modal_type);
         static Modal *create_modal(ModalType modal_type = ModalType::Fullscreen);
         virtual ~Modal();
-        void open();
-        bool close();
+        virtual void open();
+        virtual bool close();
         bool is_open_now() const { return is_open; }
 
+        ConfigHeaderFooter *get_header() { return header; }
+        Element *get_body() { return body; }
+
+        void set_on_close_callback(std::function<void()> callback);
+        void set_menu_action_callback(MenuAction action, std::function<void()> callback);
+    };
+
+    class TabbedModal : public Modal {
+    protected:
+        std::vector<TabContext> tab_contexts;
+        TabSet *tabs = nullptr;
+        int previous_tab_index = -1;
+        int current_tab_index = -1;
+        virtual void process_event(const Event &e) override;
+        std::string_view get_type_name() override { return "TabbedModal"; }
+        void on_tab_change(int tab_index);
+        void navigate_tab_direction(int direction);
+        void initialize_tab(TabContext &tab_context);
+    public:
+        virtual void open() override;
+        virtual bool close() override;
+        TabbedModal(Document *parent, recompui::ContextId modal_root_context, ModalType modal_type);
+        static TabbedModal *create_modal(ModalType modal_type = ModalType::Fullscreen);
         void add_tab(TabContext &&tab_context);
         void add_tab(
             const std::string &name,
@@ -88,12 +108,7 @@ namespace recompui {
         );
         void set_selected_tab(int tab_index);
         void set_selected_tab(const std::string &id);
-
-        ConfigHeaderFooter *get_header() { return header; }
-        Element *get_body() { return body; }
         Element *get_active_tab() { return tabs != nullptr ? static_cast<Tab*>(tabs->get_active_tab_element()) : nullptr; }
-        void set_on_close_callback(std::function<void()> callback);
-        void set_menu_action_callback(MenuAction action, std::function<void()> callback);
         void set_tab_visible(const std::string &id, bool is_visible);
     };
 } // namespace recompui

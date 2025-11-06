@@ -113,7 +113,11 @@ void Modal::open() {
 
     is_open = true;
     set_display(Display::Block);
-    // queue_update();
+}
+
+void TabbedModal::open() {
+    Modal::open();
+
     if (tabs != nullptr) {
         tabs->focus_on_active_tab();
         on_tab_change(tabs->get_active_tab());
@@ -121,14 +125,6 @@ void Modal::open() {
 }
 
 bool Modal::close() {
-    if (current_tab_index < tab_contexts.size() && current_tab_index >= 0) {
-        if (tab_contexts[current_tab_index].can_close(TabCloseContext::ModalClose)) {
-            tab_contexts[current_tab_index].on_close(TabCloseContext::ModalClose);
-        } else {
-            return false;
-        }
-    }
-
     if (recompui::is_context_shown(modal_root_context)) {
         set_display(Display::None);
         recompui::hide_context(modal_root_context);
@@ -143,7 +139,71 @@ bool Modal::close() {
     return true;
 }
 
+bool TabbedModal::close() {
+    if (current_tab_index < tab_contexts.size() && current_tab_index >= 0) {
+        if (tab_contexts[current_tab_index].can_close(TabCloseContext::ModalClose)) {
+            tab_contexts[current_tab_index].on_close(TabCloseContext::ModalClose);
+        } else {
+            return false;
+        }
+    }
+
+    return Modal::close();
+}
+
 void Modal::process_event(const Event &e) {
+    switch (e.type) {
+        case EventType::MenuAction: {
+            auto action = std::get<EventMenuAction>(e.variant).action;
+            if (menu_action_callbacks.contains(action)) {
+                menu_action_callbacks[action]();
+                break;
+            }
+
+            if (action == MenuAction::Toggle) {
+                close();
+            }
+            break;
+        }
+    }
+}
+
+void Modal::set_menu_action_callback(MenuAction action, std::function<void()> callback) {
+    menu_action_callbacks[action] = callback;
+}
+
+void Modal::set_on_close_callback(std::function<void()> callback) {
+    on_close_callback = callback;
+}
+
+Modal *Modal::create_modal(ModalType modal_type) {
+    ContextId new_context = recompui::create_context();
+    new_context.open();
+    Modal *modal = new_context.create_element<Modal>(new_context.get_root_element(), new_context, modal_type);
+    new_context.close();
+    return modal;
+}
+
+TabbedModal::TabbedModal(
+    Document *parent,
+    recompui::ContextId modal_root_context,
+    ModalType modal_type
+) : Modal(parent, modal_root_context, modal_type)
+{
+    set_menu_action_callback(MenuAction::Back, [this]() {
+        if (this->tabs != nullptr) {
+            this->tabs->focus_on_active_tab();
+        }
+    });
+    set_menu_action_callback(MenuAction::TabLeft, [this]() {
+        this->navigate_tab_direction(-1);
+    });
+    set_menu_action_callback(MenuAction::TabRight, [this]() {
+        this->navigate_tab_direction(1);
+    });
+}
+
+void TabbedModal::process_event(const Event &e) {
     switch (e.type) {
         case EventType::Update: {
             if (previous_tab_index != current_tab_index) {
@@ -156,42 +216,20 @@ void Modal::process_event(const Event &e) {
             queue_update();
             break;
         }
-        case EventType::MenuAction: {
-            auto action = std::get<EventMenuAction>(e.variant).action;
-            if (menu_action_callbacks.contains(action)) {
-                menu_action_callbacks[action]();
-                break;
-            }
-            switch (action) {
-                case MenuAction::Accept:
-                    break;
-                case MenuAction::Apply:
-                    break;
-                case MenuAction::Back: {
-                    if (tabs != nullptr) {
-                        tabs->focus_on_active_tab();
-                    }
-                    break;
-                }
-                case MenuAction::Toggle: {
-                    close();
-                    break;
-                }
-                case MenuAction::TabLeft: {
-                    navigate_tab_direction(-1);
-                    break;
-                }
-                case MenuAction::TabRight: {
-                    navigate_tab_direction(1);
-                    break;
-                }
-            }
-            break;
-        }
     }
+
+    Modal::process_event(e);
 }
 
-void Modal::navigate_tab_direction(int direction) {
+TabbedModal *TabbedModal::create_modal(ModalType modal_type) {
+    ContextId new_context = recompui::create_context();
+    new_context.open();
+    TabbedModal *modal = new_context.create_element<TabbedModal>(new_context.get_root_element(), new_context, modal_type);
+    new_context.close();
+    return modal;
+}
+
+void TabbedModal::navigate_tab_direction(int direction) {
     if (tab_contexts.size() == 0 || tabs == nullptr) {
         return;
     }
@@ -203,11 +241,7 @@ void Modal::navigate_tab_direction(int direction) {
     }
 }
 
-void Modal::set_menu_action_callback(MenuAction action, std::function<void()> callback) {
-    menu_action_callbacks[action] = callback;
-}
-
-void Modal::on_tab_change(int tab_index) {
+void TabbedModal::on_tab_change(int tab_index) {
     if (current_tab_index < tab_contexts.size() && current_tab_index >= 0) {
         if (tab_contexts[current_tab_index].can_close(TabCloseContext::TabChange)) {
             tab_contexts[current_tab_index].on_close(TabCloseContext::TabChange);
@@ -221,13 +255,13 @@ void Modal::on_tab_change(int tab_index) {
     }
 }
 
-void Modal::set_selected_tab(int tab_index) {
+void TabbedModal::set_selected_tab(int tab_index) {
     if (tabs != nullptr) {
         tabs->set_active_tab(tab_index, true);
     }
 }
 
-void Modal::set_selected_tab(const std::string &id) {
+void TabbedModal::set_selected_tab(const std::string &id) {
     if (tabs != nullptr) {
         for (int i = 0; i < tab_contexts.size(); i++) {
             if (tab_contexts[i].id == id) {
@@ -238,7 +272,7 @@ void Modal::set_selected_tab(const std::string &id) {
     }
 }
 
-void Modal::initialize_tab(TabContext &tab_context) {
+void TabbedModal::initialize_tab(TabContext &tab_context) {
     ContextId context = get_current_context();
     if (tabs == nullptr) {
         header->set_padding_left(0.0f); // tabs hug to left side
@@ -250,12 +284,12 @@ void Modal::initialize_tab(TabContext &tab_context) {
     tabs->add_tab(tab_context.name);
 }
 
-void Modal::add_tab(TabContext &&tab_context) {
+void TabbedModal::add_tab(TabContext &&tab_context) {
     tab_contexts.emplace_back(std::move(tab_context));
     initialize_tab(tab_contexts.back());
 }
 
-void Modal::add_tab(
+void TabbedModal::add_tab(
     const std::string &name,
     const std::string &id,
     tab_callbacks::create_contents_t create_contents,
@@ -270,19 +304,7 @@ void Modal::add_tab(
     initialize_tab(tab_contexts.back());
 }
 
-Modal *Modal::create_modal(ModalType modal_type) {
-    ContextId new_context = recompui::create_context();
-    new_context.open();
-    Modal *modal = new_context.create_element<Modal>(new_context.get_root_element(), new_context, modal_type);
-    new_context.close();
-    return modal;
-}
-
-void Modal::set_on_close_callback(std::function<void()> callback) {
-    on_close_callback = callback;
-}
-
-void Modal::set_tab_visible(const std::string &id, bool is_visible) {
+void TabbedModal::set_tab_visible(const std::string &id, bool is_visible) {
     if (tabs != nullptr) {
         for (int i = 0; i < tab_contexts.size(); i++) {
             if (tab_contexts[i].id == id) {
