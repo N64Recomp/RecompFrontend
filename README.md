@@ -1,5 +1,13 @@
 # Building
 
+## Refactor TODO
+
+- `recompui`
+  - `include/recompui/recompui.h`
+    - audit exposed funcs, potentially only include functions a base project might need? then the rest could go somewhere else
+  - assets
+    - need to provide default assets with ability to override
+
 ## changes needed
 
 - structure
@@ -8,12 +16,7 @@
   - handle anything with `TODO: Forced game includes`
     - `ui_api_events` -> `patches/ui_funcs.h`
     - `ui_renderer` -> headers for InterfaceVS/InterfacePS
-- assets
-  - need to provide default assets with ability to override
 - `recompui`
-  - `include/recompui/recompui.h`
-    - audit exposed funcs, potentially only include functions a base project might need? then the rest could go somewhere else
-  - `ui_element`
   - `ui_game_option`
     - specific focus styling (use pulse?)
   - `ui_binding_button`
