@@ -7,6 +7,22 @@
     - audit exposed funcs, potentially only include functions a base project might need? then the rest could go somewhere else
   - assets
     - need to provide default assets with ability to override
+  - `base_rcss`
+    - scrollbar settings should be configurable
+  - `ui_state`
+    - too much input handling, a lot of code should be within `recompinput`
+      - `check_menu_button_pressed` identity crisis. makes more sense in `profiles.cpp`, can just be `check_mapped_game_input_press` or something similar
+      - `cont_button_to_key`
+      - `cont_axis_to_key`
+      - `draw_hook` is a lot.
+      - controller button repeats
+    - bit of a dumping ground of helper/exposed funcs that could be better categorized
+- `recompinput`
+  - `input_state`
+    - Refactor. Handles too much, for example:
+      - polling inputs
+      - updating rumble
+      - game -> recompinput API funcs for controllers, including input, rumble, special controls like gyro
 
 ## changes needed
 
@@ -23,47 +39,41 @@
     - specific focus styling (pulse)
   - `ui_select`
     - specific focus styling (pulse border)
-  - `renderer`
-    - remove hardcoded
   - `ui_config`
     - higher level (e.g. safe) way of queuing the config modal opening in general.
   - `ui_modal`
-    - split to `TabbedModal`
     - `MenuAction` events
       - ability to show controls hints
         - Tricky part: `MenuAction::Apply` handled elsewhere. maybe need special way of adding ctrl hints to root doc?
   - `ui_state`
-    - should have base rcss for setting rcss ONLY globals
-      - audit input.radio 0 width
-      - scrollbar settings configurable
-    - too much input handling?
-      - `check_menu_button_pressed` identity crisis. makes more sense in `profiles.cpp`, can just be `check_mapped_game_input_press` or something similar
-      - `cont_button_to_key`
-      - `cont_axis_to_key`
-      - `draw_hook` is a lot.
-      - controller button repeats (should only be direction nav anyways)
-    - bit of a dumping ground of helper/exposed funcs that could be better categorized
+    - controller button repeats (should be in recompinput in the future)
+      - Change to be directional inputs only
+      - Bug where repeats don't stop
+        - May be due to sudden change in direction after repeats start? If so, each direction could be its own tracked repeat
+      - Per controller?
   - `ui_prompt`
-    - takes `return_element_id`, instead should store current focused element?
+    - takes `return_element_id`, instead should store current focused element? ids are auto generated so this needs to be handled a different way
   - `ui_assign_players_modal`
     - should probably open and instantiate in a more integrated way. has risk of not being in a valid context
     - expose mod/patch c API for opening
     - Add help text to explain how to assign controller/keyboard players
     - softlock when hitting escape?
+  - `ui_player_card`
+    - assignment:
+      - player number header like the main grid?
+    - both:
+      - should contain page's vertical padding so when scrolling into view it has some headroom
   - `ui_config_page`
     - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
   - `ui_config_page_controls`
-    - Needs to use `game_input_contexts` descriptions on row hover
     - Needs to hide (or disable?) menu controls for keyboard
     - Should check `recompinput::players::is_single_player_mode()` if single player mode is active
     - Should check for player count changes and not rely on initial input
-  - `ui_config_page_controls` & `ui_player_card`
-    - player cards should contain some padding so when scrolling into view it has some headroom
   - `ui_config_tab_controls`
     - `create_controls_tab` hardcodes descriptions when adding the available GameInput inputs, and also determines whether or not an input should be able to be cleared, and doesn't specify if its only changeable on controller (see `input_types`)
   - `ui_select`
-    - i think i forgor to add indication of which element in the dropdown is the current
-    - need to test for new navigation system conflicts
+    - add indication of which element in the dropdown is the current
+    - audit styling for both current and future
 - `recompinput`
   - `input_types`
     - should be able to customize `game_input_names`
@@ -73,21 +83,18 @@
     - should be able to add new non n64 inputs
   - `input_mapping`
     - `default_n64_mappings_controller` and `default_n64_mappings_keyboard` should have helpers for overridding
-  - `input_state`
-    - ~~`controller_states` seems like it could have a better link with `profiles`' `controllers` vector. both are used for tracking which controllers are plugged/unplugged so a global controller registry would be a good simplification I think.~~ edit: these states are more reflective of what is currently connected while `profiles` is maintaining a registry of what was ever connected which is very important for player reconnection
-    - whole file feels off to me, like its trying to do too much or that some stuff could be separated
   - `input_events`
     - toggle menu's binding cancel only considers inputs from profile "0". should be the specific controller's player's profile (or single player mode check)
     - a lot of binding handling in general. could be moved to a function in `input_binding.cpp`? would need to be able to report if it is stealing inputs. `input_events` handles controller connection as well, so maybe there should be a smarter way to hook anything up to `sdl_event_filter`, like a vector of callbacks
   - `players`
-    - `single_player_mode` should be separate from max players
-    - concept of players and profiles are disjointed, maybe thats okay? controller reconnects should attempt to preserve the last player's profile
-    - pressing escape stops the process and creates a softlock
+    - concept of players and profiles are disjointed, maybe thats okay?
+    - controller reconnects should attempt to preserve the last player's profile
+    - pressing escape stops the assignment process and creates a softlock
 
 ## before public wishlist
 
 - New config types
-  - Enum sub-variant: dropdown
+  - Enum sub-variant: dropdown (`ui_select` component)
   - Color picker
     - important cus a lot of people are using hex which means it doesn't have controller support
 - Mod recompui: expose functionality
