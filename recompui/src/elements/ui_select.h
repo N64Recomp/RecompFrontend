@@ -50,6 +50,7 @@ namespace recompui {
 
         Style hover_style;
         Style focus_style;
+        Style wrapper_focus_style;
         Style disabled_style;
         Style hover_disabled_style;
         std::list<std::function<void(SelectOption& option, int option_index)>> change_callbacks;

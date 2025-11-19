@@ -49,8 +49,16 @@
         - when hovering or focusing within, better than the others but could be more subtle
       - `ui_game_option`
         - could follow the same definitions as the others, though brightness is decent
-  - `ui_select`
-    - specific focus styling (pulse border)
+  - `ui_document` + `ui_context` + ?
+    - hits runtime error: std::runtime_error "This should never ever ever happen. Element not found in its parent's nav children."
+    - there seems to be a chance that `ContextId::get_focused_element` returns an element that isn't actually focusable. 
+    - possible replication with what is known in this instance
+      - `original_focused_element` is an svg, `("src", STRING: "icons/RecordBorder.svg")`
+      - i had just pressed escape from recording i think
+      - the svg isnt visible
+      - doesn't seem to be focusable at all, so rml reporting it in `get_focused_element` is weird
+      - nav parent is a `GameInputRow`
+      - I was on the first slot, A, for keyboard
   - `ui_config`
     - higher level (e.g. safe) way of queuing the config modal opening in general.
   - `ui_modal`

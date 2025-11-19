@@ -1,4 +1,5 @@
 #include "ui_select.h"
+#include "ui_pseudo_border.h"
 
 #include <cassert>
 
@@ -94,11 +95,16 @@ namespace recompui {
         this->options = options;
 
         ContextId context = get_current_context();
+        // Wrapper needed for both the focus border and for the custom select arrow.
+        // RmlUI doesn't allow custom children of a select, so we can't add the FocusBorder or the arrow directly to the select element.
         wrapper = context.create_element<Element>(parent, 0, "div", false);
         set_parent(wrapper);
         wrapper->set_height_auto();
         wrapper->set_width(100.0f, Unit::Percent);
         wrapper->set_position(Position::Relative);
+        
+        auto focus_border = context.create_element<FocusBorder>(wrapper, true);
+        focus_border->set_border_radius(theme::border::radius_md + theme::border::width * 4.0f);
 
         set_display(Display::Flex);
         set_flex_direction(FlexDirection::Row);
@@ -194,6 +200,10 @@ namespace recompui {
         add_style(&focus_style, focus_state);
         add_style(&disabled_style, disabled_state);
         add_style(&hover_disabled_style, { hover_state, disabled_state });
+
+        // Though no styles were added to the wrapper, its needed for FocusBorder to work.
+        // FocusBorder can't be added to the select directly because RmlUI doesn't allow any custom children of a select
+        wrapper->add_style(&wrapper_focus_style, focus_state);
     }
 
     void Select::process_event(const Event &e) {
@@ -220,6 +230,7 @@ namespace recompui {
         case EventType::Focus: {
             bool focus_active = std::get<EventFocus>(e.variant).active;
             set_style_enabled(focus_state, focus_active);
+            wrapper->set_style_enabled(focus_state, focus_active);
             break;
         }
         case EventType::Text:
