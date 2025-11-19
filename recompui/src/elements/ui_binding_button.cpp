@@ -2,6 +2,7 @@
 #include "ui_theme.h"
 #include "recompui.h"
 #include <ultramodern/ultramodern.hpp>
+#include "ui_utils.h"
 
 namespace recompui {
     static const float padding = 8.0f;
@@ -19,10 +20,10 @@ namespace recompui {
         set_cursor(Cursor::Pointer);
 
         focus_style.set_border_color(theme::color::White);
-        focus_style.set_background_color(theme::color::WhiteA30);
+        focus_style.set_background_color(theme::color::White, 26);
         focus_style.set_color(theme::color::TextActive);
         hover_style.set_border_color(theme::color::WhiteA80);
-        hover_style.set_background_color(theme::color::WhiteA20);
+        hover_style.set_background_color(theme::color::White, 26);
         hover_style.set_color(theme::color::Text);
 
         disabled_style.set_color(theme::color::TextDim);
@@ -180,22 +181,34 @@ namespace recompui {
                 }
             }
             break;
-        case EventType::Focus:
-            set_style_enabled(focus_state, std::get<EventFocus>(e.variant).active);
+        case EventType::Focus: {
+            bool active = std::get<EventFocus>(e.variant).active;
+            set_style_enabled(focus_state, active);
+            if (active) {
+                queue_update();
+            }
             break;
+        }
         case EventType::Update:
             {
-                if (is_binding == false) {
-                    break;
+                if (is_binding) {
+                    queue_update();
+                    std::chrono::high_resolution_clock::duration since_start = ultramodern::time_since_start();
+                    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(since_start).count();
+                    const float loop_length_seconds = 1.5f;
+                    float t = static_cast<float>(millis) / (loop_length_seconds * 1000.0f);
+                    float sine_time = sinf(t * 2.0f * 3.14159f);
+                    float scale = 1.0f + ((sine_time * 0.15f / 2.0f) - 0.15f);
+                    recording_circle->set_scale_2D(scale, scale);
                 }
-                queue_update();
-                std::chrono::high_resolution_clock::duration since_start = ultramodern::time_since_start();
-                auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(since_start).count();
-                const float loop_length_seconds = 1.5f;
-                float t = static_cast<float>(millis) / (loop_length_seconds * 1000.0f);
-                float sine_time = sinf(t * 2.0f * 3.14159f);
-                float scale = 1.0f + ((sine_time * 0.15f / 2.0f) - 0.15f);
-                recording_circle->set_scale_2D(scale, scale);
+
+                if (is_style_enabled(focus_state)) {
+                    recompui::Color pulse_color = recompui::get_pulse_color(750);
+                    focus_style.set_color(pulse_color);
+                    focus_style.set_border_color(pulse_color);
+                    apply_styles();
+                    queue_update();
+                }
             }
             break;
         default:

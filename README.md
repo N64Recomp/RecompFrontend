@@ -33,8 +33,22 @@
     - `ui_api_events` -> `patches/ui_funcs.h`
     - `ui_renderer` -> headers for InterfaceVS/InterfacePS
 - `recompui`
-  - `ui_binding_button`
-    - specific focus styling (pulse)
+  - semitransparent button background ugliness
+    - too bright (could be less transparent)
+    - new color defs
+      - tertiary theme colors? stop usage of white20 etc
+      - maybe word as if they are elevations? or layers? may have been BGOverlay before refactor
+    - examples
+      - `ui_button`
+        - tertiary background too bright (maybe Basic?)
+        - find "Open Mods Folder"
+      - `ui_icon_button`
+        - tertiary & basic
+        - Basic is config menu top right
+      - `GameInputRow`
+        - when hovering or focusing within, better than the others but could be more subtle
+      - `ui_game_option`
+        - could follow the same definitions as the others, though brightness is decent
   - `ui_select`
     - specific focus styling (pulse border)
   - `ui_config`
@@ -64,6 +78,10 @@
   - `ui_config_page`
     - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
   - `ui_config_page_controls`
+    - `GameInputRow` styling:
+      - hover too bright
+      - needs space around each one or remove border radius
+      - verify with single player
     - Needs to hide (or disable?) menu controls for keyboard
     - Should check `recompinput::players::is_single_player_mode()` if single player mode is active
     - Should check for player count changes and not rely on initial input
