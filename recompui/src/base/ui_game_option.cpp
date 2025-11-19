@@ -1,4 +1,5 @@
 #include "base/ui_game_option.h"
+#include "ui_utils.h"
 
 namespace recompui {
     GameOption::GameOption(
@@ -84,10 +85,21 @@ namespace recompui {
                 }
             }
             break;
-        case EventType::Focus:
-            set_style_enabled(focus_state, std::get<EventFocus>(e.variant).active);
+        case EventType::Focus: {
+            bool active = std::get<EventFocus>(e.variant).active;
+            set_style_enabled(focus_state, active);
+            if (active) {
+                queue_update();
+            }
             break;
+        }
         case EventType::Update:
+            if (is_style_enabled(focus_state)) {
+                recompui::Color pulse_color = recompui::get_pulse_color(750);
+                focus_style.set_color(pulse_color);
+                apply_styles();
+                queue_update();
+            }
             break;
         default:
             assert(false && "Unknown event type.");

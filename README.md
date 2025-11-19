@@ -33,8 +33,6 @@
     - `ui_api_events` -> `patches/ui_funcs.h`
     - `ui_renderer` -> headers for InterfaceVS/InterfacePS
 - `recompui`
-  - `ui_game_option`
-    - specific focus styling (use pulse?)
   - `ui_binding_button`
     - specific focus styling (pulse)
   - `ui_select`
