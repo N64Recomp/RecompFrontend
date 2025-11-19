@@ -3,7 +3,6 @@
 ## changes needed
 
 - structure
-  - so many `warning: extra qualification` warnings... i was trying to make it obvious what was specifically exposed in the library, causes a huge warning dump
   - remove hardcoded path to parent repo libraries
   - add necessary included libraries
   - handle anything with `TODO: Forced game includes`
