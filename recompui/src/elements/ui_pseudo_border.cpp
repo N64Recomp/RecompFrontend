@@ -12,6 +12,7 @@ namespace recompui {
         }
 
         set_position(Position::Absolute);
+        set_pointer_events(PointerEvents::None);
         if (inset) {
             set_inset(border_width);
         } else {
