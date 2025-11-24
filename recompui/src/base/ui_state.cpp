@@ -47,8 +47,7 @@ void recompui::open_quit_game_prompt() {
         []() {},
         recompui::ButtonStyle::Danger,
         recompui::ButtonStyle::Tertiary,
-        true,
-        "config__quit-game-button"
+        true
     );
 }
 
@@ -204,7 +203,6 @@ struct ContextDetails {
 };
 
 class UIState {
-    Rml::Element* prev_focused = nullptr;
     bool mouse_is_active_changed = false;
     std::vector<ContextDetails> shown_contexts{};
 public:
@@ -343,15 +341,26 @@ public:
             return;
         }
 
+        // If non mouse input was used and nothing is focused then focus on the last hovered element or the autofocus element.
         if (cont_is_active || non_mouse_interacted) {
-            if (non_mouse_interacted) {
-                auto focusedEl = current_document->GetFocusLeafNode();
-                if (focusedEl == nullptr || RecompRml::CanFocusElement(focusedEl) != RecompRml::CanFocus::Yes) {
-                    Rml::Element* element = find_autofocus_element(current_document);
-                    if (element != nullptr) {
-                        element->Focus();
+            auto top_context = top_mouse_context();
+            if (non_mouse_interacted && top_context != recompui::ContextId::null()) {
+                top_context.open();
+                auto focused_el = top_context.get_focused_element();
+                // Check if not focused or focused element is not focusable.
+                if (focused_el == nullptr || focused_el->is_focusable() != recompui::Element::CanFocus::Yes) {
+                    auto recompui_doc = top_context.get_root_element();
+                    auto last_hovered = recompui_doc->get_last_focusable_hovered_element();
+                    if (last_hovered && last_hovered->is_focusable() == recompui::Element::CanFocus::Yes) {
+                        last_hovered->focus();
+                    } else {
+                        Rml::Element* element = find_autofocus_element(current_document);
+                        if (element != nullptr) {
+                            element->Focus();
+                        }
                     }
                 }
+                top_context.close();
             }
             return;
         }
@@ -361,28 +370,6 @@ public:
             if (mouse_is_active_changed) {
                 Rml::Element* focused = current_document->GetFocusLeafNode();
                 if (focused) focused->Blur();
-            } else if (mouse_moved) {
-                Rml::Element* hovered = context->GetHoverElement();
-                if (hovered) {
-                    Rml::Element* hover_target = get_target(current_document, hovered);
-                    if (hover_target && can_focus(hover_target)) {
-                        prev_focused = hover_target;
-                    }
-                }
-            }
-        }
-
-        if (!mouse_is_active) {
-            if (!prev_focused || !can_focus(prev_focused)) {
-                // Find the autofocus element in the tab chain
-                Rml::Element* element = find_autofocus_element(current_document);
-                if (element && can_focus(element)) {
-                    prev_focused = element;
-                }
-            }
-
-            if (mouse_is_active_changed && prev_focused && can_focus(prev_focused)) {
-                prev_focused->Focus();
             }
         }
     }
@@ -410,6 +397,25 @@ public:
         recompui::Element* default_element = context.get_autofocus_element();
         if (default_element) {
             default_element->focus();
+        }
+    }
+
+    void try_restore_focus() {
+        recompui::ContextId top_context = top_mouse_context();
+        if (top_context == recompui::ContextId::null()) {
+            return;
+        }
+
+        recompui::Element* last_focused = top_context.get_last_focused_element();
+        if (last_focused != nullptr && last_focused->is_focusable() == recompui::Element::CanFocus::Yes) {
+            last_focused->focus();
+            return;
+        }
+
+        recompui::Element* autofocus_element = top_context.get_autofocus_element();
+        if (autofocus_element != nullptr) {
+            autofocus_element->focus();
+            return;
         }
     }
 
@@ -468,17 +474,21 @@ public:
         return nullptr;
     }
 
+    recompui::ContextId top_mouse_context() {
+        // Iterate backwards and stop at the first context that takes input.
+        for (auto it = shown_contexts.rbegin(); it != shown_contexts.rend(); it++) {
+            if (it->context.captures_mouse()) {
+                return it->context;
+            }
+        }
+        return recompui::ContextId::null();
+    }
+
     void update_contexts() {
         for (auto& context_details : shown_contexts) {
             context_details.context.open();
             context_details.context.process_updates();
             context_details.context.close();
-        }
-    }
-
-    void report_removed_element(Rml::Element* element) {
-        if (prev_focused == element) {
-            prev_focused = nullptr;
         }
     }
 };
@@ -491,12 +501,6 @@ extern SDL_Window* window;
 
 void recompui::get_window_size(int& width, int& height) {
     SDL_GetWindowSizeInPixels(window, &width, &height);
-}
-
-// Makes sure that the previous focused element actually exists.
-void recompui::report_removed_element(Rml::Element* element) {
-    std::lock_guard lock{ ui_state_mutex };
-    ui_state->report_removed_element(element);
 }
 
 inline const std::string read_file_to_string(std::filesystem::path path) {
@@ -885,6 +889,11 @@ void recompui::show_context(ContextId context, std::string_view param) {
 }
 
 void recompui::hide_context(ContextId context) {
+    bool restore_focus = false;
+    if (context == ui_state->top_mouse_context()) {
+        restore_focus = true;
+    }
+
     ContextId prev_context = recompui::try_close_current_context();
     {
         std::lock_guard lock{ ui_state_mutex };
@@ -893,6 +902,10 @@ void recompui::hide_context(ContextId context) {
     }
     if (prev_context != ContextId::null()) {
         prev_context.open();
+    }
+
+    if (restore_focus) {
+        ui_state->try_restore_focus();
     }
 }
 
@@ -1079,8 +1092,7 @@ void recompui::drop_files(const std::list<std::filesystem::path> &file_list) {
             },
             recompui::ButtonStyle::Success,
             recompui::ButtonStyle::Danger,
-            true,
-            ""
+            true
         );
     }
 }

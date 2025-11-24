@@ -429,6 +429,12 @@ void recompui::ContextId::process_updates() {
     for (auto cur_resource_id : to_update) {
         resource_slotmap::key cur_key{ cur_resource_id.slot_id };
 
+        // Allow update events to the root document element.
+        if (opened_context->root_element.resource_id == cur_resource_id) {
+            static_cast<Element*>(&opened_context->root_element)->handle_event(update_event);
+            continue;
+        }
+
         // Ignore any resources that aren't elements.
         if (cur_key.get_tag() != static_cast<uint8_t>(SlotTag::Element)) {
             // Assert to catch errors of queueing other resource types for update.
@@ -580,9 +586,9 @@ void recompui::ContextId::queue_element_update(ResourceId element) {
         context_error(*this, ContextErrorType::UpdateElementInWrongContext);
     }
 
-    // Check that the element that was specified is in the open context.
+    // Check that the element that was specified is in the open context, or that it is the root document.
     auto* elementPtr = opened_context->resources.get(resource_slotmap::key{ element.slot_id });
-    if (elementPtr == nullptr) {
+    if (elementPtr == nullptr && opened_context->root_element.resource_id != element) {
         context_error(*this, ContextErrorType::UpdateElementInWrongContext);
     }
 
@@ -608,7 +614,8 @@ recompui::Style* recompui::ContextId::create_style() {
 }
 
 void recompui::ContextId::destroy_resource(Element* resource) {
-    recompui::report_removed_element(resource->base);
+    auto doc = get_root_element();
+    doc->report_removed_element(resource);
     destroy_resource(resource->resource_id);
 }
 
@@ -686,6 +693,13 @@ recompui::Element* recompui::ContextId::get_autofocus_element() {
     }
     
     return ctx->autofocus_element;
+}
+
+recompui::Element* recompui::ContextId::get_last_focused_element() {
+    auto doc = get_root_element();
+    std::lock_guard lock{ context_state.all_contexts_lock };
+
+    return doc->get_last_focused_element();
 }
 
 void recompui::ContextId::set_autofocus_element(Element* element) {

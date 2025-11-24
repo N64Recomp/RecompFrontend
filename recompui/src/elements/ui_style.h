@@ -19,6 +19,10 @@ namespace recompui {
         std::map<Rml::PropertyId, Rml::Property> property_map;
         Rml::TransformPtr get_existing_transform();
         void set_or_add_transformation(const Rml::TransformPrimitive& primitive);
+
+        // Used with display_hide and display_show to restore the intended display value if wanting to
+        // just toggle if an element is shown.
+        Display visible_display = Display::Block;
     protected:
         virtual void set_property(Rml::PropertyId property_id, const Rml::Property &property);
         ResourceId resource_id = ResourceId::null();
@@ -84,6 +88,11 @@ namespace recompui {
         void set_cursor(Cursor cursor);
         void set_opacity(float opacity);
         void set_display(Display display);
+        Display get_display();
+        // Sets display property to hidden, and remembers the previous display value when calling display_show().
+        void display_hide();
+        // Restores the display property to the last visible display value set, or Display::Block if none was set before display_hide().
+        void display_show();
         void set_justify_content(JustifyContent justify_content);
         void set_flex_grow(float grow);
         void set_flex_shrink(float shrink);

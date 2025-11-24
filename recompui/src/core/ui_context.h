@@ -44,6 +44,7 @@ namespace recompui {
         Rml::ElementDocument* get_document();
         Document* get_root_element();
         Element* get_focused_element();
+        Element* get_last_focused_element();
         Element* get_autofocus_element();
         void set_autofocus_element(Element* element);
 

@@ -150,6 +150,42 @@ namespace recompui {
         }
     }
 
+    static Display from_rml(Rml::Style::Display display) {
+        switch (display) {
+        case Rml::Style::Display::None:
+            return Display::None;
+        case Rml::Style::Display::Block:
+            return Display::Block;
+        case Rml::Style::Display::Inline:
+            return Display::Inline;
+        case Rml::Style::Display::InlineBlock:
+            return Display::InlineBlock;
+        case Rml::Style::Display::FlowRoot:
+            return Display::FlowRoot;
+        case Rml::Style::Display::Flex:
+            return Display::Flex;
+        case Rml::Style::Display::InlineFlex:
+            return Display::InlineFlex;
+        case Rml::Style::Display::Table:
+            return Display::Table;
+        case Rml::Style::Display::InlineTable:
+            return Display::InlineTable;
+        case Rml::Style::Display::TableRow:
+            return Display::TableRow;
+        case Rml::Style::Display::TableRowGroup:
+            return Display::TableRowGroup;
+        case Rml::Style::Display::TableColumn:
+            return Display::TableColumn;
+        case Rml::Style::Display::TableColumnGroup:
+            return Display::TableColumnGroup;
+        case Rml::Style::Display::TableCell:
+            return Display::TableCell;
+        default:
+            assert(false && "Unknown display.");
+            return Display::Block;
+        }
+    }
+
     static Rml::Style::JustifyContent to_rml(JustifyContent justify_content) {
         switch (justify_content) {
         case JustifyContent::FlexStart:
@@ -499,6 +535,34 @@ namespace recompui {
 
     void Style::set_display(Display display) {
         set_property(Rml::PropertyId::Display, to_rml(display));
+        if (display != Display::None) {
+            visible_display = display;
+        }
+    }
+
+    Display Style::get_display() {
+        if (property_map.find(Rml::PropertyId::Display) != property_map.end()) {
+            auto rml_display = property_map[Rml::PropertyId::Display].Get<Rml::Style::Display>();
+            return from_rml(rml_display);
+        }
+
+        // May not be a good default, need to verify.
+        return Display::Block;
+    }
+
+    void Style::display_hide() {
+        auto current_display = get_display();
+        if (current_display == Display::None) {
+            return;
+        }
+
+        // Store the current display value to restore later.
+        visible_display = current_display;
+        set_display(Display::None);
+    }
+
+    void Style::display_show() {
+        set_display(visible_display);
     }
 
     void Style::set_justify_content(JustifyContent justify_content) {

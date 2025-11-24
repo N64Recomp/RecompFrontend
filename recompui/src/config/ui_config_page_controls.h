@@ -3,6 +3,7 @@
 #include "elements/ui_config_page.h"
 #include "recompinput/recompinput.h"
 #include "recompinput/input_binding.h"
+#include "elements/ui_button.h"
 #include "elements/ui_icon_button.h"
 #include "elements/ui_binding_button.h"
 #include "elements/ui_pill_button.h"
@@ -85,6 +86,18 @@ protected:
     on_player_bind_callback on_player_bind;
     Element *nav_up_element = nullptr;
     Element *first_nav_element = nullptr;
+
+    struct {
+        struct {
+            Label *profile_name_label = nullptr;
+            std::string current_profile_name = "";
+        } left;
+
+        struct {
+            Button *go_back_button = nullptr;
+            Button *assign_players_button = nullptr;
+        } right;
+    } header_elements;
 
     virtual void process_event(const Event &e) override;
     std::string_view get_type_name() override { return "ConfigPageControls"; }

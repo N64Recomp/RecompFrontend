@@ -10,7 +10,21 @@
   - `base_rcss`
     - scrollbar settings should be configurable
   - `ui_state`
-    - too much input handling, a lot of code should be within `recompinput`
+    - When the primary control method changes between mouse and non-mouse input (kb or cont) there is some awkward UX
+      - Current issue is that RML events are firing though you can't see where the UI's focus is, or where the mouse is
+      - Intention with swapping to non-mouse is this
+        - Try to focus on the last hovered element that is focusable
+        - Try to focus on an autofocus element
+        - Focus on anything
+      - Intention with swapping to mouse is this:
+        - Focus blurred
+        - Clicks are a noop
+      - When changing to non-mouse, should skip non-mouse events being sent to rmlui
+        - this make sure that last hover or autofocus is actually used, if there are no applicable elements, passing the rml events through may reactivate focus
+        - alternatively, could just find another method of insuring focus when controller first activates
+      - When changing to mouse
+        - similar to above, a click registering without being able to see the cursor is a little awkward and can result in clicking something unintentionally
+    - Too much input handling, a lot of code should be within `recompinput`
       - `check_menu_button_pressed` identity crisis. makes more sense in `profiles.cpp`, can just be `check_mapped_game_input_press` or something similar
       - `cont_button_to_key`
       - `cont_axis_to_key`
@@ -51,7 +65,7 @@
         - could follow the same definitions as the others, though brightness is decent
   - `ui_document` + `ui_context` + ?
     - hits runtime error: std::runtime_error "This should never ever ever happen. Element not found in its parent's nav children."
-    - there seems to be a chance that `ContextId::get_focused_element` returns an element that isn't actually focusable. 
+    - there seems to be a chance that `ContextId::get_focused_element` returns an element that isn't actually focusable.
     - possible replication with what is known in this instance
       - `original_focused_element` is an svg, `("src", STRING: "icons/RecordBorder.svg")`
       - i had just pressed escape from recording i think
@@ -71,8 +85,6 @@
       - Bug where repeats don't stop
         - May be due to sudden change in direction after repeats start? If so, each direction could be its own tracked repeat
       - Per controller?
-  - `ui_prompt`
-    - takes `return_element_id`, instead should store current focused element? ids are auto generated so this needs to be handled a different way
   - `ui_assign_players_modal`
     - should probably open and instantiate in a more integrated way. has risk of not being in a valid context
     - expose mod/patch c API for opening
@@ -93,6 +105,11 @@
     - Needs to hide (or disable?) menu controls for keyboard
     - Should check `recompinput::players::is_single_player_mode()` if single player mode is active
     - Should check for player count changes and not rely on initial input
+    - Non-mouse navigation (multiplayer)
+      - Editing a profile should autofocus on the first option
+      - Going "back" from a profile should focus on the button that got you to the profile
+    - Player cards "new" profile (based on current in dropdown?)
+    - While a profile is open, be able to edit/change the name of a (non-default?) profile
   - `ui_config_tab_controls`
     - `create_controls_tab` hardcodes descriptions when adding the available GameInput inputs, and also determines whether or not an input should be able to be cleared, and doesn't specify if its only changeable on controller (see `input_types`)
   - `ui_select`

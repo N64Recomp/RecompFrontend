@@ -16,7 +16,6 @@ struct {
     recompui::Button* cancel_button;
     std::function<void()> confirm_action;
     std::function<void()> cancel_action;
-    std::string return_element_id;
     std::mutex mutex;
 } prompt_state;
 
@@ -30,9 +29,6 @@ void run_confirm_callback() {
         confirm_action();
     }
     recompui::hide_context(prompt_state.ui_context);
-
-    // TODO nav: focus on return_element_id
-    // or just remove it as the usage of the prompt can change now
 }
 
 void run_cancel_callback() {
@@ -155,8 +151,7 @@ void recompui::open_choice_prompt(
     std::function<void()> cancel_action,
     ButtonStyle confirm_variant,
     ButtonStyle cancel_variant,
-    bool focus_on_cancel,
-    const std::string& return_element_id
+    bool focus_on_cancel
 ) {
     std::lock_guard lock{ prompt_state.mutex };
 
@@ -175,8 +170,6 @@ void recompui::open_choice_prompt(
     prompt_state.cancel_button->set_text(cancel_label_text);
     prompt_state.confirm_action = confirm_action;
     prompt_state.cancel_action = cancel_action;
-    prompt_state.return_element_id = return_element_id;
-
     prompt_state.confirm_button->apply_button_style(confirm_variant);
     prompt_state.cancel_button->apply_button_style(cancel_variant);
 
@@ -194,8 +187,7 @@ void recompui::open_info_prompt(
     const std::string& content_text,
     const std::string& okay_label_text,
     std::function<void()> okay_action,
-    ButtonStyle okay_variant,
-    const std::string& return_element_id
+    ButtonStyle okay_variant
 ) {
     std::lock_guard lock{ prompt_state.mutex };
 
@@ -213,7 +205,6 @@ void recompui::open_info_prompt(
     prompt_state.cancel_button->set_text(okay_label_text);
     prompt_state.confirm_action = {};
     prompt_state.cancel_action = okay_action;
-    prompt_state.return_element_id = return_element_id;
 
     prompt_state.cancel_button->apply_button_style(okay_variant);
 
@@ -228,8 +219,7 @@ void recompui::open_info_prompt(
 
 void recompui::open_notification(
     const std::string& header_text,
-    const std::string& content_text,
-    const std::string& return_element_id
+    const std::string& content_text
 ) {
     std::lock_guard lock{ prompt_state.mutex };
 
@@ -246,7 +236,6 @@ void recompui::open_notification(
     prompt_state.cancel_button->set_display(Display::None);
     prompt_state.confirm_action = {};
     prompt_state.cancel_action = {};
-    prompt_state.return_element_id = return_element_id;
 
     prompt_state.ui_context.close();
 

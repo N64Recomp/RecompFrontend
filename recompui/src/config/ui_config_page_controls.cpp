@@ -160,8 +160,6 @@ ConfigPageControls::ConfigPageControls(
     set_as_navigation_container(NavigationType::Vertical);
     set_debug_id("ConfigPageControls");
 
-    recompui::ContextId context = get_current_context();
-
     render_all();
 }
 
@@ -193,7 +191,19 @@ void ConfigPageControls::render_all() {
     render_footer();
 }
 
+static void show_or_hide_if_exists(Element* element, bool show) {
+    if (element != nullptr) {
+        if (show) {
+            element->display_show();
+        } else {
+            element->display_hide();
+        }
+    }
+}
+
 void ConfigPageControls::render_header() {
+    // Header attempts to not re-render elements if not necessary, instead swapping visibility / updating text.
+
     if (!multiplayer_enabled) {
         hide_header();
         return;
@@ -206,14 +216,22 @@ void ConfigPageControls::render_header() {
     // header left
     {
         auto header_left = header->get_left();
-        header_left->clear_children();
+
         if (multiplayer_view_mappings) {
-            auto profile_name = context.create_element<Label>(
-                header_left,
-                "Editing: " + recompinput::profiles::get_input_profile_name(selected_profile_index),
-                LabelStyle::Normal
-            );
+            std::string profile_name = "Editing: " + recompinput::profiles::get_input_profile_name(selected_profile_index);
+            if (header_elements.left.profile_name_label == nullptr) {
+                header_elements.left.profile_name_label = context.create_element<Label>(
+                    header_left,
+                    profile_name,
+                    LabelStyle::Normal
+                );
+            } else if (header_elements.left.current_profile_name != profile_name) {
+                header_elements.left.profile_name_label->set_text(profile_name);
+            }
+            header_elements.left.current_profile_name = profile_name;
+            show_or_hide_if_exists(header_elements.left.profile_name_label, true);
         } else {
+            show_or_hide_if_exists(header_elements.left.profile_name_label, false);
             // Nothing rendered here as of now.. maybe single player toggle
         }
     }
@@ -221,24 +239,34 @@ void ConfigPageControls::render_header() {
     // header right
     {
         auto header_right = header->get_right();
-        header_right->clear_children();
 
         if (multiplayer_view_mappings) {
-            Button* go_back_button = context.create_element<Button>(header_right, "Go back", ButtonStyle::Tertiary);
-            go_back_button->add_pressed_callback([this]() {
-                this->multiplayer_view_mappings = false;
-                this->force_update();
-            });
-            go_back_button->set_as_primary_focus(true);
+            if (header_elements.right.go_back_button == nullptr) {
+                header_elements.right.go_back_button = context.create_element<Button>(header_right, "Go back", ButtonStyle::Tertiary);
+                header_elements.right.go_back_button->add_pressed_callback([this]() {
+                    this->multiplayer_view_mappings = false;
+                    this->force_update();
+                });
+                header_elements.right.go_back_button->set_as_primary_focus(true);
+            }
+
+            show_or_hide_if_exists(header_elements.right.go_back_button, true);
+            show_or_hide_if_exists(header_elements.right.assign_players_button, false);
         } else {
-            Button* assign_players_button = context.create_element<Button>(header_right, "Assign players", ButtonStyle::Primary);
-            assign_players_button->add_pressed_callback([]() {
-                if (!recompinput::players::has_enough_players_assigned()) {
-                    recompinput::playerassignment::start();
-                }
-                recompui::AssignPlayersModal::open();
-            });
-            assign_players_button->set_as_primary_focus(true);
+            if (header_elements.right.assign_players_button == nullptr) {
+                header_elements.right.assign_players_button = context.create_element<Button>(header_right, "Assign players", ButtonStyle::Primary);
+                header_elements.right.assign_players_button->set_debug_id("AssignPlayersButton");
+                header_elements.right.assign_players_button->add_pressed_callback([]() {
+                    if (!recompinput::players::has_enough_players_assigned()) {
+                        recompinput::playerassignment::start();
+                    }
+                    recompui::AssignPlayersModal::open();
+                });
+                header_elements.right.assign_players_button->set_as_primary_focus(true);
+            }
+
+            show_or_hide_if_exists(header_elements.right.go_back_button, false);
+            show_or_hide_if_exists(header_elements.right.assign_players_button, true);
         }
     }
 }

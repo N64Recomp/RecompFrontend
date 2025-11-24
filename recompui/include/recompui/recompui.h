@@ -70,21 +70,18 @@ namespace recompui {
         std::function<void()> cancel_action,
         ButtonStyle confirm_variant = ButtonStyle::Success,
         ButtonStyle cancel_variant = ButtonStyle::Danger,
-        bool focus_on_cancel = true,
-        const std::string& return_element_id = ""
+        bool focus_on_cancel = true
     );
     void open_info_prompt(
         const std::string& header_text,
         const std::string& content_text,
         const std::string& okay_label_text,
         std::function<void()> okay_action,
-        ButtonStyle okay_variant = ButtonStyle::Danger,
-        const std::string& return_element_id = ""
+        ButtonStyle okay_variant = ButtonStyle::Danger
     );
     void open_notification(
         const std::string& header_text,
-        const std::string& content_text,
-        const std::string& return_element_id = ""
+        const std::string& content_text
     );
     void close_prompt();
     bool is_prompt_open();
@@ -116,7 +113,6 @@ namespace recompui {
     void release_image(const std::string &src);
 
     void drop_files(const std::list<std::filesystem::path> &file_list);
-    void report_removed_element(Rml::Element* element);
 
     namespace menu_action_mapping {
         struct key_map {

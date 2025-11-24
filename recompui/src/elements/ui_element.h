@@ -161,6 +161,7 @@ public:
 
     void set_debug_id(const std::string& new_debug_id) { debug_id = new_debug_id; }
     const std::string& get_debug_id() const { return debug_id; }
+    const std::string& get_debug_id_or_id() const { return debug_id.empty() ? id : debug_id; }
 
     // Marks an element as a container around navigatable elements.
     // It tells the navigation system how directional input should be handled within this element's focusable children.

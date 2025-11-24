@@ -9,6 +9,9 @@
 #include <iostream>
 #endif
 
+// For debugging purposes. Each doc gets a unique number.
+static int doc_counter = 0;
+
 namespace recompui {
     // struct for helping with rml element position comparisons.
     // GetAbsoluteOffset has some overhead so calculating this once per element is ideal.
@@ -318,12 +321,53 @@ namespace recompui {
         is_nav_container = true;
         this->nav_type = NavigationType::Vertical;
 
-        set_debug_id("Document");
+        set_debug_id("Document #" + std::to_string(doc_counter++));
 
         register_event_listeners(
             recompui::Events(
+                recompui::EventType::Update,
                 recompui::EventType::Navigate,
                 recompui::EventType::Focus));
+    }
+
+    void Document::process_event(const Event &e) {
+        switch (e.type) {
+            case recompui::EventType::Update: {
+                if (update_last_focused) {
+                    Element *cur_focus = get_current_context().get_focused_element();
+                    if (cur_focus != nullptr) {
+                        last_focused = cur_focus;
+                    }
+                    update_last_focused = false;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    void Document::report_focused_element() {
+        if (update_last_focused == false) {
+            update_last_focused = true;
+            queue_update();
+        }
+    }
+
+    void Document::report_hovered_element(Element* element) {
+        if (element->is_focusable() == Element::CanFocus::Yes) {
+            last_focusable_hovered = element;
+        }
+    }
+
+    void Document::report_removed_element(Element* element) {
+        if (last_focused == element) {
+            last_focused = nullptr;
+        }
+
+        if (last_focusable_hovered == element) {
+            last_focusable_hovered = nullptr;
+        }
     }
 
     bool Document::handle_navigation_event(Rml::Event &event) {
@@ -374,6 +418,7 @@ namespace recompui {
 
             event.StopPropagation();
             next_bottom_element->focus();
+            report_focused_element();
 
             return true;
         } else {

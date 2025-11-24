@@ -269,13 +269,21 @@ void Element::ProcessEvent(Rml::Event &event) {
         switch (event.GetId()) {
         case Rml::EventId::Mouseover:
             handle_event(Event::hover_event(true));
+            context.get_root_element()->report_hovered_element(this);
             break;
         case Rml::EventId::Mouseout:
             handle_event(Event::hover_event(false));
             break;
-        case Rml::EventId::Focus:
+        case Rml::EventId::Focus: {
             handle_event(Event::focus_event(true));
+
+            // Only notify if this isn't the root document being focused (happens when documents are opened)
+            auto root_doc = context.get_root_element();            
+            if (this != root_doc) {
+                root_doc->report_focused_element();
+            }
             break;
+        }
         case Rml::EventId::Blur:
             handle_event(Event::focus_event(false));
             break;
