@@ -312,7 +312,11 @@ void ConfigPageControls::render_body_players() {
     player_cards.clear();
 
     body_left->set_display(Display::Block);
-    body_left->set_padding(64.0f);
+    // Top/bottom padding is within the player cards so that controller nav puts them more into view.
+    body_left->set_padding_top(0.0f);
+    body_left->set_padding_bottom(0.0f);
+    body_left->set_padding_right(64.0f);
+    body_left->set_padding_left(64.0f);
     body_left->set_as_navigation_container(NavigationType::GridCol);
     body_left->set_position(Position::Relative);
     body_left->set_height_auto();
@@ -321,9 +325,10 @@ void ConfigPageControls::render_body_players() {
 
     bool make_fakes = num_players > 4;
 
+    recompui::Element *player_grid = nullptr;
     // Grid supports groups of 4
     for (int i = 0; i < num_players; i += 4) {
-        auto player_grid = context.create_element<Element>(body_left, 0, "div", false);
+        player_grid = context.create_element<Element>(body_left, 0, "div", false);
         player_grid->set_as_navigation_container(NavigationType::GridRow);
         player_grid->set_display(Display::Flex);
         player_grid->set_flex_direction(FlexDirection::Row);
@@ -332,7 +337,9 @@ void ConfigPageControls::render_body_players() {
         player_grid->set_width(100.0f, Unit::Percent);
         player_grid->set_height_auto();
         player_grid->set_gap(64.0f);
-        player_grid->set_padding_bottom(64.0f);
+        // Remove extra margin already added as padding from player cards.
+        // The player cards still need the padding for controller nav visibility.
+        player_grid->set_margin_bottom(-64.0f);
 
         for (int j = i; j < i + 4; j++) {
             if (!make_fakes && j >= num_players) {
@@ -342,7 +349,7 @@ void ConfigPageControls::render_body_players() {
             if (make_fakes && j >= 4 && j >= num_players) {
                 auto fake = context.create_element<Element>(player_grid);
                 fake->set_width(PlayerCard::static_player_card_size, Unit::Dp);
-                break;
+                continue;
             }
 
             auto player_card = context.create_element<PlayerCard>(
@@ -361,6 +368,11 @@ void ConfigPageControls::render_body_players() {
                 player_card->set_as_primary_focus(true);
             }
         }
+    }
+
+    // Retain 64px bottom margin on the last row.
+    if (player_grid != nullptr) {
+        player_grid->set_margin_bottom(0.0f);
     }
 }
 

@@ -4,6 +4,8 @@
 
 #include <cassert>
 
+// #define RECOMPUI_BUTTON_DEBUG
+
 namespace recompui {
 
     Button::Button(Element *parent, const std::string &text, ButtonStyle style, ButtonSize size) : Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button", false) {
@@ -76,7 +78,10 @@ namespace recompui {
 
         apply_button_style(style);
 
-        // transition: color 0.05s linear-in-out, background-color 0.05s linear-in-out;
+#ifdef RECOMPUI_BUTTON_DEBUG
+        set_debug_id(get_id() + "(" + text + ")" + get_id());
+        label->set_debug_id(get_debug_id() + " > Label");
+#endif
     }
 
     void Button::process_event(const Event &e) {

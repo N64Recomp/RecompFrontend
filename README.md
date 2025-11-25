@@ -73,6 +73,7 @@
       - doesn't seem to be focusable at all, so rml reporting it in `get_focused_element` is weird
       - nav parent is a `GameInputRow`
       - I was on the first slot, A, for keyboard
+    - Ran into issue again and can't replicate. Left assignment modal and tried to navigate down. The currently focused element was the "Assign players" button's label. Potential idea for fixing this could be in `Element::build_navigation`, recurse under a focusable element (`child->is_focusable() == CanFocus::Yes`), and somehow report that the current focusable should change to this. Or, report if the current focusable was added anywhere and if it isn't then do this after `Element::build_navigation` - maybe by finding the first `is_focusable()==Yes` above it or the first nav parent above it. that would avoid complexity in `Element::build_navigation`
   - `ui_config`
     - higher level (e.g. safe) way of queuing the config modal opening in general.
   - `ui_modal`
@@ -91,9 +92,8 @@
     - Add help text to explain how to assign controller/keyboard players
     - softlock when hitting escape?
   - `ui_player_card`
-    - assignment:
+    - assignment card:
       - player number header like the main grid?
-    - both:
       - should contain page's vertical padding so when scrolling into view it has some headroom
   - `ui_config_page`
     - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right

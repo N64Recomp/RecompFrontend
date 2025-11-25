@@ -29,6 +29,8 @@ PlayerCard::PlayerCard(
     
     if (!is_assignment_card) {
         set_as_navigation_container(NavigationType::GridCol);
+        set_padding_top(64.0f);
+        set_padding_bottom(64.0f);
         auto player_label = context.create_element<Label>(this, "Player " + std::to_string(player_index + 1), LabelStyle::Small);
     }
 
