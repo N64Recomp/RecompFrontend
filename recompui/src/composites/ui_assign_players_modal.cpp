@@ -240,7 +240,8 @@ void AssignPlayersModal::create_player_elements() {
 
     int max_players = static_cast<int>(recompinput::players::get_max_number_of_players());
 
-    if (max_players > 12) {
+    bool should_scroll = max_players > 12;
+    if (should_scroll) {
         player_elements_wrapper->set_overflow_y(Overflow::Auto);
         player_elements_wrapper->set_max_height(
             PlayerCard::assign_player_card_size * 3.5f + localstyles::gap::vertical * 2 + localstyles::gap::vertical * 2);
@@ -270,12 +271,18 @@ void AssignPlayersModal::create_player_elements() {
             row_wrapper->set_gap(localstyles::gap::horizontal);
             row_wrapper->set_as_navigation_container(NavigationType::Horizontal);
             row_wrapper->set_debug_id("PlayerCardRowWrapper" + std::to_string(i / 4));
-            if (max_players > 12 || i + 4 < max_players) {
-                row_wrapper->set_padding_bottom(localstyles::gap::vertical);
-            }
         }
-
+        
         PlayerCard* player_element = context.create_element<PlayerCard>(row_wrapper, i, true);
+        if (should_scroll) {
+            // Padding ensures that when focused via controller nav the card is fully visible.
+            // Negative margin collapses the extra space.
+            player_element->set_margin_top(-localstyles::gap::vertical);
+            player_element->set_padding_top(localstyles::gap::vertical);
+            player_element->set_padding_bottom(localstyles::gap::vertical);
+        } else if (i + 4 < max_players) {
+            player_element->set_padding_bottom(localstyles::gap::vertical);
+        }
         player_elements.push_back(player_element);
     }
 

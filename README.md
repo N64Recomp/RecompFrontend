@@ -94,7 +94,6 @@
   - `ui_player_card`
     - assignment card:
       - player number header like the main grid?
-      - should contain page's vertical padding so when scrolling into view it has some headroom
   - `ui_config_page`
     - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
   - `ui_config_page_controls`
