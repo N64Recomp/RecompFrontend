@@ -91,9 +91,6 @@
     - expose mod/patch c API for opening
     - Add help text to explain how to assign controller/keyboard players
     - softlock when hitting escape?
-  - `ui_player_card`
-    - assignment card:
-      - player number header like the main grid?
   - `ui_config_page`
     - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
   - `ui_config_page_controls`

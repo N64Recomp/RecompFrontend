@@ -47,6 +47,14 @@ PlayerCard::PlayerCard(
     card->set_border_radius(theme::border::radius_sm, Unit::Dp);
     card->set_background_color(theme::color::Transparent);
 
+    if (is_assignment_card) {
+        auto player_label = context.create_element<Label>(card, "P" + std::to_string(player_index + 1), LabelStyle::Annotation);
+        player_label->set_position(Position::Absolute);
+        player_label->set_top(8.0f);
+        player_label->set_left(8.0f);
+        player_label->set_color(theme::color::TextDim);
+    }
+
     icon = context.create_element<Svg>(card, "icons/RecordBorder.svg");
     icon->set_width(icon_size, Unit::Dp);
     icon->set_height(icon_size, Unit::Dp);
