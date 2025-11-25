@@ -33,6 +33,7 @@ class GameInputRow : public Element {
 protected:
     recompinput::GameInput input_id;
     BindingList bindings;
+    Element *scroll_buffer = nullptr;
 
     int active_binding_index = -1;
     bool is_binding = false;

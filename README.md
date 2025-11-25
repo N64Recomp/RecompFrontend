@@ -31,6 +31,11 @@
       - `draw_hook` is a lot.
       - controller button repeats
     - bit of a dumping ground of helper/exposed funcs that could be better categorized
+  - `ui_element`
+    - Improve `Element::scroll_into_view`
+      - Currently uses RmlUI's `ScrollIntoView` method
+      - That method has issues with not particularly handling interrupted scrolls well.
+      - It doesn't allow for a buffer amount, for example if you wanted 16px of space above or below when scrolling. Right now this has to be handled by making the element extend further with padding, or if that isn't possible, then by using an absolutely positioned child element that extends past its parent's boundaries and calling scroll_into_view on that element (See `ScrollBuffer` class).
 - `recompinput`
   - `input_state`
     - Refactor. Handles too much, for example:
@@ -96,8 +101,6 @@
   - `ui_config_page_controls`
     - `GameInputRow` styling:
       - hover too bright
-      - needs space around each one or remove border radius
-      - verify with single player
     - Needs to hide (or disable?) menu controls for keyboard
     - Should check `recompinput::players::is_single_player_mode()` if single player mode is active
     - Should check for player count changes and not rely on initial input

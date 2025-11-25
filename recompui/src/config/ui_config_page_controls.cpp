@@ -14,6 +14,18 @@ ConfigPageControls *controls_page = nullptr;
 
 const std::string_view active_state_style_name = "cont_opt_active";
 
+// Separating this out, may be a good component later to expose.
+class ScrollBuffer : public Element {
+protected:
+    std::string_view get_type_name() override { return "ScrollBuffer"; }
+public:
+    ScrollBuffer(Element *parent, float buffer_amount) : Element(parent, 0, "div", false) {
+        set_position(Position::Absolute);
+        set_inset(-buffer_amount);
+        set_pointer_events(PointerEvents::None);
+    }
+};
+
 GameInputRow::GameInputRow(
     Element *parent,
     GameInputContext *input_ctx,
@@ -30,7 +42,9 @@ GameInputRow::GameInputRow(
     set_align_items(AlignItems::Center);
     set_justify_content(JustifyContent::SpaceBetween);
     set_width(100.0f, Unit::Percent);
-    set_height_auto();
+    // Have to set height here for the scroll buffer to work.
+    // Otherwise it fails to calculate the correct size (RmlUI issue)
+    set_height(64.0f);
 
     set_padding_top(4.0f);
     set_padding_right(16.0f);
@@ -96,6 +110,8 @@ GameInputRow::GameInputRow(
     for (size_t i = 0; i < recompinput::num_bindings_per_input; i++) {
         bindings[i] = recompinput::InputField();
     }
+
+    scroll_buffer = context.create_element<ScrollBuffer>(this, 16.0f);
 }
 
 GameInputRow::~GameInputRow() {
@@ -135,7 +151,7 @@ void GameInputRow::process_event(const Event &e) {
             if (focus_active && on_active_callback) {
                 on_active_callback();
             }
-            scroll_into_view();
+            scroll_buffer->scroll_into_view();
         }
         break;
     default:
@@ -450,6 +466,8 @@ void ConfigPageControls::render_control_mappings() {
         body_left_scroll->set_max_height(100.0f, Unit::Percent);
         body_left_scroll->set_overflow_y(Overflow::Scroll);
         body_left_scroll->set_as_navigation_container(NavigationType::GridCol);
+        body_left_scroll->set_padding_left(8.0f);
+        body_left_scroll->set_padding_right(8.0f);
         body_left_scroll->set_debug_id("Mappings Scroll Container");
 
         game_input_rows.clear();
@@ -470,6 +488,15 @@ void ConfigPageControls::render_control_mappings() {
             );
             game_input_rows.push_back(row);
             row->set_as_navigation_container(NavigationType::GridRow);
+
+            // Need to use margins here instead of padding on the scroll parent.
+            // RmlUI scroll areas weren't accounting for the bottom padding and this was the only way
+            // to circumvent that.
+            if (i == 0) {
+                row->set_margin_top(8.0f);
+            } else if (i == game_input_contexts.size() - 1) {
+                row->set_margin_bottom(8.0f);
+            }
         }
     }
     update_control_mappings();
