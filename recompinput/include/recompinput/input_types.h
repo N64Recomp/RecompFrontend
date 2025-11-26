@@ -101,6 +101,14 @@ namespace recompinput {
     inline const size_t num_game_inputs = static_cast<size_t>(GameInput::COUNT);
 
     const std::string& get_game_input_name(GameInput input);
+    void set_game_input_name(GameInput input, const std::string& new_name);
+
+    const std::string& get_game_input_description(GameInput input);
+    void set_game_input_description(GameInput input, const std::string& new_description);
+
+    bool get_game_input_disabled(GameInput input);
+    void set_game_input_disabled(GameInput input, bool disabled);
+
     const std::string& get_game_input_enum_name(GameInput input);
 }
 

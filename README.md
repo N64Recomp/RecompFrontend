@@ -116,8 +116,7 @@
     - audit styling for both current and future
 - `recompinput`
   - `input_types`
-    - should be able to customize `game_input_names`
-    - should have `descriptions` for `ui_config_tab_controls` (expose for customization)
+    - Review default descriptions.
     - should be able to designate which `GameInput`s can't be changed on keyboard
     - should be able to designate which `GameInput`s can't be cleared on controller
     - should be able to add new non n64 inputs

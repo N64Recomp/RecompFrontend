@@ -2,14 +2,32 @@
 #include <string>
 #include <array>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace recompinput {
 
 #define DEFINE_INPUT(name, value, readable) readable,
-static const std::array<std::string, num_game_inputs> game_input_names = {
+static std::array<std::string, num_game_inputs> game_input_names = {
     DEFINE_ALL_INPUTS()
 };
 #undef DEFINE_INPUT
+
+constexpr std::array<std::string, num_game_inputs> get_default_game_input_descriptions() {
+#define DEFINE_INPUT(name, value, readable) "",
+    std::array<std::string, num_game_inputs> descriptions = {
+        DEFINE_ALL_INPUTS()
+    };
+    descriptions[static_cast<size_t>(GameInput::TOGGLE_MENU)] = "Open or close this configuration menu from in game.";
+    descriptions[static_cast<size_t>(GameInput::ACCEPT_MENU)] = "In the recomp interface, performs the action for the currently highlighted item. Like pressing a button, or toggling a switch.";
+    descriptions[static_cast<size_t>(GameInput::BACK_MENU)] = "In the recomp interface, returns to the header or backs out to a previous menu.";
+    descriptions[static_cast<size_t>(GameInput::APPLY_MENU)] = "In the recomp interface, if changes are made to a configuration that requires applying your settings, this will apply the current changes.";
+    descriptions[static_cast<size_t>(GameInput::TAB_LEFT_MENU)] = "In the recomp interface, switches the active tab to the one on the left of the current tab.";
+    descriptions[static_cast<size_t>(GameInput::TAB_RIGHT_MENU)] = "In the recomp interface, switches the active tab to the one on the right of the current tab.";
+#undef DEFINE_INPUT
+    return descriptions;
+}
+
+static std::array<std::string, num_game_inputs> game_input_descriptions = get_default_game_input_descriptions();
 
 #define DEFINE_INPUT(name, value, readable) #name,
 static const std::array<std::string, num_game_inputs> game_input_enum_names = {
@@ -17,9 +35,34 @@ static const std::array<std::string, num_game_inputs> game_input_enum_names = {
 };
 #undef DEFINE_INPUT
 
+static std::unordered_set<GameInput> disabled_game_inputs = {};
 
 const std::string& get_game_input_name(GameInput input) {
     return game_input_names.at(static_cast<size_t>(input));
+}
+
+void set_game_input_name(GameInput input, const std::string& new_name) {
+    game_input_names.at(static_cast<size_t>(input)) = new_name;
+}
+
+const std::string& get_game_input_description(GameInput input) {
+    return game_input_descriptions.at(static_cast<size_t>(input));
+}
+
+void set_game_input_description(GameInput input, const std::string& new_description) {
+    game_input_descriptions.at(static_cast<size_t>(input)) = new_description;
+}
+
+bool get_game_input_disabled(GameInput input) {
+    return disabled_game_inputs.find(input) != disabled_game_inputs.end();
+}
+
+void set_game_input_disabled(GameInput input, bool disabled) {
+    if (disabled) {
+        disabled_game_inputs.insert(input);
+    } else {
+        disabled_game_inputs.erase(input);
+    }
 }
 
 const std::string& get_game_input_enum_name(GameInput input) {
