@@ -111,8 +111,6 @@
   - `input_types`
     - Review default descriptions.
     - should be able to add new non n64 inputs
-  - `input_mapping`
-    - `default_n64_mappings_controller` and `default_n64_mappings_keyboard` should have helpers for overridding
   - `input_events`
     - toggle menu's binding cancel only considers inputs from profile "0". should be the specific controller's player's profile (or single player mode check)
     - a lot of binding handling in general. could be moved to a function in `input_binding.cpp`? would need to be able to report if it is stealing inputs. `input_events` handles controller connection as well, so maybe there should be a smarter way to hook anything up to `sdl_event_filter`, like a vector of callbacks

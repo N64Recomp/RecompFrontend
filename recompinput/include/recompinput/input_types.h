@@ -74,6 +74,18 @@ namespace recompinput {
         int32_t input_id;
         std::string to_string() const;
         auto operator<=>(const InputField& rhs) const = default;
+
+        static InputField keyboard(SDL_Scancode key) {
+            return InputField{ InputType::Keyboard, static_cast<int32_t>(key) };
+        }
+
+        static InputField controller_digital(SDL_GameControllerButton button) {
+            return InputField{ InputType::ControllerDigital, static_cast<int32_t>(button) };
+        }
+
+        static InputField controller_analog(SDL_GameControllerAxis axis, bool positive = true) {
+            return InputField{ InputType::ControllerAnalog, positive ? (static_cast<int32_t>(axis) + 1) : -(static_cast<int32_t>(axis) + 1) };
+        }
     };
 
     inline void to_json(nlohmann::json& j, const InputField& field) {
