@@ -109,6 +109,9 @@ namespace recompinput {
     bool get_game_input_disabled(GameInput input);
     void set_game_input_disabled(GameInput input, bool disabled);
 
+    bool get_game_input_clearable(GameInput input);
+    bool get_game_input_is_menu(GameInput input);
+
     const std::string& get_game_input_enum_name(GameInput input);
 }
 

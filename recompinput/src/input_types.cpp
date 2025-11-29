@@ -65,6 +65,21 @@ void set_game_input_disabled(GameInput input, bool disabled) {
     }
 }
 
+bool get_game_input_clearable(GameInput input) {
+    return !(input == GameInput::TOGGLE_MENU || input == GameInput::ACCEPT_MENU);
+}
+
+bool get_game_input_is_menu(GameInput input) {
+#define DEFINE_INPUT(name, value, readable) GameInput::name,
+
+    static const std::unordered_set<GameInput> menu_inputs = {
+        DEFINE_RECOMP_UI_INPUTS()
+    };
+
+    return menu_inputs.find(input) != menu_inputs.end();
+#undef DEFINE_INPUT
+}
+
 const std::string& get_game_input_enum_name(GameInput input) {
     return game_input_enum_names.at(static_cast<size_t>(input));
 }
