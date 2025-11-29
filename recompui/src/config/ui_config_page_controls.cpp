@@ -28,12 +28,12 @@ public:
 
 GameInputRow::GameInputRow(
     Element *parent,
-    GameInputContext *input_ctx,
+    const GameInputContext &input_ctx,
     std::function<void()> on_active_callback,
     on_bind_click_callback on_bind_click,
     on_clear_or_reset_callback on_clear_or_reset
 ) : Element(parent, Events(EventType::Hover, EventType::Focus), "div", false) {
-    this->input_id = input_ctx->input_id;
+    this->input_id = input_ctx.input_id;
     this->on_active_callback = on_active_callback;
 
     set_display(Display::Flex);
@@ -49,7 +49,7 @@ GameInputRow::GameInputRow(
     set_padding_top(4.0f);
     set_padding_right(16.0f);
     set_padding_bottom(4.0f);
-    set_padding_left(20.0f);
+    set_padding_left(GameInputRow::left_padding);
     set_border_radius(theme::border::radius_sm);
     set_background_color(theme::color::Transparent);
 
@@ -58,9 +58,9 @@ GameInputRow::GameInputRow(
 
     recompui::ContextId context = get_current_context();
 
-    set_debug_id("GameInputRow (" + input_ctx->name + ")");
+    set_debug_id("GameInputRow (" + input_ctx.name + ")");
 
-    auto label = context.create_element<Label>(this, input_ctx->name, LabelStyle::Normal);
+    auto label = context.create_element<Label>(this, input_ctx.name, theme::Typography::LabelMD);
     label->set_flex_grow(2.0f);
     label->set_flex_shrink(1.0f);
     label->set_flex_basis(300.0f);
@@ -88,13 +88,13 @@ GameInputRow::GameInputRow(
             binding_button->add_pressed_callback([this, i, on_bind_click]() {
                on_bind_click(this->input_id, i);
             });
-            binding_button->set_debug_id("BindingButton (" + input_ctx->name + " Binding " + std::to_string(i) + ")");
+            binding_button->set_debug_id("BindingButton (" + input_ctx.name + " Binding " + std::to_string(i) + ")");
             binding_buttons.push_back(binding_button);
         }
         binding_buttons[0]->set_as_primary_focus(true);
     }
 
-    if (input_ctx->clearable) {
+    if (input_ctx.clearable) {
         auto clear_button = context.create_element<IconButton>(this, "icons/Trash.svg", ButtonStyle::Danger, IconButtonSize::Large);
         clear_button->add_pressed_callback([this, on_clear_or_reset]() {
             on_clear_or_reset(this->input_id, false);
@@ -159,16 +159,17 @@ void GameInputRow::process_event(const Event &e) {
     }
 }
 
-ConfigPageControls::ConfigPageControls(
-    Element *parent,
-    int num_players,
-    std::vector<GameInputContext> game_input_contexts
-) : ConfigPage(parent) {
-    controls_page = this;
-    this->game_input_contexts = game_input_contexts;
-    this->num_players = num_players;
+void GameInputRow::focus_on_first_binding() {
+    if (binding_buttons.size() > 0) {
+        binding_buttons[0]->focus();
+    }
+}
 
-    multiplayer_enabled = this->num_players > 1;
+ConfigPageControls::ConfigPageControls(Element *parent) : ConfigPage(parent) {
+    controls_page = this;
+
+    multiplayer_enabled = recompinput::players::is_single_player_mode() == false;
+    this->max_num_players = multiplayer_enabled ? recompinput::players::get_max_number_of_players() : 1;
     multiplayer_view_mappings = !multiplayer_enabled;
 
     set_selected_player(selected_player);
@@ -177,6 +178,38 @@ ConfigPageControls::ConfigPageControls(
     set_debug_id("ConfigPageControls");
 
     render_all();
+}
+
+ConfigPageControls::~ConfigPageControls() {
+    controls_page = nullptr;
+}
+
+void ConfigPageControls::create_game_input_contexts() {
+    game_input_sections.n64.contexts.clear();
+    game_input_sections.menu.contexts.clear();
+    game_input_sections.other.clear();
+
+    for (int i = 0; i < static_cast<int>(recompinput::GameInput::COUNT); i++) {
+        recompinput::GameInput input = static_cast<recompinput::GameInput>(i);
+        if (recompinput::get_game_input_disabled(input)) {
+            continue;
+        }
+
+        GameInputContext input_ctx = {
+            recompinput::get_game_input_name(input),
+            recompinput::get_game_input_description(input),
+            input,
+            recompinput::get_game_input_clearable(input)
+        };
+
+        if (recompinput::get_game_input_is_menu(input)) {
+            game_input_sections.menu.contexts.push_back(input_ctx);
+        } else {
+            game_input_sections.n64.contexts.push_back(input_ctx);
+        }
+    }
+
+    // TODO: fetch other (e.g. mod) inputs to game_input_sections.other
 }
 
 void ConfigPageControls::process_event(const Event &e) {
@@ -261,6 +294,7 @@ void ConfigPageControls::render_header() {
                 header_elements.right.go_back_button = context.create_element<Button>(header_right, "Go back", ButtonStyle::Tertiary);
                 header_elements.right.go_back_button->add_pressed_callback([this]() {
                     this->multiplayer_view_mappings = false;
+                    this->queue_selected_player_profile_edit_focus = true;
                     this->force_update();
                 });
                 header_elements.right.go_back_button->set_as_primary_focus(true);
@@ -287,12 +321,14 @@ void ConfigPageControls::render_header() {
     }
 }
 
-void ConfigPageControls::render_body() {
-    bool show_mappings = (multiplayer_enabled && multiplayer_view_mappings) || !multiplayer_enabled;
+bool ConfigPageControls::should_show_mappings() {
+    return (multiplayer_enabled && multiplayer_view_mappings) || !multiplayer_enabled;
+}
 
+void ConfigPageControls::render_body() {
     recompui::ContextId context = get_current_context();
 
-    if (show_mappings) {
+    if (should_show_mappings()) {
         body->get_right()->set_display(Display::Flex);
         render_body_mappings();
     } else {
@@ -339,11 +375,11 @@ void ConfigPageControls::render_body_players() {
     body_left->set_max_height(100.0f, Unit::Percent);
     body_left->set_overflow_y(Overflow::Auto);
 
-    bool make_fakes = num_players > 4;
+    bool make_fakes = max_num_players > 4;
 
     recompui::Element *player_grid = nullptr;
     // Grid supports groups of 4
-    for (int i = 0; i < num_players; i += 4) {
+    for (int i = 0; i < max_num_players; i += 4) {
         player_grid = context.create_element<Element>(body_left, 0, "div", false);
         player_grid->set_as_navigation_container(NavigationType::GridRow);
         player_grid->set_display(Display::Flex);
@@ -358,11 +394,11 @@ void ConfigPageControls::render_body_players() {
         player_grid->set_margin_bottom(-64.0f);
 
         for (int j = i; j < i + 4; j++) {
-            if (!make_fakes && j >= num_players) {
+            if (!make_fakes && j >= max_num_players) {
                 break;
             }
 
-            if (make_fakes && j >= 4 && j >= num_players) {
+            if (make_fakes && j >= 4 && j >= max_num_players) {
                 auto fake = context.create_element<Element>(player_grid);
                 fake->set_width(PlayerCard::static_player_card_size, Unit::Dp);
                 continue;
@@ -390,6 +426,13 @@ void ConfigPageControls::render_body_players() {
     if (player_grid != nullptr) {
         player_grid->set_margin_bottom(0.0f);
     }
+
+    if (queue_selected_player_profile_edit_focus) {
+        queue_selected_player_profile_edit_focus = false;
+        if (selected_player >= 0 && selected_player < static_cast<int>(player_cards.size())) {
+            player_cards[selected_player]->focus_on_edit_profile_button();
+        }
+    }
 }
 
 void ConfigPageControls::on_select_player_profile(int player_index, int profile_index) {
@@ -406,6 +449,7 @@ void ConfigPageControls::on_edit_player_profile(int player_index) {
     if (device != recompinput::InputDevice::COUNT) {
         selected_profile_index = recompinput::profiles::get_input_profile_for_player(player_index, device);
         multiplayer_view_mappings = true;
+        queue_first_game_input_row_focus = true;
         force_update();
     }
 }
@@ -471,54 +515,105 @@ void ConfigPageControls::render_control_mappings() {
         body_left_scroll->set_debug_id("Mappings Scroll Container");
 
         game_input_rows.clear();
-        for (int i = 0; i < game_input_contexts.size(); i++) {
-            auto &ctx = game_input_contexts[i];
-            GameInputRow *row = context.create_element<GameInputRow>(
-                body_left_scroll,
-                &ctx,
-                [this, i]() {
-                    this->on_option_hover(i);
-                },
-                [this](recompinput::GameInput game_input, int input_index) {
-                    this->on_bind_click(game_input, input_index);
-                },
-                [this](recompinput::GameInput game_input, bool reset) {
-                    this->on_clear_or_reset_game_input(game_input, reset);
-                }
-            );
-            game_input_rows.push_back(row);
-            row->set_as_navigation_container(NavigationType::GridRow);
 
-            // Need to use margins here instead of padding on the scroll parent.
-            // RmlUI scroll areas weren't accounting for the bottom padding and this was the only way
-            // to circumvent that.
-            if (i == 0) {
-                row->set_margin_top(8.0f);
-            } else if (i == game_input_contexts.size() - 1) {
-                row->set_margin_bottom(8.0f);
+        create_game_input_contexts();
+        set_current_profile_index();
+
+        rows_wrappers.clear();
+        for (auto *section : game_input_sections.get_all_sections()) {
+            if (section->contexts.size() == 0) {
+                continue;
+            }
+            GameInputRowsWrapper *section_wrapper = context.create_element<GameInputRowsWrapper>(
+                body_left_scroll, section->name, section == &game_input_sections.menu);
+            rows_wrappers.push_back(section_wrapper);
+
+            for (auto &input_ctx : section->contexts) {
+                recompinput::GameInput input_id = input_ctx.input_id;
+                GameInputRow *row = context.create_element<GameInputRow>(
+                    static_cast<Element*>(section_wrapper),
+                    input_ctx,
+                    [this, input_id]() {
+                        this->on_option_hover(input_id);
+                    },
+                    [this](recompinput::GameInput game_input, int input_index) {
+                        this->on_bind_click(game_input, input_index);
+                    },
+                    [this](recompinput::GameInput game_input, bool reset) {
+                        this->on_clear_or_reset_game_input(game_input, reset);
+                    }
+                );
+                game_input_rows.push_back(row);
+                row->set_as_navigation_container(NavigationType::GridRow);
             }
         }
     }
+
     update_control_mappings();
+    if (queue_first_game_input_row_focus && game_input_rows.size() > 0) {
+        game_input_rows[0]->focus_on_first_binding();
+        queue_first_game_input_row_focus = false;
+    }
+}
+
+void ConfigPageControls::set_current_profile_index() {
+    if (!multiplayer_enabled) {
+        selected_profile_index = single_player_show_keyboard_mappings
+            ? recompinput::profiles::get_sp_keyboard_profile_index()
+            : recompinput::profiles::get_sp_controller_profile_index();
+    }
 }
 
 void ConfigPageControls::update_control_mappings() {
     if (!multiplayer_enabled) {
         selected_player = 0;
-        selected_profile_index = single_player_show_keyboard_mappings
-            ? recompinput::profiles::get_sp_keyboard_profile_index()
-            : recompinput::profiles::get_sp_controller_profile_index();
+        set_current_profile_index();
     } else if (!multiplayer_view_mappings) {
         return;
     }
 
-    game_input_bindings.clear();
-    for (int i = 0; i < game_input_contexts.size(); i++) {
-        GameInputContext &ctx = game_input_contexts[i];
-        game_input_bindings[ctx.input_id] = {};
+    // Decide section visibility, reset margins
+    for (auto *wrapper : rows_wrappers) {
+        wrapper->set_margin_top(0.0f);
+        wrapper->set_margin_bottom(0.0f);
+        if (wrapper->is_menu) {
+            if (get_player_input_device() == recompinput::InputDevice::Keyboard) {
+                wrapper->display_hide();
+            } else {
+                wrapper->display_show();
+            }
+            break;
+        }
+    }
+
+    recompui::GameInputRowsWrapper *first = nullptr;
+    recompui::GameInputRowsWrapper *last = nullptr;
+    for (auto *wrapper : rows_wrappers) {
+        bool visible = wrapper->get_display() != Display::None;
+        if (visible) {
+            if (first == nullptr) {
+                first = wrapper;
+            }
+            last = wrapper;
+        }
+    }
+
+    // Need to use margins here instead of padding on the scroll parent.
+    // RmlUI scroll areas weren't accounting for the bottom padding and this was the only way
+    // to circumvent that.
+    if (first != nullptr) {
+        first->set_margin_top(8.0f);
+    }
+    if (last != nullptr) {
+        last->set_margin_bottom(8.0f);
+    }
+
+    PlayerBindings game_input_bindings;
+    for (auto *ctx : game_input_sections.get_all_contexts()) {
+        game_input_bindings[ctx->input_id] = {};
 
         for (int j = 0; j < recompinput::num_bindings_per_input; j++) {
-            game_input_bindings[ctx.input_id].push_back(recompinput::profiles::get_input_binding(selected_profile_index, ctx.input_id, j));
+            game_input_bindings[ctx->input_id].push_back(recompinput::profiles::get_input_binding(selected_profile_index, ctx->input_id, j));
         }
     }
 
@@ -527,10 +622,6 @@ void ConfigPageControls::update_control_mappings() {
             game_input_bindings.at(game_input_rows[i]->get_input_id())
         );
     }
-}
-
-ConfigPageControls::~ConfigPageControls() {
-    controls_page = nullptr;
 }
 
 recompinput::InputDevice ConfigPageControls::get_player_input_device() {
@@ -564,9 +655,14 @@ void ConfigPageControls::set_selected_player(int player) {
     selected_player = player;
 }
 
-void ConfigPageControls::on_option_hover(uint8_t index) {
+void ConfigPageControls::on_option_hover(recompinput::GameInput input_id) {
     if (description_container) {
-        description_container->set_text(game_input_contexts[index].description);
+        GameInputContext *ctx = game_input_sections.get_context_by_input_id(input_id);
+        if (ctx != nullptr) {
+            description_container->set_text(ctx->description);
+        } else {
+            description_container->set_text("");
+        }
     }
 }
 
