@@ -119,7 +119,7 @@ PlayerCard::PlayerCard(
         bool player_is_assigned = recompinput::players::get_player_is_assigned(player_index, is_assignment_card);
         select->set_enabled(player_is_assigned);
 
-        auto edit_profile_button = context.create_element<Button>(this, "Edit Profile", ButtonStyle::Secondary, ButtonSize::Medium);
+        edit_profile_button = context.create_element<Button>(this, "Edit Profile", ButtonStyle::Secondary, ButtonSize::Medium);
         edit_profile_button->add_pressed_callback([this]() {
             this->on_edit_profile();
         });
@@ -137,12 +137,24 @@ void PlayerCard::process_event(const Event &e) {
         bool focus_active = std::get<EventFocus>(e.variant).active;
         if (!is_assignment_card) {
             if (focus_active) {
-                scroll_into_view(true);
+                bool smooth_scroll = true;
+                if (force_instant_scroll) {
+                    force_instant_scroll = false;
+                    smooth_scroll = false;
+                }
+                scroll_into_view(smooth_scroll);
             }
         } 
         break;
     }
     case EventType::Update:
+        if (queue_focus_on_edit_profile_button) {
+            queue_focus_on_edit_profile_button = false;
+            if (edit_profile_button != nullptr) {
+                force_instant_scroll = true;
+                edit_profile_button->focus();
+            }
+        }
         break;
     default:
         break;

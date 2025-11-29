@@ -29,10 +29,13 @@ protected:
     Svg* icon = nullptr;
     Select *profile_select = nullptr;
     PillButton *multiplayer_pill = nullptr;
+    Button *edit_profile_button = nullptr;
     int player_index = -1;
     bool is_assignment_card = false;
     PlayerCardIcon cur_icon = PlayerCardIcon::None;
     bool was_player_assigning = false;
+    bool queue_focus_on_edit_profile_button = false;
+    bool force_instant_scroll = false;
 
     on_select_player_profile_callback on_select_profile_callback;
     on_edit_player_profile_callback on_edit_profile_callback;
@@ -53,6 +56,14 @@ public:
     }
     void set_on_edit_profile_callback(on_edit_player_profile_callback callback) {
         on_edit_profile_callback = std::move(callback);
+    }
+
+    // Has to be queued.
+    // Non-assignment Player cards are in a scroll container that hasn't calculated its layout yet.
+    // If it is attempted to be scrolled into view immediately on render it won't work.
+    void focus_on_edit_profile_button() {
+        queue_focus_on_edit_profile_button = true;
+        queue_update();
     }
 
     static constexpr float assign_player_card_size = 128.0f;
