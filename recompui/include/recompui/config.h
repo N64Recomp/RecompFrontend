@@ -129,8 +129,9 @@ namespace recompui {
         void open();
         bool close();
 
-        // The config modal instance. nullptr until created with init_modal() internally.
-        extern recompui::TabbedModal *config_modal;
+        // Get the config modal instance. nullptr until created with init_modal() internally.
+        // Will throw an error if it hasn't been created yet.
+        recompui::TabbedModal *get_config_modal();
 
         ContextId get_config_context_id();
 

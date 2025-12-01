@@ -18,7 +18,7 @@ static std::vector<PendingTab> pending_tabs;
 static bool loaded_configs = false;
 
 namespace recompui {
-    recompui::TabbedModal *config::config_modal = nullptr;
+    static recompui::TabbedModal *config_modal = nullptr;
 
     recomp::config::Config &config::get_config(const std::string &id) {
         for (auto &[config_id, config] : configs) {
@@ -199,5 +199,13 @@ namespace recompui {
         }
 
         return config_modal->close();
+    }
+
+    recompui::TabbedModal *config::get_config_modal() {
+        if (config_modal == nullptr) {
+            throw std::runtime_error("Config modal has not been initialized.");
+        }
+
+        return config_modal;
     }
 }
