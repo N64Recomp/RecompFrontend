@@ -1,16 +1,23 @@
 #include "ui_select.h"
 #include "ui_pseudo_border.h"
+#include "ui_label.h"
 
 #include <cassert>
 
 namespace recompui {
     Option::Option(Element *parent, const SelectOption &option) :
-        Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "option", true),
+        Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "option", false),
         option(option)
     {
-        set_text(option.text);
         set_input_text(option.value);
-        set_color(theme::color::Primary);
+        ContextId context = get_current_context();
+        set_position(Position::Relative);
+
+        auto label = context.create_element<Label>(this, option.text, theme::Typography::LabelXS);
+        label->set_padding_left(8.0f);
+        set_border_left_width(4.0f);
+        set_border_left_color(theme::color::Transparent);
+        set_color(theme::color::TextDim);
 
         set_padding(12.0f);
         set_height_auto();
@@ -25,18 +32,25 @@ namespace recompui {
         set_cursor(Cursor::Pointer);
 
         hover_style.set_color(theme::color::TextActive);
-        hover_style.set_background_color(theme::color::White, 77);
-
+        hover_style.set_background_color(theme::color::WhiteA5);
+        hover_style.set_border_left_color(theme::color::WhiteA5);
+        
         focus_style.set_color(theme::color::TextActive);
-        focus_style.set_background_color(theme::color::White, 77);
+        focus_style.set_background_color(theme::color::WhiteA5);
+        focus_style.set_border_left_color(theme::color::WhiteA5);
 
         disabled_style.set_color(theme::color::TextDim, 128);
         disabled_style.set_background_color(theme::color::Transparent);
+        disabled_style.set_border_left_color(theme::color::Transparent);
         disabled_style.set_cursor(Cursor::None);
+
+        active_style.set_border_left_color(theme::color::PrimaryL);
+        active_style.set_color(theme::color::PrimaryL);
 
         add_style(&hover_style, hover_state);
         add_style(&focus_style, focus_state);
         add_style(&disabled_style, disabled_state);
+        add_style(&active_style, "active");
     }
 
     void Option::process_event(const Event &e) {
@@ -72,6 +86,10 @@ namespace recompui {
         }
     }
 
+    void Option::set_active(bool is_active) {
+        active = is_active;
+        set_style_enabled("active", active);
+    }
 
     constexpr std::string_view select_element_selectbox = "selectbox";
     constexpr std::string_view select_element_selectarrow = "selectarrow";
@@ -237,10 +255,13 @@ namespace recompui {
                 const std::string& opt_value = std::get<EventText>(e.variant).text;
 
                 int index = -1;
-                for (int i = 0; i < options.size(); i++) {
+                int max_index = static_cast<int>(std::min(options.size(), option_elements.size()));
+                for (int i = 0; i < max_index; i++) {
                     if (options[i].value == opt_value) {
                         index = i;
-                        break;
+                        option_elements[i]->set_active(true);
+                    } else {
+                        option_elements[i]->set_active(false);
                     }
                 }
 
@@ -292,6 +313,7 @@ namespace recompui {
             if (!selected_option_value.empty() && option.value == selected_option_value) {
                 set_selection(selected_option_value);
                 selected_option_index = i;
+                option_element->set_active(true);
             }
         }
     }

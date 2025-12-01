@@ -30,12 +30,16 @@ namespace recompui {
         Style hover_style;
         Style focus_style;
         Style disabled_style;
+        Style active_style;
+        Element *active_indicator = nullptr;
+        bool active = false;
 
         // Element overrides.
         virtual void process_event(const Event &e) override;
         std::string_view get_type_name() override { return "Option"; }
     public:
         Option(Element *parent, const SelectOption &option);
+        void set_active(bool is_active);
     };
 
     // Note: Select element fills the available width of its parent element.

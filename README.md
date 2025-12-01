@@ -104,9 +104,6 @@
     - Needs to hide (or disable?) menu controls for keyboard
     - Player cards "new" profile (based on current in dropdown?)
     - While a profile is open, be able to edit/change the name of a (non-default?) profile
-  - `ui_select`
-    - add indication of which element in the dropdown is the current
-    - audit styling for both current and future
 - `recompinput`
   - `input_types`
     - Review default descriptions.
