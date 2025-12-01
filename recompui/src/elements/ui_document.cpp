@@ -388,6 +388,10 @@ namespace recompui {
 
             RecompNav nav_context(this, key_identifier);
 
+            if (nav_context.original_focused_element == nullptr) {
+                return false;
+            }
+
             #ifdef RECOMPUI_NAV_DEBUG
             std::cout << "\nNAV START\n";
             #endif
