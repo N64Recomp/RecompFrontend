@@ -95,28 +95,27 @@ namespace recompui {
         this->options = options;
 
         ContextId context = get_current_context();
+
         // Wrapper needed for both the focus border and for the custom select arrow.
         // RmlUI doesn't allow custom children of a select, so we can't add the FocusBorder or the arrow directly to the select element.
         wrapper = context.create_element<Element>(parent, 0, "div", false);
         set_parent(wrapper);
-        wrapper->set_height_auto();
+
+        wrapper->set_display(Display::Block);
+        wrapper->set_height(select_element_height);
         wrapper->set_width(100.0f, Unit::Percent);
         wrapper->set_position(Position::Relative);
         
         auto focus_border = context.create_element<FocusBorder>(wrapper, true);
         focus_border->set_border_radius(theme::border::radius_md + theme::border::width * 4.0f);
 
-        set_display(Display::Flex);
-        set_flex_direction(FlexDirection::Row);
-        set_align_items(AlignItems::Center);
-        set_justify_content(JustifyContent::FlexStart);
-        set_gap(16.0f);
+        set_display(Display::Block);
         set_text_align(TextAlign::Left);
         set_position(Position::Relative);
         set_padding_right(select_element_padding);
         set_padding_left(select_element_padding);
         set_height(select_element_height);
-        set_width_auto();
+        set_width(100.0f, Unit::Percent);
 
         set_min_width(select_element_min_width);
 

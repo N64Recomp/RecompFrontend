@@ -38,6 +38,7 @@ namespace recompui {
         Option(Element *parent, const SelectOption &option);
     };
 
+    // Note: Select element fills the available width of its parent element.
     class Select : public Element {
     protected:
         int selected_option_index = -1;
