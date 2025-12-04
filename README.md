@@ -36,12 +36,18 @@
       - Currently uses RmlUI's `ScrollIntoView` method
       - That method has issues with not particularly handling interrupted scrolls well.
       - It doesn't allow for a buffer amount, for example if you wanted 16px of space above or below when scrolling. Right now this has to be handled by making the element extend further with padding, or if that isn't possible, then by using an absolutely positioned child element that extends past its parent's boundaries and calling scroll_into_view on that element (See `ScrollBuffer` class).
+  - `ui_config_page`
+    - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
 - `recompinput`
   - `input_state`
     - Refactor. Handles too much, for example:
       - polling inputs
       - updating rumble
       - game -> recompinput API funcs for controllers, including input, rumble, special controls like gyro
+  - `input_events`
+    - a lot of binding handling in general. could be moved to a function in `input_binding.cpp`? would need to be able to report if it is stealing inputs. `input_events` handles controller connection as well, so maybe there should be a smarter way to hook anything up to `sdl_event_filter`, like a vector of callbacks
+  - `players`
+    - concept of players and profiles are disjointed, maybe thats okay?
 
 ## changes needed
 
@@ -96,12 +102,7 @@
     - expose mod/patch c API for opening
     - Add help text to explain how to assign controller/keyboard players
     - softlock when hitting escape?
-  - `ui_config_page`
-    - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
   - `ui_config_page_controls`
-    - `GameInputRow` styling:
-      - hover too bright
-    - Needs to hide (or disable?) menu controls for keyboard
     - Player cards "new" profile (based on current in dropdown?)
     - While a profile is open, be able to edit/change the name of a (non-default?) profile
 - `recompinput`
@@ -110,9 +111,7 @@
     - should be able to add new non n64 inputs
   - `input_events`
     - toggle menu's binding cancel only considers inputs from profile "0". should be the specific controller's player's profile (or single player mode check)
-    - a lot of binding handling in general. could be moved to a function in `input_binding.cpp`? would need to be able to report if it is stealing inputs. `input_events` handles controller connection as well, so maybe there should be a smarter way to hook anything up to `sdl_event_filter`, like a vector of callbacks
   - `players`
-    - concept of players and profiles are disjointed, maybe thats okay?
     - controller reconnects should attempt to preserve the last player's profile
     - pressing escape stops the assignment process and creates a softlock
 
