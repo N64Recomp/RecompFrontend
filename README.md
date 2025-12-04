@@ -77,7 +77,7 @@
   - `ui_document` + `ui_context` + ?
     - hits runtime error: std::runtime_error "This should never ever ever happen. Element not found in its parent's nav children."
     - there seems to be a chance that `ContextId::get_focused_element` returns an element that isn't actually focusable.
-    - possible replication with what is known in this instance
+    - can not replicate, once instance where this occurred
       - `original_focused_element` is an svg, `("src", STRING: "icons/RecordBorder.svg")`
       - i had just pressed escape from recording i think
       - the svg isnt visible
