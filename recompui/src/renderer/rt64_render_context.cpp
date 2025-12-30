@@ -346,8 +346,6 @@ void renderer::RT64Context::send_dl(const OSTask* task) {
 }
 
 void renderer::RT64Context::update_screen() {
-    VI_ORIGIN_REG = vi_origin;
-
     app->updateScreen();
 }
 
