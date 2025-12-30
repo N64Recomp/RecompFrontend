@@ -233,6 +233,7 @@ namespace recompui {
             auto current_wm = get_graphics_enum_value<ultramodern::renderer::WindowMode>(graphics::options::wm_option, OptionChangeContext::Temporary);
             auto new_wm = current_wm == ultramodern::renderer::WindowMode::Windowed ? ultramodern::renderer::WindowMode::Fullscreen : ultramodern::renderer::WindowMode::Windowed;
             get_graphics_config().set_option_value(graphics::options::wm_option, static_cast<uint32_t>(new_wm));
+            get_graphics_config().apply_option_value(graphics::options::wm_option);
             apply_graphics_config();
         }
 
