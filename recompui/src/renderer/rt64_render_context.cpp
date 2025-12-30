@@ -345,7 +345,7 @@ void renderer::RT64Context::send_dl(const OSTask* task) {
     app->processDisplayLists(app->core.RDRAM, task->t.data_ptr & 0x3FFFFFF, 0, true);
 }
 
-void renderer::RT64Context::update_screen(uint32_t vi_origin) {
+void renderer::RT64Context::update_screen() {
     VI_ORIGIN_REG = vi_origin;
 
     app->updateScreen();
