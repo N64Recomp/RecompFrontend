@@ -23,11 +23,12 @@ set(RT64_SDL_WINDOW_VULKAN TRUE)
 add_compile_definitions(HLSL_CPU)
 
 target_include_directories(recompinput PUBLIC
-    ${CMAKE_SOURCE_DIR}/recompui/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/lib/GamepadMotionHelpers
-    ${CMAKE_SOURCE_DIR}/recompui/lib/RmlUi/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/GamepadMotionHelpers
+    ${CMAKE_CURRENT_SOURCE_DIR}/../recompui/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../recompui/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../recompui/lib/RmlUi/Include
     ${RECOMP_FRONTEND_SDL2_PATH}/include
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/librecomp/include
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/N64Recomp/include
@@ -38,7 +39,6 @@ target_include_directories(recompinput PUBLIC
 
 target_include_directories(recompinput PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include/recompinput"
-    "${CMAKE_SOURCE_DIR}/recompui/src"
 )
 
 target_compile_options(recompinput PRIVATE

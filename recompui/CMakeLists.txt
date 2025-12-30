@@ -58,9 +58,9 @@ target_compile_definitions(rmlui_core PRIVATE LUNASVG_BUILD_STATIC)
 target_compile_definitions(recompui PRIVATE RMLUI_SDL_VERSION_MAJOR=2)
 
 target_include_directories(recompui PUBLIC
-    ${CMAKE_SOURCE_DIR}/recompinput/include
-    ${CMAKE_SOURCE_DIR}/lib/GamepadMotionHelpers
-    ${CMAKE_SOURCE_DIR}/lib/SlotMap
+    ${CMAKE_CURRENT_SOURCE_DIR}/../recompinput/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/GamepadMotionHelpers
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/SlotMap
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/api
