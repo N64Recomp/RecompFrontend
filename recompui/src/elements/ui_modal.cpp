@@ -1,6 +1,8 @@
 #include "ui_modal.h"
 #include "ui_element.h"
 #include "ui_document.h"
+#include "recompinput/recompinput.h"
+#include "recompinput/profiles.h"
 
 namespace recompui {
 
@@ -56,7 +58,7 @@ Modal::Modal(
     set_bottom(0);
     set_left(0);
 
-    ModalOverlay* modal_overlay = context.create_element<ModalOverlay>(this);
+    modal_overlay = context.create_element<ModalOverlay>(this);
 
     Element* modal_whole_page_wrapper = context.create_element<Element>(modal_overlay);
     modal_whole_page_wrapper->set_display(Display::Flex);
@@ -102,6 +104,10 @@ Modal::Modal(
     body->set_flex_basis_auto();
     body->set_flex_direction(FlexDirection::Row);
     body->set_width(100.0f, Unit::Percent);
+
+    set_menu_action_callback(MenuAction::Toggle, [this]() {
+        this->close();
+    }, "Close");
 }
 
 Modal::~Modal() {
@@ -152,25 +158,145 @@ bool TabbedModal::close() {
     return Modal::close();
 }
 
+static std::pair<recompinput::InputDevice, int> get_last_input_info() {
+    if (recompinput::players::is_single_player_mode()) {
+        if (get_cont_active()) {
+            return { recompinput::InputDevice::Controller, recompinput::profiles::get_sp_controller_profile_index() };
+        } else {
+            return { recompinput::InputDevice::Keyboard, recompinput::profiles::get_sp_keyboard_profile_index() };
+        }
+    }
+
+    recompinput::InputDevice device = recompinput::players::get_player_input_device(0);
+    if (device == recompinput::InputDevice::COUNT) {
+        return { recompinput::InputDevice::COUNT, -1 };
+    }
+
+    return { device, recompinput::profiles::get_input_profile_for_player(0, device) };
+}
+
 void Modal::process_event(const Event &e) {
     switch (e.type) {
+        case EventType::Update: {
+            if (is_open) {
+                bool update_action_labels = false;
+                auto [current_device, current_profile] = get_last_input_info();
+                if (current_device != last_input_device || current_profile != last_input_profile) {
+                    render_menu_actions();
+                }
+            }
+            queue_update();
+            break;
+        }
         case EventType::MenuAction: {
             auto action = std::get<EventMenuAction>(e.variant).action;
             if (menu_action_callbacks.contains(action)) {
-                menu_action_callbacks[action]();
+                menu_action_callbacks[action].callback();
                 break;
             }
 
-            if (action == MenuAction::Toggle) {
-                close();
-            }
             break;
         }
     }
 }
 
-void Modal::set_menu_action_callback(MenuAction action, std::function<void()> callback) {
-    menu_action_callbacks[action] = callback;
+void Modal::set_menu_action_callback(MenuAction action, std::function<void()> callback, std::string description) {
+    menu_action_callbacks[action] = { callback, description };
+    render_menu_actions();
+}
+
+void Modal::remove_menu_action_callback(MenuAction action) {
+    menu_action_callbacks.erase(action);
+    render_menu_actions();
+}
+
+void Modal::render_menu_actions() {
+    static const MenuAction menu_action_order[] = {
+        MenuAction::Accept,
+        MenuAction::Back,
+        MenuAction::Toggle,
+        MenuAction::TabLeft,
+        MenuAction::TabRight,
+        MenuAction::Apply,
+    };
+
+    ContextId context = get_current_context();
+    if (menu_actions_wrapper == nullptr) {
+        menu_actions_wrapper = context.create_element<Element>(modal_overlay);
+        menu_actions_wrapper->set_position(Position::Absolute);
+        menu_actions_wrapper->set_bottom(0);
+        menu_actions_wrapper->set_margin_left_auto();
+        menu_actions_wrapper->set_margin_right_auto();
+        menu_actions_wrapper->set_padding_left(modal_page_padding);
+        menu_actions_wrapper->set_padding_right(modal_page_padding);
+        menu_actions_wrapper->set_width(100, Unit::Percent);
+        menu_actions_wrapper->set_max_width(modal_width + (modal_page_padding * 2.0f));
+        menu_actions_wrapper->set_height(modal_page_padding);
+        menu_actions_wrapper->set_display(Display::Flex);
+        menu_actions_wrapper->set_justify_content(JustifyContent::FlexStart);
+        menu_actions_wrapper->set_align_items(AlignItems::Center);
+        menu_actions_wrapper->set_gap(32.0f);
+    } else {
+        menu_actions_wrapper->clear_children();
+    }
+
+    auto [current_device, current_profile] = get_last_input_info();
+    last_input_device = current_device;
+    last_input_profile = current_profile;
+
+    if (last_input_device == recompinput::InputDevice::COUNT) {
+        return;
+    }
+    
+    for (auto &action : menu_action_order) {
+        auto it = menu_action_callbacks.find(action);
+        if (it == menu_action_callbacks.end()) {
+            continue;
+        }
+
+        recompui::MenuActionCallback &action_info = it->second;
+        if (action_info.description.empty()) {
+            continue;
+        }
+
+        recompinput::GameInput input = menu_action_mapping::game_input_from_menu_action(action);
+        if (input == recompinput::GameInput::COUNT) {
+            continue;
+        }
+
+        std::vector<recompinput::InputField> bound_inputs;
+        for (size_t i = 0; i < recompinput::num_bindings_per_input; i++) {
+            auto binding = recompinput::profiles::get_input_binding(last_input_profile, input, i);
+            if (!binding.is_empty()) {
+                if (
+                    binding.input_type == recompinput::InputType::Keyboard &&
+                    menu_action_mapping::is_sdl_input_fake_mapped(binding.input_id)
+                ) {
+                    continue;
+                }
+                bound_inputs.push_back(binding);
+            }
+        }
+
+        if (bound_inputs.size() == 0) {
+            continue;
+        }
+
+        auto action_wrapper = context.create_element<Element>(menu_actions_wrapper, 0, "span", false);
+        action_wrapper->set_display(Display::Flex);
+        action_wrapper->set_flex_direction(FlexDirection::Row);
+        action_wrapper->set_align_items(AlignItems::Center);
+        action_wrapper->set_gap(4.0f);
+        action_wrapper->set_color(theme::color::TextA80);
+
+        auto action_label = context.create_element<Label>(action_wrapper, action_info.description + ":", theme::Typography::LabelSM);
+        for (const auto &bound_input : bound_inputs) {
+            auto binding_label = context.create_element<Label>(action_wrapper, bound_input.to_string(), theme::Typography::LabelSM);
+            binding_label->set_font_family("promptfont");
+            binding_label->set_font_style(FontStyle::Normal);;
+            binding_label->set_font_weight(400);;
+        }
+    }
 }
 
 void Modal::set_on_close_callback(std::function<void()> callback) {
@@ -196,13 +322,13 @@ TabbedModal::TabbedModal(
         if (this->tabs != nullptr) {
             this->tabs->focus_on_active_tab();
         }
-    });
+    }, "Back");
     set_menu_action_callback(MenuAction::TabLeft, [this]() {
         this->navigate_tab_direction(-1);
-    });
+    }, "Previous Tab");
     set_menu_action_callback(MenuAction::TabRight, [this]() {
         this->navigate_tab_direction(1);
-    });
+    }, "Next Tab");
 }
 
 void TabbedModal::process_event(const Event &e) {

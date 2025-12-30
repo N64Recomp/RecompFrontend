@@ -86,6 +86,10 @@ namespace recompinput {
         static InputField controller_analog(SDL_GameControllerAxis axis, bool positive = true) {
             return InputField{ InputType::ControllerAnalog, positive ? (static_cast<int32_t>(axis) + 1) : -(static_cast<int32_t>(axis) + 1) };
         }
+
+        bool is_empty() const {
+            return input_type == InputType::None;
+        }
     };
 
     inline void to_json(nlohmann::json& j, const InputField& field) {

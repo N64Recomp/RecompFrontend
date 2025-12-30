@@ -147,5 +147,12 @@ namespace recompui {
         };
 
         MenuAction menu_action_from_rml_key(const Rml::Input::KeyIdentifier& key);
+        // Returns a GameInput for a given MenuAction.
+        // GameInput::COUNT returned if no mapping exists.
+        recompinput::GameInput game_input_from_menu_action(const MenuAction& action);
+
+        // The ultra high F keys are used to give RmlUi unique keys for menu actions that can be invoked from controllers.
+        // This allows you to check if InputField.input_id is one of those (e.g. hiding hints). 
+        bool is_sdl_input_fake_mapped(int32_t sdl_key);
     };
 }
