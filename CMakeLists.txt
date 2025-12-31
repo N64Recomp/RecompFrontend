@@ -19,7 +19,6 @@ endif()
 
 option(RECOMP_FRONTEND_N64MODERNRUNTIME_PATH "Set the path where N64ModernRuntime is.")
 option(RECOMP_FRONTEND_RT64_PATH "Set the path where RT64 is.")
-option(RECOMP_FRONTEND_SDL2_PATH "Set the path where SDL2 is.")
 
 if (NOT RECOMP_FRONTEND_N64MODERNRUNTIME_PATH)
     message(FATAL_ERROR "N64ModernRuntime's path was not provided." )
@@ -27,10 +26,6 @@ endif()
 
 if (NOT RECOMP_FRONTEND_RT64_PATH)
     message(FATAL_ERROR "RT64's path was not provided." )
-endif()
-
-if (NOT RECOMP_FRONTEND_SDL2_PATH)
-    message(FATAL_ERROR "SDL2's path was not provided." )
 endif()
 
 add_subdirectory(recompui)

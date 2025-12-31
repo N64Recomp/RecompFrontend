@@ -17,11 +17,12 @@ file(GLOB RENDERER_CXX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/renderer/*.cpp)
 file(GLOB RML_ELEMENTS_CXX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/rml_elements/*.cpp)
 file(GLOB RML_HACKS_CXX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/rml_hacks/*.cpp)
 file(GLOB UTIL_CXX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/util/*.cpp)
-# file(GLOB RML_BACKEND_SOURCES ${CMAKE_SOURCE_DIR}/recompui/lib/RmlUi/Backends/RmlUi_Platform_SDL.cpp)
 
 if (APPLE)
     set(UTIL_CXX_SOURCES ${UTIL_CXX_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/src/util/support_apple.mm)
 endif()
+
+set(RML_BACKEND_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/lib/RmlUi/Backends/RmlUi_Platform_SDL.cpp)
 
 # Define the library
 add_library(recompui STATIC
@@ -36,7 +37,7 @@ add_library(recompui STATIC
     ${RML_ELEMENTS_CXX_SOURCES}
     ${RML_HACKS_CXX_SOURCES}
     ${UTIL_CXX_SOURCES}
-#    ${RML_BACKEND_SOURCES}
+    ${RML_BACKEND_SOURCES}
 )
 
 # 
@@ -76,7 +77,6 @@ target_include_directories(recompui PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/util
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/RmlUi/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/RmlUi/Backends
-    ${RECOMP_FRONTEND_SDL2_PATH}/include
     ${RECOMP_FRONTEND_RT64_PATH}/include
     ${RECOMP_FRONTEND_RT64_PATH}/src/contrib
     ${RECOMP_FRONTEND_RT64_PATH}/src/contrib/hlslpp/include
@@ -94,14 +94,15 @@ target_include_directories(recompui PUBLIC
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/thirdparty/miniz
 )
 
-target_include_directories(recompui PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/recompui"
-)
+target_include_directories(recompui PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/recompui")
 
+if (WIN32)
+    target_include_directories(recompui PRIVATE ${sdl2_SOURCE_DIR}/include)
+elseif (APPLE OR CMAKE_SYSTEM_NAME MATCHES "Linux")
+    target_include_directories(recompui PRIVATE ${SDL2_INCLUDE_DIRS})
+endif()
 
 target_compile_options(recompui PRIVATE
-#    -Wall
-#    -Wextra
     -Wno-unused-parameter
 )
 

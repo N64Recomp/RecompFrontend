@@ -29,7 +29,6 @@ target_include_directories(recompinput PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../recompui/src
     ${CMAKE_CURRENT_SOURCE_DIR}/../recompui/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../recompui/lib/RmlUi/Include
-    ${RECOMP_FRONTEND_SDL2_PATH}/include
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/librecomp/include
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/N64Recomp/include
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/ultramodern/include
@@ -40,6 +39,12 @@ target_include_directories(recompinput PUBLIC
 target_include_directories(recompinput PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include/recompinput"
 )
+
+if (WIN32)
+    target_include_directories(recompinput PRIVATE ${sdl2_SOURCE_DIR}/include)
+elseif (APPLE OR CMAKE_SYSTEM_NAME MATCHES "Linux")
+    target_include_directories(recompinput PRIVATE ${SDL2_INCLUDE_DIRS})
+endif()
 
 target_compile_options(recompinput PRIVATE
     -Wno-unused-parameter
