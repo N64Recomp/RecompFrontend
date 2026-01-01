@@ -93,6 +93,10 @@ static float smoothstep(float from, float to, float amount) {
 
 // Update rumble to attempt to mimic the way n64 rumble ramps up and falls off
 void recompinput::update_rumble() {
+    // Skip rumble processing if the game doesn't have a rumble strength option. 
+    if (!recompui::config::general::has_rumble_strength_option()) {
+        return;
+    }
     for (size_t i = 0; i < InputState.cur_rumble.size(); i++) {
         // Note: values are not accurate! just approximations based on feel
         if (InputState.rumble_active[i]) {

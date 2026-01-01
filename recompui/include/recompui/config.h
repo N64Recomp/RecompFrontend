@@ -22,8 +22,11 @@ namespace recompui {
                 inline const std::string debug_mode = "debug_mode";
             }
 
+            bool has_rumble_strength_option();
             double get_rumble_strength();
+            bool has_gyro_sensitivity_option();
             double get_gyro_sensitivity();
+            bool has_mouse_sensitivity_option();
             double get_mouse_sensitivity();
             double get_joystick_deadzone();
             bool get_background_input_mode_enabled();
@@ -110,9 +113,15 @@ namespace recompui {
             tab_callbacks::on_close_t on_close = nullptr
         );
 
+        struct GeneralTabOptions {
+            bool has_rumble_strength = true;
+            bool has_gyro_sensitivity = false;
+            bool has_mouse_sensitivity = false;
+        };
+
         // Prefab config tabs.
         // TODO: Explain how to hide/show options
-        recomp::config::Config &create_general_tab(const std::string &name = config::general::tab_name);
+        recomp::config::Config &create_general_tab(const GeneralTabOptions& options, const std::string &name = config::general::tab_name);
         void create_controls_tab(const std::string &name = config::controls::tab_name);
         recomp::config::Config &create_graphics_tab(const std::string &name = config::graphics::tab_name);
         recomp::config::Config &create_sound_tab(const std::string &name = config::sound::tab_name);
