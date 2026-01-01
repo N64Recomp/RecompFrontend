@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <mutex>
 #include <span>
+#include <atomic>
 
 #include "recompinput/recompinput.h"
 #include "recompinput/input_state.h"
