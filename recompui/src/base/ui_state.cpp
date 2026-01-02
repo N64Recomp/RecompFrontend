@@ -800,8 +800,18 @@ void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer*
                 }
                 break;
             case SDL_EventType::SDL_CONTROLLERBUTTONDOWN: {
-                // TODO: Needs the profile index.
-                if (check_menu_button_pressed(0, recompinput::GameInput::TOGGLE_MENU, cur_event.cbutton.button)) {
+                SDL_ControllerButtonEvent* button_event = &cur_event.cbutton;
+                SDL_JoystickID joystick_id = button_event->which;
+                int profile_index;
+                if (recompinput::players::is_single_player_mode()) {
+                    profile_index = recompinput::profiles::get_sp_controller_profile_index();
+                }
+                else {
+                    auto controller = recompinput::get_controller_from_joystick_id(joystick_id);
+                    profile_index = recompinput::profiles::get_controller_profile_index_from_sdl_controller(controller);
+                }
+
+                if (check_menu_button_pressed(profile_index, recompinput::GameInput::TOGGLE_MENU, cur_event.cbutton.button)) {
                     open_config = true;
                 }
                 break;
