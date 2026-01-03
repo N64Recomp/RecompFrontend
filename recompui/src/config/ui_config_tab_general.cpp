@@ -13,6 +13,17 @@ namespace config {
         return config::get_config(config::general::id);
     }
 
+    using EnumOptionVector = const std::vector<recomp::config::ConfigOptionEnumOption>;
+    enum class BackgroundInputMode {
+        Off,
+        On,
+        OptionCount
+    };
+    static EnumOptionVector background_input_options = {
+        {BackgroundInputMode::Off, "Off"},
+        {BackgroundInputMode::On, "On"},
+    };
+
     template <typename T = uint32_t>
     T get_general_config_enum_value(const std::string& option_id) {
         return static_cast<T>(std::get<uint32_t>(get_general_config().get_option_value(option_id)));
@@ -56,7 +67,7 @@ namespace config {
     }
     
     bool general::get_background_input_mode_enabled() {
-        return get_general_config_bool_value(general::options::background_input_mode);
+        return get_general_config_enum_value<BackgroundInputMode>(general::options::background_input_mode) == BackgroundInputMode::On;
     }
     
     bool general::get_debug_mode_enabled() {
@@ -117,13 +128,14 @@ namespace config {
             5.0
         );
 
-        config.add_bool_option(
+        config.add_enum_option(
             general::options::background_input_mode,
             "Background Input Mode",
             "Allows the game to read controller input when out of focus."
             "<br/>"
             "<b>This setting does not affect keyboard input.</b>",
-            true
+            background_input_options,
+            BackgroundInputMode::On
         );
 
         return config;
