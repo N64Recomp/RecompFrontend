@@ -197,7 +197,7 @@ ConfigOptionNumber::ConfigOptionNumber(
 
     slider = context.create_element<Slider>(this, num_opt.percent ? SliderType::Percent : SliderType::Double);
     slider->set_width(100.0f, Unit::Percent);
-    slider->set_max_width(100.0f, Unit::Percent);
+    slider->set_max_width(512.0f, Unit::Dp);
 
     slider->set_min_value(num_opt.min);
     slider->set_max_value(num_opt.max);
