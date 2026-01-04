@@ -13,17 +13,17 @@ namespace recompui {
         enable_focus();
         apply_sizing_styling(this);
 
-        set_border_color(theme::color::WhiteA5);
-        set_background_color(theme::color::WhiteA5);
+        set_border_color(theme::color::ElevatedSoft);
+        set_background_color(theme::color::ElevatedSoft);
         set_color(theme::color::TextDim);
 
         set_cursor(Cursor::Pointer);
 
-        focus_style.set_border_color(theme::color::White);
-        focus_style.set_background_color(theme::color::White, 26);
+        focus_style.set_border_color(theme::color::ElevatedBorderHard);
+        focus_style.set_background_color(theme::color::Elevated);
         focus_style.set_color(theme::color::TextActive);
-        hover_style.set_border_color(theme::color::WhiteA80);
-        hover_style.set_background_color(theme::color::White, 26);
+        hover_style.set_border_color(theme::color::ElevatedBorder);
+        hover_style.set_background_color(theme::color::Elevated);
         hover_style.set_color(theme::color::Text);
 
         disabled_style.set_color(theme::color::TextDim);

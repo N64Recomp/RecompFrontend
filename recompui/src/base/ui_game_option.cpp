@@ -45,10 +45,10 @@ namespace recompui {
         set_background_color(theme::color::Transparent);
         set_color(theme::color::TextDim);
 
-        hover_style.set_background_color(theme::color::WhiteA5);
-        hover_style.set_color(theme::color::Primary);
-        focus_style.set_background_color(theme::color::WhiteA5);
-        focus_style.set_color(theme::color::Primary);
+        hover_style.set_background_color(theme::color::Elevated);
+        hover_style.set_color(theme::color::TextActive);
+        focus_style.set_background_color(theme::color::Elevated);
+        focus_style.set_color(theme::color::TextActive);
     
         disabled_style.set_opacity(0.5f);
         disabled_style.set_background_color(theme::color::Transparent);

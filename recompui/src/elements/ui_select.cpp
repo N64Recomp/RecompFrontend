@@ -32,12 +32,12 @@ namespace recompui {
         set_cursor(Cursor::Pointer);
 
         hover_style.set_color(theme::color::TextActive);
-        hover_style.set_background_color(theme::color::WhiteA5);
-        hover_style.set_border_left_color(theme::color::WhiteA5);
+        hover_style.set_background_color(theme::color::Elevated);
+        hover_style.set_border_left_color(theme::color::Elevated);
         
         focus_style.set_color(theme::color::TextActive);
-        focus_style.set_background_color(theme::color::WhiteA5);
-        focus_style.set_border_left_color(theme::color::WhiteA5);
+        focus_style.set_background_color(theme::color::Elevated);
+        focus_style.set_border_left_color(theme::color::Elevated);
 
         disabled_style.set_color(theme::color::TextDim, 128);
         disabled_style.set_background_color(theme::color::Transparent);
@@ -139,7 +139,7 @@ namespace recompui {
 
         set_border_width(theme::border::width);
         set_border_radius(theme::border::radius_md);
-        set_border_color(theme::color::Border, 204);
+        set_border_color(theme::color::ElevatedBorder);
 
         set_typography(theme::Typography::Body);
 
@@ -154,21 +154,22 @@ namespace recompui {
         set_nav_auto(NavDirection::Left);
 
         hover_style.set_color(theme::color::TextActive);
-        hover_style.set_background_color(theme::color::White, 77);
-        hover_style.set_border_color(theme::color::Border, 255);
+        hover_style.set_background_color(theme::color::Elevated);
+        hover_style.set_border_color(theme::color::ElevatedBorder);
 
         focus_style.set_color(theme::color::TextActive);
-        focus_style.set_background_color(theme::color::White, 77);
-        focus_style.set_border_color(theme::color::Border, 255);
+        focus_style.set_background_color(theme::color::Elevated);
+        focus_style.set_border_color(theme::color::ElevatedBorderHard);
         
+        auto elevated_border_color = theme::get_theme_color(theme::color::ElevatedBorder);
         disabled_style.set_color(theme::color::TextDim, 128);
         disabled_style.set_background_color(theme::color::Transparent);
-        disabled_style.set_border_color(theme::color::Border, 77);
+        disabled_style.set_border_color(theme::color::ElevatedBorder, elevated_border_color.a / 4);
         disabled_style.set_cursor(Cursor::None);
         
         hover_disabled_style.set_color(theme::color::TextDim, 128);
         hover_disabled_style.set_background_color(theme::color::Transparent);
-        hover_disabled_style.set_border_color(theme::color::Border, 77);
+        hover_disabled_style.set_border_color(theme::color::ElevatedBorder, elevated_border_color.a / 4);
         hover_disabled_style.set_cursor(Cursor::None);
 
         Element selectbox_element = get_element_with_tag_name(select_element_selectbox);
