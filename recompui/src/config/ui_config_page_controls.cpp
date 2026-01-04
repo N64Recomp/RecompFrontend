@@ -468,14 +468,12 @@ void ConfigPageControls::render_footer() {
         auto footer_left = footer->get_left();
         footer_left->clear_children();
         if (!multiplayer_enabled) {
-            keyboard_toggle = context.create_element<Toggle>(footer_left);
+            keyboard_toggle = context.create_element<IconToggle>(footer_left, "icons/Cont.svg", "icons/Keyboard.svg", ToggleSize::Large);
             keyboard_toggle->set_checked(single_player_show_keyboard_mappings);
             keyboard_toggle->add_checked_callback([this](bool checked) {
                 this->single_player_show_keyboard_mappings = checked;
                 this->update_control_mappings();
             });
-            Label *kb_label = context.create_element<Label>(footer_left, "Enable keyboard", LabelStyle::Normal);
-            kb_label->set_margin_left(12.0f);
         }
     }
     {

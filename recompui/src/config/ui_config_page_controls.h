@@ -148,7 +148,7 @@ protected:
     std::vector<PlayerCard*> player_cards;
     std::vector<GameInputRowsWrapper*> rows_wrappers;
     std::vector<GameInputRow*> game_input_rows;
-    Toggle *keyboard_toggle;
+    IconToggle *keyboard_toggle;
     Element *description_container = nullptr;
     on_player_bind_callback on_player_bind;
     Element *nav_up_element = nullptr;
