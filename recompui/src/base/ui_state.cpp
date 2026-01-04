@@ -222,7 +222,7 @@ public:
     UIState(UIState&& rhs) = delete;
     UIState& operator=(UIState&& rhs) = delete;
 
-    UIState(SDL_Window* window, RT64::RenderInterface* interface, RT64::RenderDevice* device) {
+    UIState(SDL_Window* window, plume::RenderInterface* interface, plume::RenderDevice* device) {
 
         system_interface = std::make_unique<SystemInterface_SDL>();
         system_interface->SetWindow(window);
@@ -510,7 +510,7 @@ inline const std::string read_file_to_string(std::filesystem::path path) {
     return ss.str(); 
 }
 
-void init_hook(RT64::RenderInterface* interface, RT64::RenderDevice* device) {
+void init_hook(plume::RenderInterface* interface, plume::RenderDevice* device) {
 #if defined(__linux__)
     std::locale::global(std::locale::classic());
 #endif
@@ -632,7 +632,7 @@ void recompui::activate_mouse() {
     ui_state->update_focus(true, false);
 }
 
-void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* swap_chain_framebuffer) {
+void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer* swap_chain_framebuffer) {
 
     apply_background_input_mode();
 
@@ -800,8 +800,18 @@ void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* s
                 }
                 break;
             case SDL_EventType::SDL_CONTROLLERBUTTONDOWN: {
-                // TODO: Needs the profile index.
-                if (check_menu_button_pressed(0, recompinput::GameInput::TOGGLE_MENU, cur_event.cbutton.button)) {
+                SDL_ControllerButtonEvent* button_event = &cur_event.cbutton;
+                SDL_JoystickID joystick_id = button_event->which;
+                int profile_index;
+                if (recompinput::players::is_single_player_mode()) {
+                    profile_index = recompinput::profiles::get_sp_controller_profile_index();
+                }
+                else {
+                    auto controller = recompinput::get_controller_from_joystick_id(joystick_id);
+                    profile_index = recompinput::profiles::get_controller_profile_index_from_sdl_controller(controller);
+                }
+
+                if (check_menu_button_pressed(profile_index, recompinput::GameInput::TOGGLE_MENU, cur_event.cbutton.button)) {
                     open_config = true;
                 }
                 break;

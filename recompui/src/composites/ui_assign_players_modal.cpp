@@ -227,6 +227,9 @@ void AssignPlayersModal::process_event(const Event &e) {
                 }
                 break;
             }
+            default: {
+                break;
+            }
         }
     }
 }

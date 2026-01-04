@@ -15,7 +15,7 @@ namespace recompui {
         std::string_view get_type_name() override { return "TextInput"; }
     public:
         TextInput(Element *parent, bool text_visible = true);
-        void set_text(std::string_view text);
+        void set_text(std::string_view text) override;
         const std::string &get_text();
         void add_text_changed_callback(std::function<void(const std::string &)> callback);
         void set_focus_callback(std::function<void(bool)> callback);

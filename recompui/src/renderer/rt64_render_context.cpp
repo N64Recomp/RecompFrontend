@@ -58,27 +58,12 @@ unsigned int DPC_BUFBUSY_REG = 0;
 unsigned int DPC_PIPEBUSY_REG = 0;
 unsigned int DPC_TMEM_REG = 0;
 
-unsigned int VI_STATUS_REG = 0;
-unsigned int VI_ORIGIN_REG = 0;
-unsigned int VI_WIDTH_REG = 0;
-unsigned int VI_INTR_REG = 0;
-unsigned int VI_V_CURRENT_LINE_REG = 0;
-unsigned int VI_TIMING_REG = 0;
-unsigned int VI_V_SYNC_REG = 0;
-unsigned int VI_H_SYNC_REG = 0;
-unsigned int VI_LEAP_REG = 0;
-unsigned int VI_H_START_REG = 0;
-unsigned int VI_V_START_REG = 0;
-unsigned int VI_V_BURST_REG = 0;
-unsigned int VI_X_SCALE_REG = 0;
-unsigned int VI_Y_SCALE_REG = 0;
-
 void dummy_check_interrupts() {}
 
-RT64::UserConfiguration::Antialiasing compute_max_supported_aa(RT64::RenderSampleCounts bits) {
-    if (bits & RT64::RenderSampleCount::Bits::COUNT_2) {
-        if (bits & RT64::RenderSampleCount::Bits::COUNT_4) {
-            if (bits & RT64::RenderSampleCount::Bits::COUNT_8) {
+RT64::UserConfiguration::Antialiasing compute_max_supported_aa(plume::RenderSampleCounts bits) {
+    if (bits & plume::RenderSampleCount::Bits::COUNT_2) {
+        if (bits & plume::RenderSampleCount::Bits::COUNT_4) {
+            if (bits & plume::RenderSampleCount::Bits::COUNT_8) {
                 return RT64::UserConfiguration::Antialiasing::MSAA8X;
             }
             return RT64::UserConfiguration::Antialiasing::MSAA4X;
@@ -254,20 +239,21 @@ renderer::RT64Context::RT64Context(uint8_t* rdram, ultramodern::renderer::Window
     appCore.DPC_PIPEBUSY_REG = &DPC_PIPEBUSY_REG;
     appCore.DPC_TMEM_REG = &DPC_TMEM_REG;
 
-    appCore.VI_STATUS_REG = &VI_STATUS_REG;
-    appCore.VI_ORIGIN_REG = &VI_ORIGIN_REG;
-    appCore.VI_WIDTH_REG = &VI_WIDTH_REG;
-    appCore.VI_INTR_REG = &VI_INTR_REG;
-    appCore.VI_V_CURRENT_LINE_REG = &VI_V_CURRENT_LINE_REG;
-    appCore.VI_TIMING_REG = &VI_TIMING_REG;
-    appCore.VI_V_SYNC_REG = &VI_V_SYNC_REG;
-    appCore.VI_H_SYNC_REG = &VI_H_SYNC_REG;
-    appCore.VI_LEAP_REG = &VI_LEAP_REG;
-    appCore.VI_H_START_REG = &VI_H_START_REG;
-    appCore.VI_V_START_REG = &VI_V_START_REG;
-    appCore.VI_V_BURST_REG = &VI_V_BURST_REG;
-    appCore.VI_X_SCALE_REG = &VI_X_SCALE_REG;
-    appCore.VI_Y_SCALE_REG = &VI_Y_SCALE_REG;
+    ultramodern::renderer::ViRegs *vi_regs = ultramodern::renderer::get_vi_regs();
+    appCore.VI_STATUS_REG = &vi_regs->VI_STATUS_REG;
+    appCore.VI_ORIGIN_REG = &vi_regs->VI_ORIGIN_REG;
+    appCore.VI_WIDTH_REG = &vi_regs->VI_WIDTH_REG;
+    appCore.VI_INTR_REG = &vi_regs->VI_INTR_REG;
+    appCore.VI_V_CURRENT_LINE_REG = &vi_regs->VI_V_CURRENT_LINE_REG;
+    appCore.VI_TIMING_REG = &vi_regs->VI_TIMING_REG;
+    appCore.VI_V_SYNC_REG = &vi_regs->VI_V_SYNC_REG;
+    appCore.VI_H_SYNC_REG = &vi_regs->VI_H_SYNC_REG;
+    appCore.VI_LEAP_REG = &vi_regs->VI_LEAP_REG;
+    appCore.VI_H_START_REG = &vi_regs->VI_H_START_REG;
+    appCore.VI_V_START_REG = &vi_regs->VI_V_START_REG;
+    appCore.VI_V_BURST_REG = &vi_regs->VI_V_BURST_REG;
+    appCore.VI_X_SCALE_REG = &vi_regs->VI_X_SCALE_REG;
+    appCore.VI_Y_SCALE_REG = &vi_regs->VI_Y_SCALE_REG;
 
     // Set up the RT64 application configuration fields.
     RT64::ApplicationConfiguration appConfig;
@@ -320,9 +306,9 @@ renderer::RT64Context::RT64Context(uint8_t* rdram, ultramodern::renderer::Window
     // Check if the selected device actually supports MSAA sample positions and MSAA for for the formats that will be used
     // and downgrade the configuration accordingly.
     if (app->device->getCapabilities().sampleLocations) {
-        RT64::RenderSampleCounts color_sample_counts = app->device->getSampleCountsSupported(RT64::RenderFormat::R8G8B8A8_UNORM);
-        RT64::RenderSampleCounts depth_sample_counts = app->device->getSampleCountsSupported(RT64::RenderFormat::D32_FLOAT);
-        RT64::RenderSampleCounts common_sample_counts = color_sample_counts & depth_sample_counts;
+        plume::RenderSampleCounts color_sample_counts = app->device->getSampleCountsSupported(plume::RenderFormat::R8G8B8A8_UNORM);
+        plume::RenderSampleCounts depth_sample_counts = app->device->getSampleCountsSupported(plume::RenderFormat::D32_FLOAT);
+        plume::RenderSampleCounts common_sample_counts = color_sample_counts & depth_sample_counts;
         device_max_msaa = compute_max_supported_aa(common_sample_counts);
         sample_positions_supported = true;
     }
@@ -345,9 +331,7 @@ void renderer::RT64Context::send_dl(const OSTask* task) {
     app->processDisplayLists(app->core.RDRAM, task->t.data_ptr & 0x3FFFFFF, 0, true);
 }
 
-void renderer::RT64Context::update_screen(uint32_t vi_origin) {
-    VI_ORIGIN_REG = vi_origin;
-
+void renderer::RT64Context::update_screen() {
     app->updateScreen();
 }
 

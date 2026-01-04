@@ -724,22 +724,25 @@ void Element::build_navigation(Element *nav_parent, Element *cur_focus_element) 
             continue;
         }
 
-        if (child->is_focusable() == CanFocus::Yes) {
-            // End of the line because it is focusable itself
+        if ((child->is_focusable() == CanFocus::Yes) || child->is_nav_container) {
             nav_parent->nav_children.push_back(child);
-        } else if (child->is_nav_container) {
-            nav_parent->nav_children.push_back(child);
+        }
+
+        if (child->is_nav_container) {
             child->nav_children.clear();
             child->build_navigation(child, cur_focus_element);
+
             // didn't find any nav children, check for focus elements
             if (child->nav_children.size() == 0) {
                 child->get_all_focusable_children(child);
             }
+
             // didn't find any focus elements
             if (child->nav_children.size() == 0) {
                 nav_parent->nav_children.pop_back();
             }
-        } else {
+        }
+        else {
             child->build_navigation(nav_parent, cur_focus_element);
         }
     }

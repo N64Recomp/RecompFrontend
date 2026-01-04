@@ -234,8 +234,10 @@ void handle_events() {
     while (SDL_PollEvent(&cur_event) && !exited) {
         exited = sdl_event_filter(nullptr, &cur_event);
 
+        bool has_mouse_sensitivity = recompui::config::general::has_mouse_sensitivity_option();
+
         // Lock the cursor if all three conditions are true: mouse aiming is enabled, game input is not disabled, and the game has been started. 
-        bool cursor_locked = (recompui::config::general::get_mouse_sensitivity() != 0) && !recompinput::game_input_disabled() && ultramodern::is_game_started();
+        bool cursor_locked = (has_mouse_sensitivity && recompui::config::general::get_mouse_sensitivity() != 0) && !recompinput::game_input_disabled() && ultramodern::is_game_started();
 
         // Hide the cursor based on its enable state, but override visibility to false if the cursor is locked.
         bool cursor_visible = recompui::get_cursor_visible();

@@ -12,7 +12,6 @@ file(GLOB CXX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_library(recompinput STATIC
     ${CXX_SOURCES}
 )
-# ${PROJECT_SOURCE_DIR}/../lib/RmlUi/Backends/RmlUi_Platform_SDL.cpp
 
 SET(LUNASVG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 # add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../lib/lunasvg)
@@ -23,61 +22,31 @@ set(RT64_STATIC TRUE)
 set(RT64_SDL_WINDOW_VULKAN TRUE)
 add_compile_definitions(HLSL_CPU)
 
-# SDL2
-    include(FetchContent)
-
-    if (DEFINED ENV{SDL2_VERSION})
-        set(SDL2_VERSION $ENV{SDL2_VERSION})
-    else()
-        set(SDL2_VERSION "2.30.3")
-    endif()
-
-    # Fetch SDL2 on windows
-    FetchContent_Declare(
-        sdl2
-        URL https://github.com/libsdl-org/SDL/releases/download/release-${SDL2_VERSION}/SDL2-devel-${SDL2_VERSION}-VC.zip
-    )
-    FetchContent_MakeAvailable(sdl2)
-    target_include_directories(recompinput PRIVATE
-        ${sdl2_SOURCE_DIR}/include
-    )
-# END SDL2
-
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../lib/RmlUi)
-# target_compile_definitions(rmlui_core PRIVATE LUNASVG_BUILD_STATIC)
-
 target_include_directories(recompinput PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/../recompui/include
-    ${PROJECT_SOURCE_DIR}/../recompui/src
-    ${PROJECT_SOURCE_DIR}/../../N64ModernRuntime/librecomp/include
-    ${PROJECT_SOURCE_DIR}/../../N64ModernRuntime/ultramodern/include
-    ${PROJECT_SOURCE_DIR}/../../N64ModernRuntime/thirdparty
-    ${PROJECT_SOURCE_DIR}/../../N64ModernRuntime/thirdparty/miniz
-    ${PROJECT_SOURCE_DIR}/../../N64ModernRuntime/N64Recomp/include
-    ${PROJECT_SOURCE_DIR}/../../GamepadMotionHelpers
-    ${PROJECT_SOURCE_DIR}/../../concurrentqueue
-    ${PROJECT_SOURCE_DIR}/../../rt64/include
-    ${PROJECT_SOURCE_DIR}/../../rt64/src/contrib
-    ${PROJECT_SOURCE_DIR}/../../rt64/src/contrib/hlslpp/include
-    ${PROJECT_SOURCE_DIR}/../../rt64/src/contrib/dxc/inc
-    ${PROJECT_SOURCE_DIR}/../../rt64/src
-    ${PROJECT_SOURCE_DIR}/../../rt64/src/rhi
-    ${PROJECT_SOURCE_DIR}/../../rt64/src/render
-    ${PROJECT_SOURCE_DIR}/../../rt64/src/contrib/nativefiledialog-extended/src/include
-    ${PROJECT_SOURCE_DIR}/../../slot_map/slot_map
-    ${PROJECT_SOURCE_DIR}/../../RmlUi/Include
-    ${PROJECT_SOURCE_DIR}/../../RmlUi/Backends
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/GamepadMotionHelpers
+    ${CMAKE_CURRENT_SOURCE_DIR}/../recompui/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../recompui/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../recompui/lib/RmlUi/Include
+    ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/librecomp/include
+    ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/N64Recomp/include
+    ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/ultramodern/include
+    ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/thirdparty
+    ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/thirdparty/concurrentqueue
 )
+
 target_include_directories(recompinput PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include/recompinput"
 )
 
+if (WIN32)
+    target_include_directories(recompinput PRIVATE ${sdl2_SOURCE_DIR}/include)
+elseif (APPLE OR CMAKE_SYSTEM_NAME MATCHES "Linux")
+    target_include_directories(recompinput PRIVATE ${SDL2_INCLUDE_DIRS})
+endif()
 
 target_compile_options(recompinput PRIVATE
-#    -Wall
-#    -Wextra
     -Wno-unused-parameter
 )
 
@@ -86,5 +55,3 @@ if (WIN32)
 endif()
 
 target_link_libraries(recompinput PUBLIC)
-# /c/Program\ Files/Microsoft\ Visual\ Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe
-# /c/Program\ Files/Microsoft\ Visual\ Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER=clang-cl -DCMAKE_MAKE_PROGRAM=ninja -G Ninja -S . -B build -DCMAKE_CXX_FLAGS="-Xclang -fexceptions -Xclang -fcxx-exceptions"

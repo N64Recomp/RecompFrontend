@@ -6,7 +6,7 @@ static bool created_graphics_config = false;
 
 namespace recompui {
     namespace config {
-        recomp::config::Config &config::get_graphics_config() {
+        recomp::config::Config &get_graphics_config() {
             if (!created_graphics_config) {
                 throw std::runtime_error("Graphics config has not been created yet. Call create_graphics_tab() first.");
             }
@@ -233,10 +233,11 @@ namespace recompui {
             auto current_wm = get_graphics_enum_value<ultramodern::renderer::WindowMode>(graphics::options::wm_option, OptionChangeContext::Temporary);
             auto new_wm = current_wm == ultramodern::renderer::WindowMode::Windowed ? ultramodern::renderer::WindowMode::Fullscreen : ultramodern::renderer::WindowMode::Windowed;
             get_graphics_config().set_option_value(graphics::options::wm_option, static_cast<uint32_t>(new_wm));
+            get_graphics_config().apply_option_value(graphics::options::wm_option);
             apply_graphics_config();
         }
 
-        recomp::config::Config &config::create_graphics_tab(const std::string &name) {
+        recomp::config::Config &create_graphics_tab(const std::string &name) {
             created_graphics_config = true;
 
             recomp::config::Config &config = recompui::config::create_config_tab(name, graphics::id, true);
