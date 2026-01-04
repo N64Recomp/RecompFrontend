@@ -53,7 +53,7 @@ GameInputRow::GameInputRow(
     set_border_radius(theme::border::radius_sm);
     set_background_color(theme::color::Transparent);
 
-    active_style.set_background_color(theme::color::BGOverlay);
+    active_style.set_background_color(theme::color::ElevatedSoft);
     add_style(&active_style, active_state_style_name);
 
     recompui::ContextId context = get_current_context();

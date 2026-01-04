@@ -82,6 +82,11 @@ constexpr ThemeColorArray get_default_theme_color_array() {
     colors[(std::size_t)ThemeColor::BorderHard] = recompui::Color{255, 255, 255, 77};
     colors[(std::size_t)ThemeColor::BorderSolid] = recompui::Color{255, 255, 255, 153};
 
+    colors[(std::size_t)ThemeColor::Elevated] = recompui::Color{182, 194, 221, 26};
+    colors[(std::size_t)ThemeColor::ElevatedSoft] = recompui::Color{182, 194, 221, 13};
+    colors[(std::size_t)ThemeColor::ElevatedBorder] = recompui::Color{182, 194, 221, 204};
+    colors[(std::size_t)ThemeColor::ElevatedBorderHard] = recompui::Color{182, 194, 221, 255};
+
     colors[(std::size_t)ThemeColor::Transparent] = recompui::Color{0, 0, 0, 0};
 
     colors[(std::size_t)ThemeColor::A] = recompui::Color{51, 51, 255, 255};
@@ -181,6 +186,10 @@ constexpr ThemeColorNameArray get_default_theme_color_names() {
     names[(std::size_t)ThemeColor::BorderSoft] = "BorderSoft";
     names[(std::size_t)ThemeColor::BorderHard] = "BorderHard";
     names[(std::size_t)ThemeColor::BorderSolid] = "BorderSolid";
+    names[(std::size_t)ThemeColor::Elevated] = "Elevated";
+    names[(std::size_t)ThemeColor::ElevatedSoft] = "ElevatedSoft";
+    names[(std::size_t)ThemeColor::ElevatedBorder] = "ElevatedBorder";
+    names[(std::size_t)ThemeColor::ElevatedBorderHard] = "ElevatedBorderHard";
     names[(std::size_t)ThemeColor::Transparent] = "Transparent";
     names[(std::size_t)ThemeColor::A] = "A";
     names[(std::size_t)ThemeColor::AL] = "AL";

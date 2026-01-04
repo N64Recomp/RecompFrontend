@@ -137,7 +137,7 @@ namespace recompui {
             break;
         }
         case ButtonStyle::Tertiary: {
-            apply_theme_style(theme::color::Text);
+            apply_theme_style(theme::color::Elevated);
             break;
         }
         case ButtonStyle::Success: {
@@ -153,7 +153,7 @@ namespace recompui {
             break;
         }
         case ButtonStyle::Basic: {
-            apply_theme_style(theme::color::Text, true);
+            apply_theme_style(theme::color::Elevated, true);
             break;
         }
         default:
@@ -163,10 +163,21 @@ namespace recompui {
     }
 
     void Button::apply_theme_style(recompui::theme::color color, bool is_basic) {
-        const uint8_t border_opacity = is_basic ? 0 : 204;
-        const uint8_t background_opacity = is_basic ? 0 : 13;
-        const uint8_t background_hover_opacity = 77;
-        const uint8_t border_hover_opacity = is_basic ? background_hover_opacity : 255;
+        uint8_t border_opacity = is_basic ? 0 : 204;
+        uint8_t background_opacity = is_basic ? 0 : 13;
+        uint8_t background_hover_opacity = 77;
+        uint8_t border_hover_opacity = is_basic ? background_hover_opacity : 255;
+
+        if (color == theme::color::Elevated) {
+            background_hover_opacity = theme::get_theme_color(theme::color::Elevated).a;
+            if (is_basic) {
+                border_hover_opacity = background_hover_opacity;
+            } else {
+                background_opacity = theme::get_theme_color(theme::color::ElevatedSoft).a;
+                border_opacity = theme::get_theme_color(theme::color::ElevatedBorder).a;
+                border_hover_opacity = theme::get_theme_color(theme::color::ElevatedBorderHard).a;
+            }
+        }
 
         set_border_color(color, border_opacity);
         set_background_color(color, background_opacity);
