@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ui_element.h"
+#include "ui_svg.h"
 
 namespace recompui {
 
@@ -8,6 +9,20 @@ namespace recompui {
         Medium,
         Large,
         Default = Large
+    };
+
+    struct ToggleColorTheme {
+        theme::color border;
+        theme::color bg_hover;
+        theme::color floater;
+        theme::color floater_disabled;
+    };
+
+    struct ToggleStyleGroup {
+        Style normal; // not used for unchecked state
+        Style hover;
+        Style focus;
+        Style disabled;
     };
 
     class Toggle : public Element {
@@ -18,31 +33,25 @@ namespace recompui {
         float floater_left = 0.0f;
         std::chrono::high_resolution_clock::duration last_time;
         std::list<std::function<void(bool)>> checked_callbacks;
-        Style checked_style;
-        Style hover_style;
-        Style focus_style;
-        Style checked_hover_style;
-        Style checked_focus_style;
-        Style disabled_style;
-        Style checked_disabled_style;
 
         struct {
-            Style checked;
-            Style hover;
-            Style focus;
-            Style checked_hover;
-            Style checked_focus;
-            Style disabled;
-            Style checked_disabled;
-        } inner_border_styles;
+            ToggleStyleGroup unchecked;
+            ToggleStyleGroup unchecked_floater;
+            ToggleStyleGroup unchecked_inner_border;
+            ToggleStyleGroup checked;
+            ToggleStyleGroup checked_floater;
+            ToggleStyleGroup checked_inner_border;
+        } style_groups;
 
-        Style floater_checked_style;
-        Style floater_disabled_style;
-        Style floater_disabled_checked_style;
         bool checked = false;
         ToggleSize size = ToggleSize::Default;
 
-        void set_checked_internal(bool checked, bool animate, bool setup, bool trigger_callbacks);
+        virtual const ToggleColorTheme &get_toggle_color_theme_unchecked();
+        virtual const ToggleColorTheme &get_toggle_color_theme_checked();
+
+        void set_toggle_colors(bool for_checked);
+
+        virtual void set_checked_internal(bool checked, bool animate, bool setup, bool trigger_callbacks);
         void set_all_style_enabled(std::string_view style_name, bool enabled);
         float floater_left_target() const;
 
@@ -54,6 +63,25 @@ namespace recompui {
         void set_checked(bool checked);
         bool is_checked() const;
         void add_checked_callback(std::function<void(bool)> callback);
+    };
+
+    class IconToggle : public Toggle {
+    protected:
+        Svg *icon_svg_left;
+        Svg *icon_svg_right;
+
+        Style icon_disabled_style;
+
+        // This being an override doesn't apply because it is called during Toggle's constructor.
+        // So set_toggle_colors(false) gets called in IconToggle's constructor in order for this to be applied properly.
+        const ToggleColorTheme &get_toggle_color_theme_unchecked() override;
+
+        void set_checked_internal(bool checked, bool animate, bool setup, bool trigger_callbacks) override;
+
+        // Element overrides.
+        std::string_view get_type_name() override { return "IconToggle"; }
+    public:
+        IconToggle(Element *parent, std::string_view icon_src_left, std::string_view icon_src_right, ToggleSize size = ToggleSize::Default);
     };
 
 } // namespace recompui

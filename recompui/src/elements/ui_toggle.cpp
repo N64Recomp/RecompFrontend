@@ -40,6 +40,60 @@ namespace recompui {
         }
     }
 
+    const ToggleColorTheme &Toggle::get_toggle_color_theme_unchecked() {
+        static const ToggleColorTheme color_theme = {
+            .border = theme::color::BW50,
+            .bg_hover = theme::color::WhiteA5,
+            .floater = theme::color::TextDim,
+            .floater_disabled = theme::color::TextDim
+        };
+
+        return color_theme;
+    }
+
+    const ToggleColorTheme &Toggle::get_toggle_color_theme_checked() {
+        static const ToggleColorTheme color_theme = {
+            .border = theme::color::Primary,
+            .bg_hover = theme::color::PrimaryA30,
+            .floater = theme::color::Primary,
+            .floater_disabled = theme::color::PrimaryD
+        };
+
+        return color_theme;
+    }
+
+    void Toggle::set_toggle_colors(bool for_checked) {
+        const ToggleColorTheme &color_theme = for_checked ? get_toggle_color_theme_checked() : get_toggle_color_theme_unchecked();
+
+        ToggleStyleGroup &base_styles = for_checked ? style_groups.checked : style_groups.unchecked;
+        ToggleStyleGroup &floater_styles = for_checked ? style_groups.checked_floater : style_groups.unchecked_floater;
+        ToggleStyleGroup &inner_border_styles = for_checked ? style_groups.checked_inner_border : style_groups.unchecked_inner_border;
+
+        if (for_checked) {
+            base_styles.normal.set_border_color(color_theme.border);
+            floater_styles.normal.set_background_color(color_theme.floater);
+            inner_border_styles.normal.set_border_color(color_theme.border);
+        } else {
+            set_border_color(color_theme.border);
+            floater->set_background_color(color_theme.floater);
+            inner_border->set_border_color(color_theme.border);
+        }
+
+        base_styles.hover.set_border_color(color_theme.border);
+        inner_border_styles.hover.set_border_color(color_theme.border);
+        base_styles.hover.set_background_color(color_theme.bg_hover);
+
+        base_styles.focus.set_border_color(color_theme.border);
+        inner_border_styles.focus.set_border_color(color_theme.border);
+        base_styles.focus.set_background_color(color_theme.bg_hover);
+
+        base_styles.disabled.set_border_color(color_theme.border, 128);
+        inner_border_styles.disabled.set_border_color(color_theme.border, 128);
+        floater_styles.disabled.set_background_color(color_theme.floater_disabled, 128);
+    }
+
+
+
     Toggle::Toggle(Element *parent, ToggleSize size) : Element(parent, Events(EventType::Click, EventType::Focus, EventType::Hover, EventType::Enable), "button") {
         this->size = size;
         const ToggleSizing &sizing = get_toggle_sizing(size);
@@ -52,42 +106,16 @@ namespace recompui {
         set_border_radius(sizing.height * 0.5f);
         set_opacity(0.9f);
         set_cursor(Cursor::Pointer);
-        // set_border_width(theme::border::width);
-        set_border_color(theme::color::BW50);
         set_background_color(theme::color::Transparent);
 
-        checked_style.set_border_color(theme::color::Primary);
-        inner_border_styles.checked.set_border_color(theme::color::Primary);
+        add_style(&style_groups.unchecked.hover, hover_state);
+        add_style(&style_groups.unchecked.focus, focus_state);
+        add_style(&style_groups.unchecked.disabled, disabled_state);
 
-        hover_style.set_border_color(theme::color::BW50);
-        inner_border_styles.hover.set_border_color(theme::color::BW50);
-        hover_style.set_background_color(theme::color::WhiteA5);
-    
-        focus_style.set_border_color(theme::color::BW50);
-        inner_border_styles.focus.set_border_color(theme::color::BW50);
-        focus_style.set_background_color(theme::color::WhiteA5);
-    
-        checked_hover_style.set_border_color(theme::color::Primary);
-        inner_border_styles.checked_hover.set_border_color(theme::color::Primary);
-        checked_hover_style.set_background_color(theme::color::PrimaryA30);
-
-        checked_focus_style.set_border_color(theme::color::Primary);
-        inner_border_styles.checked_focus.set_border_color(theme::color::Primary);
-        checked_focus_style.set_background_color(theme::color::PrimaryA30);
-
-        disabled_style.set_border_color(theme::color::BW50, 128);
-        inner_border_styles.disabled.set_border_color(theme::color::BW50, 128);
-
-        checked_disabled_style.set_border_color(theme::color::PrimaryD, 128);
-        inner_border_styles.checked_disabled.set_border_color(theme::color::PrimaryD, 128);
-
-        add_style(&checked_style, checked_state);
-        add_style(&hover_style, hover_state);
-        add_style(&focus_style, focus_state);
-        add_style(&checked_hover_style, { checked_state, hover_state });
-        add_style(&checked_focus_style, { checked_state, focus_state });
-        add_style(&disabled_style, disabled_state);
-        add_style(&checked_disabled_style, { checked_state, disabled_state });
+        add_style(&style_groups.checked.normal, checked_state);
+        add_style(&style_groups.checked.hover, { checked_state, hover_state });
+        add_style(&style_groups.checked.focus, { checked_state, focus_state });
+        add_style(&style_groups.checked.disabled, { checked_state, disabled_state });
 
         ContextId context = get_current_context();
 
@@ -96,14 +124,15 @@ namespace recompui {
 
         inner_border = context.create_element<PseudoBorder>(this);
         inner_border->set_border_radius((sizing.height - theme::border::width * 2.0f) * 0.5f);
-        inner_border->set_border_color(theme::color::BW50);
-        inner_border->add_style(&inner_border_styles.checked, checked_state);
-        inner_border->add_style(&inner_border_styles.hover, hover_state);
-        inner_border->add_style(&inner_border_styles.focus, focus_state);
-        inner_border->add_style(&inner_border_styles.checked_hover, { checked_state, hover_state });
-        inner_border->add_style(&inner_border_styles.checked_focus, { checked_state, focus_state });
-        inner_border->add_style(&inner_border_styles.disabled, disabled_state);
-        inner_border->add_style(&inner_border_styles.checked_disabled, { checked_state, disabled_state });
+
+        inner_border->add_style(&style_groups.unchecked_inner_border.hover, hover_state);
+        inner_border->add_style(&style_groups.unchecked_inner_border.focus, focus_state);
+        inner_border->add_style(&style_groups.unchecked_inner_border.disabled, disabled_state);
+        
+        inner_border->add_style(&style_groups.checked_inner_border.normal, checked_state);
+        inner_border->add_style(&style_groups.checked_inner_border.hover, { checked_state, hover_state });
+        inner_border->add_style(&style_groups.checked_inner_border.focus, { checked_state, focus_state });
+        inner_border->add_style(&style_groups.checked_inner_border.disabled, { checked_state, disabled_state });
 
         floater = context.create_element<Element>(this);
         floater->set_position(Position::Absolute);
@@ -112,13 +141,18 @@ namespace recompui {
         floater->set_width(sizing.floater_width);
         floater->set_height(sizing.floater_height);
         floater->set_border_radius(sizing.floater_height * 0.5f);
-        floater->set_background_color(theme::color::TextDim);
-        floater_checked_style.set_background_color(theme::color::Primary);
-        floater_disabled_style.set_background_color(theme::color::TextDim, 128);
-        floater_disabled_checked_style.set_background_color(theme::color::PrimaryD, 128);
-        floater->add_style(&floater_checked_style, checked_state);
-        floater->add_style(&floater_disabled_style, disabled_state);
-        floater->add_style(&floater_disabled_checked_style, { checked_state, disabled_state });
+    
+        floater->add_style(&style_groups.unchecked_floater.hover, hover_state);
+        floater->add_style(&style_groups.unchecked_floater.focus, focus_state);
+        floater->add_style(&style_groups.unchecked_floater.disabled, disabled_state);
+
+        floater->add_style(&style_groups.checked_floater.normal, checked_state);
+        floater->add_style(&style_groups.checked_floater.hover, { checked_state, hover_state });
+        floater->add_style(&style_groups.checked_floater.focus, { checked_state, focus_state });
+        floater->add_style(&style_groups.checked_floater.disabled, { checked_state, disabled_state });
+
+        set_toggle_colors(false);
+        set_toggle_colors(true);
 
         set_checked_internal(false, false, true, false);
     }
@@ -234,5 +268,62 @@ namespace recompui {
 
     void Toggle::add_checked_callback(std::function<void(bool)> callback) {
         checked_callbacks.emplace_back(callback);
+    }
+
+    static void style_icon(Svg *svg, const ToggleSizing &sizing, bool left) {
+        svg->set_position(Position::Absolute);
+        float size = sizing.floater_height - sizing.floater_margin * 2.0f;
+        svg->set_width(size);
+        svg->set_height(size);
+        svg->set_top(50.0f, Unit::Percent);
+        svg->set_translate_2D(0, -50.0f, Unit::Percent);
+        if (left) {
+            svg->set_left(sizing.floater_margin * 2.0f);
+        } else {
+            svg->set_right(sizing.floater_margin * 2.0f);
+        }
+        svg->set_image_color(theme::color::White);
+        svg->set_pointer_events(PointerEvents::None);
+    }
+
+    const ToggleColorTheme &IconToggle::get_toggle_color_theme_unchecked() {
+        static const ToggleColorTheme color_theme = {
+            .border = theme::color::Secondary,
+            .bg_hover = theme::color::SecondaryA30,
+            .floater = theme::color::Secondary,
+            .floater_disabled = theme::color::SecondaryD
+        };
+
+        return color_theme;
+    }
+
+    IconToggle::IconToggle(
+        Element *parent,
+        std::string_view icon_src_left,
+        std::string_view icon_src_right,
+        ToggleSize size
+    ) : Toggle(parent, size) {
+        const ToggleSizing &sizing = get_toggle_sizing(size);
+        set_toggle_colors(false);
+        ContextId context = get_current_context();
+        icon_svg_left = context.create_element<Svg>(this, icon_src_left);
+        style_icon(icon_svg_left, sizing, true);
+        icon_svg_right = context.create_element<Svg>(this, icon_src_right);
+        style_icon(icon_svg_right, sizing, false);
+    }
+
+    void IconToggle::set_checked_internal(bool checked, bool animate, bool setup, bool trigger_callbacks) {
+        bool was_checked = this->checked;
+        Toggle::set_checked_internal(checked, animate, setup, trigger_callbacks);
+
+        if (setup || was_checked != this->checked) {
+            if (this->checked) {
+                icon_svg_left->set_opacity(0.5f);
+                icon_svg_right->set_opacity(1.0f);
+            } else {
+                icon_svg_left->set_opacity(1.0f);
+                icon_svg_right->set_opacity(0.5f);
+            }
+        }
     }
 };
