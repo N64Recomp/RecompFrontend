@@ -92,7 +92,11 @@ target_include_directories(recompui PUBLIC
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/thirdparty
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/thirdparty/concurrentqueue
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/thirdparty/miniz
+    ${CMAKE_BINARY_DIR}/shaders
 )
+
+build_vertex_shader(recompui "shaders/InterfaceVS.hlsl" "shaders/InterfaceVS.hlsl")
+build_pixel_shader(recompui "shaders/InterfacePS.hlsl" "shaders/InterfacePS.hlsl")
 
 target_include_directories(recompui PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/recompui")
 
