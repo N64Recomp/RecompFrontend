@@ -13,6 +13,7 @@
 #include "elements/ui_element.h"
 #include "elements/ui_document.h"
 #include "data/base_rcss.h"
+#include "util/file.h"
 
 // Hash implementations for ContextId and ResourceId.
 template <>
@@ -268,9 +269,8 @@ recompui::ContextId recompui::create_context() {
 
     ret.open();
 
-    // TODO: Utilize existing headers (for full continuity between documents) or get absolute path of assets.
     Rml::DocumentHeader header = Rml::DocumentHeader();
-    header.source = "assets/";
+    header.source = file::get_asset_path("");
     doc->ProcessHeader(&header);
 
     ret.close();
