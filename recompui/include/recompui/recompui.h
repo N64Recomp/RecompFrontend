@@ -38,6 +38,9 @@ namespace recompui {
     // `menu->init_game_options_menu`, and then adding options to it.
     void register_launcher_init_callback(std::function<void(LauncherMenu *menu)> callback);
 
+    // Use this to update the launcher each frame.
+    void register_launcher_update_callback(std::function<void(LauncherMenu *menu)> callback);
+
     class UiEventListenerInstancer;
 
     using event_handler_t = void(const std::string& param, Rml::Event&);

@@ -841,6 +841,10 @@ void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer*
     ui_state->update_focus(mouse_moved, non_mouse_interacted);
 
     if (recompui::is_any_context_shown()) {
+        if (recompui::is_context_shown(recompui::get_launcher_context_id())) {
+            recompui::update_launcher_menu();
+        }
+
         ui_state->update_contexts();
 
         int width = swap_chain_framebuffer->getWidth();
