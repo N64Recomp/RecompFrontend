@@ -270,7 +270,8 @@ recompui::ContextId recompui::create_context() {
     ret.open();
 
     Rml::DocumentHeader header = Rml::DocumentHeader();
-    header.source = file::get_asset_path("");
+    std::u8string asset_path_u8 = file::get_asset_path("").u8string();
+    header.source = reinterpret_cast<const char *>(asset_path_u8.c_str());
     doc->ProcessHeader(&header);
 
     ret.close();
