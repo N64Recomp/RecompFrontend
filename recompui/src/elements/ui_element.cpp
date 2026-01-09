@@ -560,8 +560,8 @@ double Element::get_input_value_double() {
     }, value);
 }
 
-void Element::focus() {
-    base->Focus();
+bool Element::focus() {
+    return base->Focus();
 }
 
 void Element::blur() {

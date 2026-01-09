@@ -9,13 +9,339 @@
 #include "nfd.h"
 #include <filesystem>
 #include "elements/ui_svg.h"
+#include "elements/ui_config_page.h"
+#include "ui_utils.h"
 
 // TODO: Store somewhere else and have base game register/initialize.
 extern std::vector<recomp::GameEntry> supported_games;
 
+// TODO: Used in multiple places, should be combined.
+static std::string generate_thumbnail_src_for_mod(const std::string &mod_id) {
+    return "?/mods/" + mod_id + "/thumb";
+}
 
+// TODO: Replace with actual check.
+inline bool has_game_modes_available(const std::u8string& game_id) {
+    return true;
+}
+
+static const std::string normal_game_mode_id = ""; // Can't be empty for mods that add game modes.
 
 namespace recompui {
+    using on_select_option_t = std::function<void(const std::string &id)>;
+
+    class GameModeOption : public Element {
+    protected:
+        std::string mode_id;
+        on_select_option_t on_select_option = nullptr;
+        Image *thumbnail_image = nullptr;
+        Element *body_container = nullptr;
+        Label *name_label = nullptr;
+
+        Style hover_style;
+        Style pulsing_style;
+        bool selected = false;
+
+        bool instant_scroll = false;
+        
+        void process_event(const Event& e) override {
+            switch (e.type) {
+            case EventType::Focus:
+                set_style_enabled(focus_state, std::get<EventFocus>(e.variant).active);
+                scroll_into_view(!instant_scroll);
+                instant_scroll = false;
+                queue_update();
+                break;
+            case EventType::Hover:
+                set_style_enabled(hover_state, std::get<EventHover>(e.variant).active);
+                break;
+            case EventType::Update:
+                if (is_style_enabled(focus_state)) {
+                    pulsing_style.set_color(recompui::get_pulse_color(750));
+                    apply_styles();
+                    queue_update();
+                }
+                break;
+            case EventType::Click:
+                on_select_option(mode_id);
+                break;
+            default:
+                break;
+            }
+        }
+        std::string_view get_type_name() override { return "GameModeOption"; }
+    public:
+        static const float option_height = 136.0f;
+        static const float option_padding = 8.0f;
+        static const float option_height_inner = option_height - (option_padding * 2.0f);
+
+        GameModeOption(Element* parent, on_select_option_t on_select_option, const std::string &mode_id, const std::string &name, const std::string &thumbnail) : Element(parent, Events(EventType::Update, EventType::Click, EventType::Hover, EventType::Focus)) {
+            ContextId context = get_current_context();
+            this->on_select_option = on_select_option;
+            this->mode_id = mode_id;
+
+            set_display(Display::Flex);
+            set_flex_direction(FlexDirection::Row);
+            set_width(100.0f, Unit::Percent);
+            set_height(option_height);
+            set_padding(option_padding);
+            set_border_left_width(2.0f);
+            set_border_color(theme::color::Transparent);
+            set_background_color(theme::color::Transparent);
+            set_cursor(Cursor::Pointer);
+            set_color(theme::color::Text);
+            set_focusable(true);
+            set_tab_index_auto();
+
+            hover_style.set_background_color(theme::color::Elevated);
+            pulsing_style.set_color(theme::color::SecondaryA80);
+
+            {
+                thumbnail_image = context.create_element<Image>(this, thumbnail);
+                thumbnail_image->set_width(option_height_inner);
+                thumbnail_image->set_height(option_height_inner);
+                thumbnail_image->set_min_width(option_height_inner);
+                thumbnail_image->set_min_height(option_height_inner);
+                thumbnail_image->set_background_color(theme::color::BGOverlay);
+
+                body_container = context.create_element<Element>(this);
+                body_container->set_display(Display::Flex);
+                body_container->set_flex_direction(FlexDirection::Column);
+                body_container->set_justify_content(JustifyContent::Center);
+                body_container->set_align_items(AlignItems::FlexStart);
+                body_container->set_width_auto();
+                body_container->set_margin_left(16.0f);
+                body_container->set_padding_top(8.0f);
+                body_container->set_padding_bottom(8.0f);
+                body_container->set_height(option_height_inner);
+                body_container->set_max_height(option_height_inner);
+                body_container->set_overflow_y(Overflow::Hidden);
+
+                {
+                    name_label = context.create_element<Label>(body_container, name, theme::Typography::Header2);
+                } // body_container
+            } // this
+
+            add_style(&hover_style, hover_state);
+            add_style(&pulsing_style, { focus_state });
+        };
+
+        GameModeOption(Element* parent, on_select_option_t on_select_option, const recomp::mods::ModDetails &details)
+            : GameModeOption(
+                parent,
+                on_select_option,
+                details.mod_id,
+                details.display_name,
+                generate_thumbnail_src_for_mod(details.mod_id)
+            ) {}
+
+        static std::string generate_thumbnail_src_for_mod(const std::string &mod_id) {
+            return "?/mods/" + mod_id + "/thumb";
+        }
+
+        const std::string& get_mode_id() const {
+            return mode_id;
+        }
+
+        void instant_focus_and_scroll() {
+            instant_scroll = true;
+            focus();
+        }
+    };
+
+    class GameModeMenu : public Element {
+    protected:
+        Element *wrapper = nullptr;
+        recompui::Element *body;
+        std::vector<GameModeOption *> game_mode_options;
+        //! Hack: Can't focus until a delayed update from when the options are cleared. Options get cleared then this is set to true.
+        bool queue_make_options;
+        //! Hack: If it isn't queued it just won't scroll into view when reopening the menu.
+        int queue_scroll_into_view = 0;
+
+        std::u8string game_id;
+        std::string cur_game_mode_id = "";
+
+        static const float max_menu_width = 1440.0f - 64.0f;
+        static const float header_height = 96.0f+16.0f;
+        static const float footer_height = 96.0f+16.0f;
+        static const float max_body_height = GameModeOption::option_height * 4.5f;
+
+        void process_event(const Event& e) override {
+            switch (e.type) {
+            case EventType::Update:
+                {
+                    if (queue_make_options) {
+                        make_options();
+                        queue_make_options = false;
+                        //! Hack: Wait two updates.
+                        queue_scroll_into_view = 2;
+                        queue_update();
+                    } else if (queue_scroll_into_view) {
+                        queue_scroll_into_view--;
+                        if (queue_scroll_into_view == 0) {
+                            for (auto option : game_mode_options) {
+                                if (option->get_mode_id() == cur_game_mode_id) {
+                                    option->scroll_into_view(false);
+                                    break;
+                                }
+                            }
+                        } else {
+                            queue_update();
+                        }
+                    }
+                }
+                break;
+            default:
+                break;
+            }
+        }
+        std::string_view get_type_name() override { return "GameModeMenu"; }
+    public:
+        GameModeMenu(Element* parent) : Element(parent, 0, "div", false) {
+            set_display(Display::Flex);
+            set_align_items(AlignItems::Center);
+            set_justify_content(JustifyContent::Center);
+            set_position(Position::Absolute);
+            set_left(0.0f);
+            set_top(0.0f);
+            set_height(100.0f, Unit::Percent);
+            set_width(100.0f, Unit::Percent);
+            set_background_color(theme::color::ModalOverlay);
+
+            auto context = get_current_context();
+            wrapper = context.create_element<Element>(this);
+            wrapper->set_position(Position::Relative);
+            wrapper->set_height_auto();
+            wrapper->set_width(100.0f, Unit::Percent);
+            wrapper->set_max_width(max_menu_width);
+            wrapper->set_as_navigation_container(NavigationType::Vertical);
+
+            auto header = context.create_element<Element>(wrapper);
+            header->set_display(Display::Flex);
+            header->set_align_items(AlignItems::Center);
+            header->set_justify_content(JustifyContent::Center);
+            header->set_height(header_height);
+            header->set_width(100.0f, Unit::Percent);
+            header->set_gap(16.0f);
+
+            auto body_wrapper = context.create_element<Element>(wrapper);
+            body_wrapper->set_position(Position::Relative);
+            body_wrapper->set_height_auto();
+            body_wrapper->set_max_height(max_body_height);
+            body_wrapper->set_width(100.0f, Unit::Percent);
+            body_wrapper->set_overflow_y(Overflow::Scroll);
+
+            body = context.create_element<Element>(body_wrapper);
+            body->set_position(Position::Relative);
+            body->set_height_auto();
+            body->set_width(100.0f, Unit::Percent);
+            body->set_as_navigation_container(NavigationType::Vertical);
+
+            auto footer = context.create_element<Element>(wrapper);
+            footer->set_display(Display::Flex);
+            footer->set_justify_content(JustifyContent::SpaceBetween);
+            footer->set_align_items(AlignItems::Center);
+            footer->set_height(footer_height);
+            footer->set_width(100.0f, Unit::Percent);
+            footer->set_as_navigation_container(NavigationType::Horizontal);
+
+            // header
+            {
+                context.create_element<Label>(header, "Select Game Mode", theme::Typography::Header3);
+            }
+
+            // footer
+            {
+                auto footer_left = context.create_element<Element>(footer);
+                footer_left->set_flex_grow(1.0f);
+                footer_left->set_flex_shrink(1.0f);
+                footer_left->set_flex_basis_auto();
+                footer_left->set_display(Display::Flex);
+                footer_left->set_flex_direction(FlexDirection::Row);
+                footer_left->set_justify_content(JustifyContent::FlexStart);
+                footer_left->set_align_items(AlignItems::Center);
+                {
+                    auto back_button = context.create_element<Button>(
+                        footer_left,
+                        "Go back",
+                        ButtonStyle::Basic,
+                        ButtonSize::Medium
+                    );
+                    back_button->set_width_auto();
+                    back_button->set_white_space(WhiteSpace::Nowrap);
+                    back_button->add_pressed_callback([this]() {
+                        get_launcher_menu()->hide_game_mode_menu();
+                    });
+                }
+            }
+        };
+
+        void hide() {
+            display_hide();
+        }
+
+        void on_select_game_mode(const std::string &game_mode_id) {
+            cur_game_mode_id = game_mode_id;
+            on_start_game_mode();
+        }
+
+        void on_start_game_mode() {
+            get_launcher_menu()->hide_game_mode_menu();
+            // TODO: Replace with function to set game mode.
+            // recomp::set_mod_game_mode(this->cur_game_mode_id);
+            recomp::start_game(this->game_id);
+            recompui::hide_all_contexts();
+        }
+
+        void make_options() {
+            auto context = get_current_context();
+            on_select_option_t on_select_game_mode_cb = [this](const std::string &id) {
+                this->on_select_game_mode(id);
+            };
+
+            // TODO: Actual function for getting previous game mode.
+            // cur_game_mode_id = recomp::get_previous_game_mode();
+            cur_game_mode_id = normal_game_mode_id;
+            bool found_previous = false;
+
+            auto normal_game_option = context.create_element<GameModeOption>(body, on_select_game_mode_cb, normal_game_mode_id, programconfig::get_program_name(), "Banjo.svg");
+            game_mode_options.push_back(normal_game_option);
+            
+            auto mod_id = get_game_mod_id();
+            std::vector<recomp::mods::ModDetails> mods = recomp::mods::get_all_mod_details(mod_id);
+            for (const auto &mod : mods) {
+                // TODO: check mod is a game mode mod
+                if (true) {
+                    GameModeOption *mod_game_option = context.create_element<GameModeOption>(body, on_select_game_mode_cb, mod);
+                    game_mode_options.push_back(mod_game_option);
+                    if (mod.mod_id == cur_game_mode_id) {
+                        found_previous = true;
+                        mod_game_option->instant_focus_and_scroll();
+                    }
+                }
+            }
+
+            // Failsafe if previous mode wasn't found (mod removed or id changed).
+            if (found_previous == false || cur_game_mode_id == normal_game_mode_id) {
+                normal_game_option->instant_focus_and_scroll();
+                cur_game_mode_id = normal_game_mode_id;
+            }
+        }
+
+        void show(const std::u8string &game_id) {
+            this->game_id = game_id;
+            display_show();
+
+            body->clear_children();
+            game_mode_options.clear();
+
+            //! Hack: Can't make options until next update otherwise focus doesn't work.
+            queue_make_options = true;
+            queue_update();
+        }
+    };
+
     GameOptionsMenu::GameOptionsMenu(
         Element* parent, std::u8string game_id, std::string mod_game_id, GameOptionsMenuLayout layout
     ) : Element(parent, 0, "div", false),
@@ -102,9 +428,14 @@ namespace recompui {
 
         option->set_callback([this, option, start_game_title]() {
             if (this->rom_valid) {
-                recomp::start_game(this->game_id);
                 recompui::update_game_mod_id(this->mod_game_id);
-                recompui::hide_all_contexts();
+                // TODO: Replace with function to check for game modes existing.
+                if (has_game_modes_available(this->game_id)) {
+                    get_launcher_menu()->show_game_mode_menu(this->game_id);
+                } else {
+                    recomp::start_game(this->game_id);
+                    recompui::hide_all_contexts();
+                }
             } else {
                 select_rom([this, option, start_game_title](bool success) {
                     if (success) {
@@ -115,6 +446,7 @@ namespace recompui {
             }
         });
 
+        start_game_option = option;
         return option;
     }
 
@@ -217,6 +549,27 @@ namespace recompui {
         background_svg->set_width(100.0f, Unit::Percent);
         background_svg->set_translate_2D(0.0f, -50.0f, Unit::Percent);
         return background_svg;
+    }
+
+    void LauncherMenu::show_game_mode_menu(std::u8string game_id) {
+        game_options_menu->display_hide();
+        auto context = get_current_context();
+        if (game_mode_menu == nullptr) {
+            game_mode_menu = context.create_element<GameModeMenu>(this);
+        }
+        game_mode_menu->show(game_id);
+    }
+
+    void LauncherMenu::hide_game_mode_menu() {
+        if (game_mode_menu != nullptr) {
+            game_mode_menu->hide();
+        }
+
+        game_options_menu->display_show();
+        auto start_opt = game_options_menu->get_start_game_option();
+        if (start_opt != nullptr) {
+            start_opt->focus();
+        }
     }
 
     static ContextId launcher_context;

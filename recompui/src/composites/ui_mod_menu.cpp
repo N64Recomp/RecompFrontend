@@ -788,6 +788,10 @@ void update_game_mod_id(const std::string &game_mod_id) {
     }
 }
 
+const std::string &get_game_mod_id() {
+    return current_game_mod_id;
+}
+
 void process_game_started() {
     if (mod_menu) {
         recompui::ContextId ui_context = recompui::config::get_config_context_id();

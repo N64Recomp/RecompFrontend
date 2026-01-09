@@ -145,7 +145,7 @@ public:
     float get_client_width();
     float get_client_height();
     void enable_focus();
-    void focus();
+    bool focus();
     void blur();
     void queue_update();
     void register_callback(ContextId context, PTR(void) callback, PTR(void) userdata);
