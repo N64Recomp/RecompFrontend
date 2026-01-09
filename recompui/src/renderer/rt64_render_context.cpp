@@ -127,6 +127,17 @@ RT64::UserConfiguration::InternalColorFormat to_rt64(ultramodern::renderer::High
     }
 }
 
+RT64::EnhancementConfiguration::Presentation::Mode to_rt64(ultramodern::renderer::PresentationMode mode) {
+    switch (mode) {
+        case ultramodern::renderer::PresentationMode::Console:
+            return RT64::EnhancementConfiguration::Presentation::Mode::Console;
+        case ultramodern::renderer::PresentationMode::SkipBuffering:
+            return RT64::EnhancementConfiguration::Presentation::Mode::SkipBuffering;
+        case ultramodern::renderer::PresentationMode::PresentEarly:
+            return RT64::EnhancementConfiguration::Presentation::Mode::PresentEarly;
+    }
+}
+
 void set_application_user_config(RT64::Application* application, const ultramodern::renderer::GraphicsConfig& config) {
     switch (config.res_option) {
         default:
@@ -206,7 +217,7 @@ ultramodern::renderer::GraphicsApi map_graphics_api(RT64::UserConfiguration::Gra
     std::exit(EXIT_FAILURE);
 }
 
-renderer::RT64Context::RT64Context(uint8_t* rdram, ultramodern::renderer::WindowHandle window_handle, bool debug) {
+renderer::RT64Context::RT64Context(uint8_t* rdram, ultramodern::renderer::WindowHandle window_handle, ultramodern::renderer::PresentationMode presentation_mode, bool debug) {
     static unsigned char dummy_rom_header[0x40];
     recompui::set_render_hooks();
 
@@ -270,6 +281,8 @@ renderer::RT64Context::RT64Context(uint8_t* rdram, ultramodern::renderer::Window
     app->enhancementConfig.f3dex.forceBranch = true;
     // Scale LODs based on the output resolution.
     app->enhancementConfig.textureLOD.scale = true;
+    // Set the target presentation mode.
+    app->enhancementConfig.presentation.mode = to_rt64(presentation_mode);
     // Pick an API if the user has set an override.
     switch (cur_config.api_option) {
         case ultramodern::renderer::GraphicsApi::D3D12:
@@ -329,6 +342,17 @@ void renderer::RT64Context::send_dl(const OSTask* task) {
     app->state->rsp->reset();
     app->interpreter->loadUCodeGBI(task->t.ucode & 0x3FFFFFF, task->t.ucode_data & 0x3FFFFFF, true);
     app->processDisplayLists(app->core.RDRAM, task->t.data_ptr & 0x3FFFFFF, 0, true);
+}
+
+void renderer::RT64Context::send_dummy_workload(uint32_t fb_address) {
+    app->state->listProcessBegin();
+    app->state->rdp->setColorImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 320, fb_address);
+    // G_AD_DISABLE | G_CD_MAGICSQ | G_CK_NONE | G_TC_FILT | G_TF_BILERP | G_TT_NONE | G_TL_TILE | G_TD_CLAMP | G_TP_PERSP | G_CYC_FILL | G_PM_NPRIMITIVE
+    // G_AC_NONE | G_ZS_PIXEL | G_RM_NOOP | G_RM_NOOP2
+    app->state->rdp->setOtherMode(0x382C30, 0);
+    app->state->rdp->fillRect(0, 0, 320 << 2, 240 << 2);
+    app->state->fullSync();
+    app->state->listProcessEnd();
 }
 
 void renderer::RT64Context::update_screen() {
@@ -453,8 +477,8 @@ RT64::UserConfiguration::Antialiasing renderer::RT64MaxMSAA() {
     return device_max_msaa;
 }
 
-std::unique_ptr<ultramodern::renderer::RendererContext> renderer::create_render_context(uint8_t* rdram, ultramodern::renderer::WindowHandle window_handle, bool developer_mode) {
-    return std::make_unique<renderer::RT64Context>(rdram, window_handle, developer_mode);
+std::unique_ptr<ultramodern::renderer::RendererContext> renderer::create_render_context(uint8_t* rdram, ultramodern::renderer::WindowHandle window_handle, ultramodern::renderer::PresentationMode presentation_mode, bool developer_mode) {
+    return std::make_unique<renderer::RT64Context>(rdram, window_handle, presentation_mode, developer_mode);
 }
 
 bool renderer::RT64SamplePositionsSupported() {
