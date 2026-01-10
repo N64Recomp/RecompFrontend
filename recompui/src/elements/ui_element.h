@@ -144,6 +144,7 @@ public:
     float get_client_top();
     float get_client_width();
     float get_client_height();
+    float get_dp_to_pixel_ratio();
     void enable_focus();
     void focus();
     void blur();

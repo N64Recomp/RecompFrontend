@@ -527,6 +527,10 @@ float Element::get_client_height() {
     return base->GetClientHeight();
 }
 
+float Element::get_dp_to_pixel_ratio() {
+    return Rml::ElementUtilities::GetDensityIndependentPixelRatio(base);
+}
+
 uint32_t Element::get_input_value_u32() {
     ElementValue value = get_element_value();
     
