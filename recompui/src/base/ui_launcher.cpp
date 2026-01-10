@@ -109,7 +109,7 @@ namespace recompui {
                 select_rom([this, option, start_game_title](bool success) {
                     if (success) {
                         this->rom_valid = true;
-                        option->set_text(start_game_title);
+                        option->set_title(start_game_title);
                     }
                 });
             }
