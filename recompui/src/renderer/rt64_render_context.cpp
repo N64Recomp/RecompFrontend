@@ -356,6 +356,7 @@ void renderer::RT64Context::send_dummy_workload(uint32_t fb_address) {
 }
 
 void renderer::RT64Context::update_screen() {
+    check_refresh_rate_changes();
     app->updateScreen();
 }
 
@@ -475,6 +476,17 @@ void renderer::RT64Context::check_texture_pack_actions() {
         else {
             app->textureCache->clearReplacementDirectories();
         }
+    }
+}
+
+void renderer::RT64Context::check_refresh_rate_changes() {
+    uint32_t new_refresh_rate = get_display_framerate();
+    if (new_refresh_rate != last_refresh_rate) {
+        if (new_refresh_rate > 0) {
+            recompui::config::graphics::update_refresh_rate(new_refresh_rate);
+        }
+
+        last_refresh_rate = new_refresh_rate;
     }
 }
 

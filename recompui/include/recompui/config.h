@@ -66,6 +66,7 @@ namespace recompui {
             void detect_steam_deck();
             bool is_device_steam_deck();
             void update_msaa_supported(bool supported);
+            void update_refresh_rate(uint32_t refresh_rate);
             void toggle_fullscreen();
         }
 
