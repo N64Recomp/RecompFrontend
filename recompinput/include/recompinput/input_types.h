@@ -11,17 +11,17 @@ namespace recompinput {
         DEFINE_INPUT(A, 0x8000, "A") \
         DEFINE_INPUT(B, 0x4000, "B") \
         DEFINE_INPUT(Z, 0x2000, "Z") \
-        DEFINE_INPUT(START, 0x1000, "Start") \
         DEFINE_INPUT(L, 0x0020, "L") \
         DEFINE_INPUT(R, 0x0010, "R") \
+        DEFINE_INPUT(START, 0x1000, "Start") \
         DEFINE_INPUT(C_UP, 0x0008, "C Up") \
-        DEFINE_INPUT(C_LEFT, 0x0002, "C Left") \
         DEFINE_INPUT(C_DOWN, 0x0004, "C Down") \
+        DEFINE_INPUT(C_LEFT, 0x0002, "C Left") \
         DEFINE_INPUT(C_RIGHT, 0x0001, "C Right") \
         DEFINE_INPUT(DPAD_UP, 0x0800, "D-Pad Up") \
-        DEFINE_INPUT(DPAD_RIGHT, 0x0100, "D-Pad Right") \
         DEFINE_INPUT(DPAD_DOWN, 0x0400, "D-Pad Down") \
-        DEFINE_INPUT(DPAD_LEFT, 0x0200, "D-Pad Left")
+        DEFINE_INPUT(DPAD_LEFT, 0x0200, "D-Pad Left") \
+        DEFINE_INPUT(DPAD_RIGHT, 0x0100, "D-Pad Right")
 
     #define DEFINE_N64_AXIS_INPUTS() \
         DEFINE_INPUT(Y_AXIS_POS, 0, "Up") \
@@ -38,8 +38,8 @@ namespace recompinput {
         DEFINE_INPUT(TAB_RIGHT_MENU, 0, "Tab Right (Menu)")
 
     #define DEFINE_ALL_INPUTS() \
-        DEFINE_N64_BUTTON_INPUTS() \
         DEFINE_N64_AXIS_INPUTS() \
+        DEFINE_N64_BUTTON_INPUTS() \
         DEFINE_RECOMP_UI_INPUTS()
 
     #define DEFINE_INPUT(name, value, readable) name,
