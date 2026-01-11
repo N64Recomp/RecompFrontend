@@ -36,7 +36,6 @@ namespace recompui {
     public:
         std::string name;
         const std::string id;
-        TabContext(const std::string &name, const std::string &id, tab_callbacks::create_contents_t &&create_contents) : name(name), id(id), callbacks(std::move(create_contents)) {};
         TabContext(const std::string &name, const std::string &id, TabCallbacks &&callbacks) : name(name), id(id), callbacks(std::move(callbacks)) {};
         virtual ~TabContext() = default;
 
