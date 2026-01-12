@@ -440,7 +440,7 @@ namespace recompui {
                 select_rom([this, option, start_game_title](bool success) {
                     if (success) {
                         this->rom_valid = true;
-                        option->set_text(start_game_title);
+                        option->set_title(start_game_title);
                     }
                 });
             }
@@ -575,6 +575,7 @@ namespace recompui {
     static ContextId launcher_context;
     static LauncherMenu *launcher_menu = nullptr;
     static std::function<void(LauncherMenu *menu)> launcher_init_callback = nullptr;
+    static std::function<void(LauncherMenu *menu)> launcher_update_callback = nullptr;
     
     ContextId get_launcher_context_id() {
         return launcher_context;
@@ -586,6 +587,10 @@ namespace recompui {
 
     void register_launcher_init_callback(std::function<void(LauncherMenu *menu)> callback) {
         launcher_init_callback = callback;
+    }
+
+    void register_launcher_update_callback(std::function<void(LauncherMenu *menu)> callback) {
+        launcher_update_callback = callback;
     }
 
     void default_launcher_init_callback(LauncherMenu *menu) {
@@ -602,6 +607,14 @@ namespace recompui {
             default_launcher_init_callback(launcher_menu);
         } else {
             launcher_init_callback(launcher_menu);
+        }
+        launcher_context.close();
+    }
+
+    void update_launcher_menu() {
+        launcher_context.open();
+        if (launcher_update_callback) {
+            launcher_update_callback(launcher_menu);
         }
         launcher_context.close();
     }

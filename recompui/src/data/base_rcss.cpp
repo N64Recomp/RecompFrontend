@@ -1,4 +1,3 @@
-#include <format>
 #include "base_rcss.h"
 #include "recompui/recompui.h"
 #include "elements/ui_theme.h"
@@ -97,27 +96,18 @@ const std::string &recompui::get_base_rcss() {
         return base_rcss;
     }
     auto &body_preset = recompui::theme::get_typography_preset(recompui::theme::Typography::Body);
-    auto body_rcss = std::format(
-R"(
-body {{
-  width: 100%;
-  height: 100%;
-  color: Text;
-  font-size: {}dp;
-  letter-spacing: {}dp;
-  line-height: {}dp;
-  font-style: {};
-  font-weight: {};
-  font-family: "{}";
-}}
-)",
-        static_cast<int>(body_preset.font_size),
-        static_cast<int>(body_preset.letter_spacing),
-        static_cast<int>(body_preset.line_height),
-        body_preset.font_style == recompui::FontStyle::Normal ? "normal" : "italic",
-        body_preset.font_weight,
-        recompui::get_primary_font_family()
-    );
+    auto body_rcss =
+        "body {\n"
+        "  width: 100%;\n"
+        "  height: 100%;\n"
+        "  color: Text;\n"
+        "  font-size: " + std::to_string(static_cast<int>(body_preset.font_size)) + "dp;\n"
+        "  letter-spacing: " + std::to_string(static_cast<int>(body_preset.letter_spacing)) + "dp;\n"
+        "  line-height: " + std::to_string(static_cast<int>(body_preset.line_height)) + "dp;\n"
+        "  font-style: " + (body_preset.font_style == recompui::FontStyle::Normal ? "normal" : "italic") + ";\n"
+        "  font-weight: " + std::to_string(body_preset.font_weight) + ";\n"
+        "  font-family: \"" + recompui::get_primary_font_family() + "\";\n"
+        "}\n";
 
     base_rcss = body_rcss + "\n" + base_rcss_end;
 

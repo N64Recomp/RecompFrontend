@@ -178,7 +178,7 @@ namespace recompui {
             get_graphics_config().update_option_enum_details(graphics::options::ds_option, get_downsampling_details(res_option, ds_opt));
         }
 
-        static std::string get_framerate_text() {
+        static std::string get_framerate_text(uint32_t refresh_rate) {
             return
                 "Sets the game's output framerate. This option does not affect gameplay."
                 "<br />"
@@ -186,7 +186,7 @@ namespace recompui {
                 "Note: If you have issues with <recomp-color primary>Display</recomp-color> mode while using an external frame limiter, use <recomp-color primary>Manual</recomp-color> mode instead and configure it to that same frame limit."
                 "<br />"
                 "<br />"
-                "<recomp-color primary>Detected display refresh rate: " + std::to_string(ultramodern::get_display_refresh_rate()) + "hz</recomp-color>";
+                "<recomp-color primary>Detected display refresh rate: " + std::to_string(refresh_rate) + "hz</recomp-color>";
         }
 
         static void apply_graphics_config() {
@@ -227,6 +227,13 @@ namespace recompui {
                     config.update_enum_option_disabled(graphics::options::msaa_option, static_cast<uint32_t>(ultramodern::renderer::Antialiasing::MSAA4X), true);
                 }
             }
+        }
+
+        void graphics::update_refresh_rate(uint32_t refresh_rate) {
+            recomp::config::Config& config = get_graphics_config();
+            std::string framerate_text = get_framerate_text(refresh_rate);
+            config.update_option_description(graphics::options::rr_option, framerate_text);
+            config.update_option_description(graphics::options::rr_manual_value, framerate_text);
         }
 
         void graphics::toggle_fullscreen() {
@@ -322,7 +329,7 @@ namespace recompui {
             config.add_enum_option(
                 graphics::options::rr_option,
                 "Framerate",
-                get_framerate_text(),
+                get_framerate_text(60),
                 refresh_rate_options,
                 ultramodern::renderer::RefreshRate::Display
             );
@@ -330,7 +337,7 @@ namespace recompui {
             config.add_number_option(
                 graphics::options::rr_manual_value,
                 "",
-                get_framerate_text(),
+                get_framerate_text(60),
                 20.0, 240.0, 1.0, 0, false, 60.0
             );
             {

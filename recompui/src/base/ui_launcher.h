@@ -66,8 +66,10 @@ namespace recompui {
         void hide_game_mode_menu();
         void remove_default_title();
         Svg *set_launcher_background_svg(const std::string& svg_path);
+        Element *get_background_container() { return background_wrapper; }
     };
 
     LauncherMenu *get_launcher_menu();
     void init_launcher_menu();
+    void update_launcher_menu();
 } // namespace recompui
