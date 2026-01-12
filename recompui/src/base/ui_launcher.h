@@ -55,6 +55,7 @@ namespace recompui {
         Element *background_wrapper;
         Svg *background_svg = nullptr;
         Element *menu_container;
+        Label *version_label;
         Element *default_title_wrapper;
         GameOptionsMenu *game_options_menu = nullptr;
         GameModeMenu *game_mode_menu = nullptr;

@@ -502,8 +502,10 @@ namespace recompui {
         menu_container->set_bottom(24.0f);
         menu_container->set_left(24.0f);
 
-        // TODO: Render version automatically
-        // version_string = recomp::get_project_version().to_string();
+        version_label = context.create_element<Label>(this, "v" + recomp::get_project_version().to_string(), LabelStyle::Small);
+        version_label->set_position(Position::Absolute);
+        version_label->set_bottom(4.0f);
+        version_label->set_left(4.0f);
     }
 
     void LauncherMenu::remove_default_title() {
