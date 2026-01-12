@@ -93,11 +93,30 @@ static float smoothstep(float from, float to, float amount) {
 
 // Update rumble to attempt to mimic the way n64 rumble ramps up and falls off
 void recompinput::update_rumble() {
+    auto do_rumble = [](SDL_GameController* controller, uint16_t rumble_strength, uint32_t duration) {
+        SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
+        SDL_JoystickID joystick_id = SDL_JoystickInstanceID(joystick);
+        ControllerState &state = InputState.controller_states[joystick_id];
+
+        // Skip setting rumble for controllers that failed to rumble previously.
+        if (state.rumble_failed) {
+           return;
+        }
+        int err = SDL_JoystickRumble(joystick, 0, rumble_strength, duration);
+        if (err != 0) {
+            state.rumble_failed = true;
+        }
+    };
+
     // Skip rumble processing if the game doesn't have a rumble strength option. 
     if (!recompui::config::general::has_rumble_strength_option()) {
         return;
     }
-    for (size_t i = 0; i < InputState.cur_rumble.size(); i++) {
+    size_t rumbles_to_run = recompinput::players::is_single_player_mode() ? 1 : recompinput::players::get_number_of_assigned_players();
+    if (rumbles_to_run > InputState.cur_rumble.size()) {
+        rumbles_to_run = InputState.cur_rumble.size();
+    }
+    for (size_t i = 0; i < rumbles_to_run; i++) {
         // Note: values are not accurate! just approximations based on feel
         if (InputState.rumble_active[i]) {
             InputState.cur_rumble[i] += 0.17f;
@@ -116,13 +135,13 @@ void recompinput::update_rumble() {
             std::lock_guard lock{ InputState.controllers_mutex };
             if (recompinput::players::is_single_player_mode()) {
                 for (const auto &controller : InputState.detected_controllers) {
-                    SDL_GameControllerRumble(controller, 0, rumble_strength, duration);
+                    do_rumble(controller, rumble_strength, duration);
                 }
             }
             else {
                 auto &player = recompinput::players::get_player(i);
                 if (player.controller != nullptr) {
-                    SDL_GameControllerRumble(player.controller, 0, rumble_strength, duration);
+                    do_rumble(player.controller, rumble_strength, duration);
                 }
             }
         }

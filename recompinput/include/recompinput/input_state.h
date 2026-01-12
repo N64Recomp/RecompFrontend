@@ -19,8 +19,9 @@ namespace recompinput {
         uint32_t prev_gyro_timestamp;
         std::array<float, 2> rotation_delta{};
         std::array<float, 2> pending_rotation_delta{};
+        bool rumble_failed;
 
-        ControllerState() : controller{}, latest_accelerometer{}, motion{}, prev_gyro_timestamp{}, rotation_delta{}, pending_rotation_delta{} {
+        ControllerState() : controller{}, latest_accelerometer{}, motion{}, prev_gyro_timestamp{}, rotation_delta{}, pending_rotation_delta{}, rumble_failed{} {
             motion.Reset();
             motion.SetCalibrationMode(GamepadMotionHelpers::CalibrationMode::Stillness | GamepadMotionHelpers::CalibrationMode::SensorFusion);
         };
