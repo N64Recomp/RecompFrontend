@@ -20,13 +20,6 @@ static std::string generate_thumbnail_src_for_mod(const std::string &mod_id) {
     return "?/mods/" + mod_id + "/thumb";
 }
 
-// TODO: Replace with actual check.
-inline bool has_game_modes_available(const std::u8string& game_id) {
-    return true;
-}
-
-static const std::string normal_game_mode_id = ""; // Can't be empty for mods that add game modes.
-
 namespace recompui {
     using on_select_option_t = std::function<void(const std::string &id)>;
 
@@ -134,10 +127,6 @@ namespace recompui {
                 details.display_name,
                 generate_thumbnail_src_for_mod(details.mod_id)
             ) {}
-
-        static std::string generate_thumbnail_src_for_mod(const std::string &mod_id) {
-            return "?/mods/" + mod_id + "/thumb";
-        }
 
         const std::string& get_mode_id() const {
             return mode_id;
@@ -281,16 +270,14 @@ namespace recompui {
             display_hide();
         }
 
-        void on_select_game_mode(const std::string &game_mode_id) {
-            cur_game_mode_id = game_mode_id;
+        void on_select_game_mode(const std::string &game_mode_mod_id) {
+            cur_game_mode_id = game_mode_mod_id;
             on_start_game_mode();
         }
 
         void on_start_game_mode() {
             get_launcher_menu()->hide_game_mode_menu();
-            // TODO: Replace with function to set game mode.
-            // recomp::set_mod_game_mode(this->cur_game_mode_id);
-            recomp::start_game(this->game_id);
+            recomp::start_game(this->game_id, this->cur_game_mode_id);
             recompui::hide_all_contexts();
         }
 
@@ -300,22 +287,20 @@ namespace recompui {
                 this->on_select_game_mode(id);
             };
 
-            // TODO: Actual function for getting previous game mode.
-            // cur_game_mode_id = recomp::get_previous_game_mode();
-            cur_game_mode_id = normal_game_mode_id;
+            cur_game_mode_id.clear();
+            std::string prev_game_mode_id = recomp::mods::get_latest_game_mode_id();
             bool found_previous = false;
 
-            auto normal_game_option = context.create_element<GameModeOption>(body, on_select_game_mode_cb, normal_game_mode_id, programconfig::get_program_name(), "Banjo.svg");
+            auto normal_game_option = context.create_element<GameModeOption>(body, on_select_game_mode_cb, std::string{}, programconfig::get_program_name(), "Banjo.svg");
             game_mode_options.push_back(normal_game_option);
             
             auto mod_id = get_game_mod_id();
             std::vector<recomp::mods::ModDetails> mods = recomp::mods::get_all_mod_details(mod_id);
             for (const auto &mod : mods) {
-                // TODO: check mod is a game mode mod
-                if (true) {
+                if (mod.custom_gamemode && (recomp::mods::is_mod_enabled(mod.mod_id) || recomp::mods::is_mod_auto_enabled(mod.mod_id))) {
                     GameModeOption *mod_game_option = context.create_element<GameModeOption>(body, on_select_game_mode_cb, mod);
                     game_mode_options.push_back(mod_game_option);
-                    if (mod.mod_id == cur_game_mode_id) {
+                    if (mod.mod_id == prev_game_mode_id) {
                         found_previous = true;
                         mod_game_option->instant_focus_and_scroll();
                     }
@@ -323,9 +308,12 @@ namespace recompui {
             }
 
             // Failsafe if previous mode wasn't found (mod removed or id changed).
-            if (found_previous == false || cur_game_mode_id == normal_game_mode_id) {
+            if (found_previous == false || prev_game_mode_id.empty()) {
                 normal_game_option->instant_focus_and_scroll();
-                cur_game_mode_id = normal_game_mode_id;
+                cur_game_mode_id.clear();
+            }
+            else {
+                cur_game_mode_id = std::move(prev_game_mode_id);
             }
         }
 
@@ -429,11 +417,10 @@ namespace recompui {
         option->set_callback([this, option, start_game_title]() {
             if (this->rom_valid) {
                 recompui::update_game_mod_id(this->mod_game_id);
-                // TODO: Replace with function to check for game modes existing.
-                if (has_game_modes_available(this->game_id)) {
+                if (recomp::mods::game_mode_count(this->mod_game_id, false) > 0) {
                     get_launcher_menu()->show_game_mode_menu(this->game_id);
                 } else {
-                    recomp::start_game(this->game_id);
+                    recomp::start_game(this->game_id, {});
                     recompui::hide_all_contexts();
                 }
             } else {
