@@ -43,6 +43,8 @@ namespace recompui {
             add_mods_option();
             add_exit_option();
         }
+
+        std::vector<GameOption *> &get_options() { return options; }
     };
 
     class GameModeMenu;
@@ -67,6 +69,7 @@ namespace recompui {
         void remove_default_title();
         Svg *set_launcher_background_svg(const std::string& svg_path);
         Element *get_background_container() { return background_wrapper; }
+        Element *get_menu_container() { return menu_container; }
     };
 
     LauncherMenu *get_launcher_menu();
