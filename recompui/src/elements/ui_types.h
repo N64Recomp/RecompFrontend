@@ -294,6 +294,14 @@ namespace recompui {
         Justify
     };
 
+    enum class WhiteSpace {
+        Normal,
+        Pre,
+        Nowrap,
+        Prewrap,
+        Preline
+    };
+
     enum class TextTransform {
         None,
         Capitalize,

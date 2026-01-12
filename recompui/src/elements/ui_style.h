@@ -113,6 +113,7 @@ namespace recompui {
         void set_font_weight(uint32_t weight);
         void set_typography(recompui::theme::Typography typography);
         void set_text_align(TextAlign text_align);
+        void set_white_space(WhiteSpace white_space);
         void set_text_transform(TextTransform text_transform);
         void set_gap(float size, Unit unit = Unit::Dp);
         void set_row_gap(float size, Unit unit = Unit::Dp);

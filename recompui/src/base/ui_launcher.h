@@ -16,6 +16,7 @@ namespace recompui {
         void select_rom(std::function<void(bool)> callback);
     protected:
         std::vector<GameOption *> options;
+        GameOption *start_game_option = nullptr;
         std::u8string game_id;
         std::string mod_game_id;
         bool rom_valid = false;
@@ -32,6 +33,8 @@ namespace recompui {
         GameOption *add_settings_option(const std::string& title = "Settings");
         GameOption *add_mods_option(const std::string& title = "Mods");
         GameOption *add_exit_option(const std::string& title = "Exit");
+
+        GameOption *get_start_game_option() { return start_game_option; }
     
         void add_default_options() {
             add_start_game_or_load_rom_option();
@@ -42,6 +45,8 @@ namespace recompui {
         }
     };
 
+    class GameModeMenu;
+
     class LauncherMenu : public Element {
     protected:
         std::string_view get_type_name() override { return "LauncherMenu"; }
@@ -50,10 +55,15 @@ namespace recompui {
         Element *menu_container;
         Element *default_title_wrapper;
         GameOptionsMenu *game_options_menu = nullptr;
+        GameModeMenu *game_mode_menu = nullptr;
     public:
         LauncherMenu(Document* parent, ContextId context);
         GameOptionsMenu *init_game_options_menu(std::u8string game_id, std::string mod_game_id, GameOptionsMenuLayout layout = GameOptionsMenuLayout::Center);
         GameOptionsMenu *get_game_options_menu() { return game_options_menu; }
+        Element *get_background_wrapper() { return background_wrapper; }
+        GameModeMenu *get_game_mode_menu() { return game_mode_menu; }
+        void show_game_mode_menu(std::u8string game_id);
+        void hide_game_mode_menu();
         void remove_default_title();
         Svg *set_launcher_background_svg(const std::string& svg_path);
         Element *get_background_container() { return background_wrapper; }

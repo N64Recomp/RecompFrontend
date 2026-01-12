@@ -68,6 +68,24 @@ namespace recompui {
         }
     }
 
+    static Rml::Style::WhiteSpace to_rml(WhiteSpace white_space) {
+        switch (white_space) {
+        case WhiteSpace::Normal:
+            return Rml::Style::WhiteSpace::Normal;
+        case WhiteSpace::Pre:
+            return Rml::Style::WhiteSpace::Pre;
+        case WhiteSpace::Nowrap:
+            return Rml::Style::WhiteSpace::Nowrap;
+        case WhiteSpace::Prewrap:
+            return Rml::Style::WhiteSpace::Prewrap;
+        case WhiteSpace::Preline:
+            return Rml::Style::WhiteSpace::Preline;
+        default:
+            assert(false && "Unknown white-space.");
+            return Rml::Style::WhiteSpace::Normal;
+        }
+    }
+
     static Rml::Style::TextTransform to_rml(TextTransform text_transform) {
         switch (text_transform) {
         case TextTransform::None:
@@ -692,6 +710,10 @@ namespace recompui {
 
     void Style::set_text_align(TextAlign text_align) {
         set_property(Rml::PropertyId::TextAlign, to_rml(text_align));
+    }
+
+    void Style::set_white_space(WhiteSpace white_space) {
+        set_property(Rml::PropertyId::WhiteSpace, to_rml(white_space));
     }
 
     void Style::set_text_transform(TextTransform text_transform) {
