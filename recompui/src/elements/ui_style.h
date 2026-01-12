@@ -25,6 +25,7 @@ namespace recompui {
         Display visible_display = Display::Block;
     protected:
         virtual void set_property(Rml::PropertyId property_id, const Rml::Property &property);
+        virtual void remove_property(Rml::PropertyId property_id);
         ResourceId resource_id = ResourceId::null();
     public:
         Style();
@@ -32,9 +33,13 @@ namespace recompui {
         void set_visibility(Visibility visibility);
         void set_position(Position position);
         void set_left(float left, Unit unit = Unit::Dp);
+        void unset_left();
         void set_top(float top, Unit unit = Unit::Dp);
+        void unset_top();
         void set_right(float right, Unit unit = Unit::Dp);
+        void unset_right();
         void set_bottom(float bottom, Unit unit = Unit::Dp);
+        void unset_bottom();
         void set_inset(float inset, Unit unit = Unit::Dp);
         void set_width(float width, Unit unit = Unit::Dp);
         void set_width_auto();
@@ -121,6 +126,7 @@ namespace recompui {
         void set_drag(Drag drag);
         void set_tab_index(TabIndex focus);
         void set_font_family(std::string_view family);
+        void unset_transform();
         void set_translate_2D(float x, float y, Unit unit = Unit::Dp);
         void set_scale_2D(float scale_x, float scale_y);
         void set_rotation(float degrees);

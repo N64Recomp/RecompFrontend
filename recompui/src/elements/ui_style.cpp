@@ -244,6 +244,12 @@ namespace recompui {
         property_map[property_id] = property;
     }
 
+    void Style::remove_property(Rml::PropertyId property_id) {
+        if (property_map.find(property_id) != property_map.end()) {
+            property_map.erase(property_id);
+        }
+    }
+
     Style::Style() {
 
     }
@@ -281,16 +287,32 @@ namespace recompui {
         set_property(Rml::PropertyId::Left, Rml::Property(left, to_rml(unit)));
     }
 
+    void Style::unset_left() {
+        remove_property(Rml::PropertyId::Left);
+    }
+
     void Style::set_top(float top, Unit unit) {
         set_property(Rml::PropertyId::Top, Rml::Property(top, to_rml(unit)));
+    }
+
+    void Style::unset_top() {
+        remove_property(Rml::PropertyId::Top);
     }
 
     void Style::set_right(float right, Unit unit) {
         set_property(Rml::PropertyId::Right, Rml::Property(right, to_rml(unit)));
     }
 
+    void Style::unset_right() {
+        remove_property(Rml::PropertyId::Right);
+    }
+
     void Style::set_bottom(float bottom, Unit unit) {
         set_property(Rml::PropertyId::Bottom, Rml::Property(bottom, to_rml(unit)));
+    }
+
+    void Style::unset_bottom() {
+        remove_property(Rml::PropertyId::Bottom);
     }
 
     void Style::set_inset(float inset, Unit unit) {
@@ -805,6 +827,10 @@ namespace recompui {
         }
 
         set_property(Rml::PropertyId::Transform, Rml::Property(Rml::Variant(std::move(transform)), Rml::Unit::TRANSFORM));
+    }
+
+    void Style::unset_transform() {
+        remove_property(Rml::PropertyId::Transform);
     }
 
     void Style::set_translate_2D(float x, float y, Unit unit) {
