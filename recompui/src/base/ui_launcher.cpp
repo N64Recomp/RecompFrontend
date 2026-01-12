@@ -12,6 +12,17 @@
 #include "elements/ui_config_page.h"
 #include "ui_utils.h"
 
+namespace Constants {
+    constexpr float option_height = 136.0f;
+    constexpr float option_padding = 8.0f;
+    constexpr float option_height_inner = option_height - (option_padding * 2.0f);
+
+    constexpr float max_menu_width = 1440.0f - 64.0f;
+    constexpr float header_height = 96.0f+16.0f;
+    constexpr float footer_height = 96.0f+16.0f;
+    constexpr float max_body_height = option_height * 4.5f;
+}
+
 // TODO: Store somewhere else and have base game register/initialize.
 extern std::vector<recomp::GameEntry> supported_games;
 
@@ -64,10 +75,6 @@ namespace recompui {
         }
         std::string_view get_type_name() override { return "GameModeOption"; }
     public:
-        static const float option_height = 136.0f;
-        static const float option_padding = 8.0f;
-        static const float option_height_inner = option_height - (option_padding * 2.0f);
-
         GameModeOption(Element* parent, on_select_option_t on_select_option, const std::string &mode_id, const std::string &name, const std::string &thumbnail) : Element(parent, Events(EventType::Update, EventType::Click, EventType::Hover, EventType::Focus)) {
             ContextId context = get_current_context();
             this->on_select_option = on_select_option;
@@ -76,8 +83,8 @@ namespace recompui {
             set_display(Display::Flex);
             set_flex_direction(FlexDirection::Row);
             set_width(100.0f, Unit::Percent);
-            set_height(option_height);
-            set_padding(option_padding);
+            set_height(Constants::option_height);
+            set_padding(Constants::option_padding);
             set_border_left_width(2.0f);
             set_border_color(theme::color::Transparent);
             set_background_color(theme::color::Transparent);
@@ -91,10 +98,10 @@ namespace recompui {
 
             {
                 thumbnail_image = context.create_element<Image>(this, thumbnail);
-                thumbnail_image->set_width(option_height_inner);
-                thumbnail_image->set_height(option_height_inner);
-                thumbnail_image->set_min_width(option_height_inner);
-                thumbnail_image->set_min_height(option_height_inner);
+                thumbnail_image->set_width(Constants::option_height_inner);
+                thumbnail_image->set_height(Constants::option_height_inner);
+                thumbnail_image->set_min_width(Constants::option_height_inner);
+                thumbnail_image->set_min_height(Constants::option_height_inner);
                 thumbnail_image->set_background_color(theme::color::BGOverlay);
 
                 body_container = context.create_element<Element>(this);
@@ -106,8 +113,8 @@ namespace recompui {
                 body_container->set_margin_left(16.0f);
                 body_container->set_padding_top(8.0f);
                 body_container->set_padding_bottom(8.0f);
-                body_container->set_height(option_height_inner);
-                body_container->set_max_height(option_height_inner);
+                body_container->set_height(Constants::option_height_inner);
+                body_container->set_max_height(Constants::option_height_inner);
                 body_container->set_overflow_y(Overflow::Hidden);
 
                 {
@@ -150,11 +157,6 @@ namespace recompui {
 
         std::u8string game_id;
         std::string cur_game_mode_id = "";
-
-        static const float max_menu_width = 1440.0f - 64.0f;
-        static const float header_height = 96.0f+16.0f;
-        static const float footer_height = 96.0f+16.0f;
-        static const float max_body_height = GameModeOption::option_height * 4.5f;
 
         void process_event(const Event& e) override {
             switch (e.type) {
@@ -203,21 +205,21 @@ namespace recompui {
             wrapper->set_position(Position::Relative);
             wrapper->set_height_auto();
             wrapper->set_width(100.0f, Unit::Percent);
-            wrapper->set_max_width(max_menu_width);
+            wrapper->set_max_width(Constants::max_menu_width);
             wrapper->set_as_navigation_container(NavigationType::Vertical);
 
             auto header = context.create_element<Element>(wrapper);
             header->set_display(Display::Flex);
             header->set_align_items(AlignItems::Center);
             header->set_justify_content(JustifyContent::Center);
-            header->set_height(header_height);
+            header->set_height(Constants::header_height);
             header->set_width(100.0f, Unit::Percent);
             header->set_gap(16.0f);
 
             auto body_wrapper = context.create_element<Element>(wrapper);
             body_wrapper->set_position(Position::Relative);
             body_wrapper->set_height_auto();
-            body_wrapper->set_max_height(max_body_height);
+            body_wrapper->set_max_height(Constants::max_body_height);
             body_wrapper->set_width(100.0f, Unit::Percent);
             body_wrapper->set_overflow_y(Overflow::Scroll);
 
@@ -231,7 +233,7 @@ namespace recompui {
             footer->set_display(Display::Flex);
             footer->set_justify_content(JustifyContent::SpaceBetween);
             footer->set_align_items(AlignItems::Center);
-            footer->set_height(footer_height);
+            footer->set_height(Constants::footer_height);
             footer->set_width(100.0f, Unit::Percent);
             footer->set_as_navigation_container(NavigationType::Horizontal);
 
