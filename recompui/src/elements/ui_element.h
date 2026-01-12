@@ -101,6 +101,7 @@ private:
 protected:
     // Use of this method in inherited classes is discouraged unless it's necessary.
     void set_attribute(const Rml::String &attribute_key, const Rml::String &attribute_value);
+    void remove_property(Rml::PropertyId property_id) override;
     virtual void process_event(const Event &e);
     virtual ElementValue get_element_value() { return std::monostate{}; }
     virtual void set_input_value(const ElementValue&) {}

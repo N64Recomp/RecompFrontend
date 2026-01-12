@@ -130,6 +130,13 @@ void Element::apply_style(Style *style) {
     }
 }
 
+void Element::remove_property(Rml::PropertyId property_id) {
+    base->RemoveProperty(property_id);
+    if (property_map.find(property_id) != property_map.end()) {
+        property_map.erase(property_id);
+    }
+}
+
 void Element::apply_styles() {
     apply_style(this);
 

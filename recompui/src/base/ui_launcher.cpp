@@ -508,7 +508,7 @@ namespace recompui {
 
     void LauncherMenu::remove_default_title() {
         if (default_title_wrapper != nullptr) {
-            remove_child(default_title_wrapper, false);
+            remove_child(default_title_wrapper, true);
             default_title_wrapper = nullptr;
         }
     }
