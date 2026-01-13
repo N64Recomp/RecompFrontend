@@ -9,7 +9,7 @@
 
 namespace recompui {
 
-Element::Element(ResourceId rid, Rml::Element *base) : Style(id) {
+Element::Element(ResourceId rid, Rml::Element *base) : Style(rid) {
     assert(resource_id != ResourceId::null());
     assert(base != nullptr);
 
@@ -18,7 +18,7 @@ Element::Element(ResourceId rid, Rml::Element *base) : Style(id) {
     this->shim = true;
 }
 
-Element::Element(ResourceId rid, Element* parent, uint32_t events_enabled, Rml::String base_class, bool can_set_text) : Style(id), can_set_text(can_set_text) {
+Element::Element(ResourceId rid, Element* parent, uint32_t events_enabled, Rml::String base_class, bool can_set_text) : Style(rid), can_set_text(can_set_text) {
     assert(resource_id != ResourceId::null());
     ContextId context = get_current_context();
     base_owning = context.get_document()->CreateElement(base_class);
