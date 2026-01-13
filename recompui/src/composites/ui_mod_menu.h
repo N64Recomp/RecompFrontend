@@ -12,7 +12,7 @@ class ModMenu;
 
 class ModEntryView : public Element {
 public:
-    ModEntryView(Element *parent);
+    ModEntryView(ResourceId rid, Element *parent);
     virtual ~ModEntryView();
     void set_mod_details(const recomp::mods::ModDetails &details);
     void set_mod_thumbnail(const std::string &thumbnail);
@@ -35,7 +35,7 @@ private:
 
 class ModEntryButton : public Element {
 public:
-    ModEntryButton(Element *parent, uint32_t mod_index);
+    ModEntryButton(ResourceId rid, Element *parent, uint32_t mod_index);
     virtual ~ModEntryButton();
     void set_mod_selected_callback(std::function<void(uint32_t)> callback);
     void set_mod_drag_callback(std::function<void(uint32_t, EventDrag)> callback);
@@ -66,14 +66,14 @@ protected:
     virtual void process_event(const Event &e) override;
     std::string_view get_type_name() override { return "ModEntrySpacer"; }
 public:
-    ModEntrySpacer(Element *parent);
+    ModEntrySpacer(ResourceId rid, Element *parent);
     void set_target_height(float target_height, bool animate_to_target);
     void set_active(bool active);
 };
 
 class ModMenu : public Element {
 public:
-    ModMenu(Element *parent);
+    ModMenu(ResourceId rid, Element *parent);
     virtual ~ModMenu();
     void set_mods_dirty(bool scan_mods) { mods_dirty = true; mod_scan_queued = scan_mods; }
     void set_game_mod_id(const std::string &mod_game_id) { game_mod_id = mod_game_id; set_mods_dirty(true); }

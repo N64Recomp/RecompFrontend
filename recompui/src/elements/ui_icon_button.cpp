@@ -4,7 +4,7 @@
 #include <cassert>
 
 namespace recompui {    
-    IconButton::IconButton(Element *parent, const std::string &svg_src, ButtonStyle style, IconButtonSize size) : Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button") {
+    IconButton::IconButton(ResourceId rid, Element *parent, const std::string &svg_src, ButtonStyle style, IconButtonSize size) : Element(rid, parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button") {
         this->style = style;
         this->size = size;
         // Borders add width to the button, so this subtracts from the base size to bring it back to the expected size.

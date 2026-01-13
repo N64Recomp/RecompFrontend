@@ -54,6 +54,7 @@ protected:
     std::string_view get_type_name() override { return "GameInputRow"; }
 public:
     GameInputRow(
+        ResourceId rid,
         Element *parent,
         const GameInputContext &input_ctx,
         std::function<void()> on_active_callback,
@@ -72,7 +73,7 @@ protected:
     std::string_view get_type_name() override { return "GameInputRowsWrapper"; }
 public:
     bool is_menu;
-    GameInputRowsWrapper(Element *parent, const std::string &name, bool is_menu = false) : Element(parent, 0, "div", false), is_menu(is_menu) {
+    GameInputRowsWrapper(ResourceId rid, Element *parent, const std::string &name, bool is_menu = false) : Element(rid, parent, 0, "div", false), is_menu(is_menu) {
         set_display(Display::Block);
         if (!name.empty()) {
             auto context = get_current_context();
@@ -196,7 +197,7 @@ private:
 
     recompinput::InputDevice get_player_input_device();
 public:
-    ConfigPageControls(Element *parent);
+    ConfigPageControls(ResourceId rid, Element *parent);
     virtual ~ConfigPageControls();
     
     void force_update();

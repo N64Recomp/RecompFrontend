@@ -44,7 +44,7 @@ constexpr float modEntryPadding = 4.0f;
 extern const std::string mod_tab_id;
 const std::string mod_tab_id = "#tab_mods";
 
-ModEntryView::ModEntryView(Element *parent) : Element(parent, Events(EventType::Update)) {
+ModEntryView::ModEntryView(ResourceId rid, Element *parent) : Element(rid, parent, Events(EventType::Update)) {
     ContextId context = get_current_context();
 
     set_display(Display::Flex);
@@ -138,7 +138,7 @@ void ModEntryView::process_event(const Event &e) {
 
 // ModEntryButton
 
-ModEntryButton::ModEntryButton(Element *parent, uint32_t mod_index) : Element(parent, Events(EventType::Click, EventType::Hover, EventType::Focus, EventType::Drag)) {
+ModEntryButton::ModEntryButton(ResourceId rid, Element *parent, uint32_t mod_index) : Element(rid, parent, Events(EventType::Click, EventType::Hover, EventType::Focus, EventType::Drag)) {
     this->mod_index = mod_index;
 
     set_drag(Drag::Drag);
@@ -239,7 +239,7 @@ void ModEntrySpacer::process_event(const Event &e) {
     }
 }
 
-ModEntrySpacer::ModEntrySpacer(Element *parent) : Element(parent) {
+ModEntrySpacer::ModEntrySpacer(ResourceId rid, Element *parent) : Element(rid, parent) {
     set_border_width(theme::border::width);
     set_border_color(recompui::theme::color::Transparent);
 }
@@ -651,7 +651,7 @@ void ModMenu::process_event(const Event &e) {
     }
 }
 
-ModMenu::ModMenu(Element *parent) : Element(parent) {
+ModMenu::ModMenu(ResourceId rid, Element *parent) : Element(rid, parent) {
     if (current_game_mod_id.empty()) {
         throw std::runtime_error("ModMenu created before game mod ID was set. call update_game_mod_id() first.");
     }

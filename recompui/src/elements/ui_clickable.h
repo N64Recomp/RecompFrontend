@@ -14,7 +14,7 @@ namespace recompui {
         virtual void process_event(const Event &e) override;
         std::string_view get_type_name() override { return "Clickable"; }
     public:
-        Clickable(Element *parent, bool draggable = false);
+        Clickable(ResourceId rid, Element *parent, bool draggable = false);
         void add_clicked_callback(std::function<void(float, float)> callback);
         void add_pressed_callback(std::function<void(float, float)> callback);
         void add_dragged_callback(std::function<void(float, float, DragPhase)> callback);

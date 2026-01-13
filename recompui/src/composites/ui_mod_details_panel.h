@@ -13,7 +13,7 @@ namespace recompui {
 
 class ModDetailsPanel : public Element {
 public:
-    ModDetailsPanel(Element *parent);
+    ModDetailsPanel(ResourceId rid, Element *parent);
     virtual ~ModDetailsPanel();
     void set_mod_details(const recomp::mods::ModDetails& details, const std::string &thumbnail, bool toggle_checked, bool toggle_enabled, bool toggle_label_visible, bool configure_enabled);
     void set_mod_toggled_callback(std::function<void(bool)> callback);

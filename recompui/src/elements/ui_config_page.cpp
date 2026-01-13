@@ -17,7 +17,7 @@ namespace recompui {
         el->set_as_navigation_container(NavigationType::Horizontal);
     }
 
-    ConfigHeaderFooter::ConfigHeaderFooter(Element *parent, bool is_header) : Element(parent, 0, "div", false) {
+    ConfigHeaderFooter::ConfigHeaderFooter(ResourceId rid, Element *parent, bool is_header) : Element(rid, parent, 0, "div", false) {
         set_display(Display::Flex);
         set_position(Position::Relative);
         set_flex_direction(FlexDirection::Row);
@@ -71,7 +71,7 @@ namespace recompui {
         el->set_padding(16);
     }
 
-    ConfigBody::ConfigBody(Element *parent) : Element(parent, 0, "div", false) {
+    ConfigBody::ConfigBody(ResourceId rid, Element *parent) : Element(rid, parent, 0, "div", false) {
         set_display(Display::Flex);
         set_position(Position::Relative);
         set_flex_grow(1.0f);
@@ -88,7 +88,7 @@ namespace recompui {
         set_config_body_side_styles(right);
     }
 
-    ConfigPage::ConfigPage(Element *parent, uint32_t events_enabled) : Element(parent, events_enabled, "div", false) {
+    ConfigPage::ConfigPage(ResourceId rid, Element *parent, uint32_t events_enabled) : Element(rid, parent, events_enabled, "div", false) {
         set_display(Display::Flex);
         set_position(Position::Relative);
 

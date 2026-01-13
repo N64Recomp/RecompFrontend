@@ -5,7 +5,7 @@
 
 namespace recompui {
 
-    Label::Label(Element *parent, LabelStyle label_style) : Element(parent, 0U, "div", true) {
+    Label::Label(ResourceId rid, Element *parent, LabelStyle label_style) : Element(rid, parent, 0U, "div", true) {
         switch (label_style) {
         case LabelStyle::Annotation:
             set_typography(theme::Typography::LabelXS);
@@ -22,15 +22,15 @@ namespace recompui {
         }
     }
 
-    Label::Label(Element *parent, const std::string &text, LabelStyle label_style) : Label(parent, label_style) {
+    Label::Label(ResourceId rid, Element *parent, const std::string &text, LabelStyle label_style) : Label(rid, parent, label_style) {
         set_text(text);
     }
 
-    Label::Label(Element *parent, theme::Typography typography) : Element(parent, 0U, "div", true) {
+    Label::Label(ResourceId rid, Element *parent, theme::Typography typography) : Element(rid, parent, 0U, "div", true) {
         set_typography(typography);
     }
 
-    Label::Label(Element *parent, const std::string &text, theme::Typography typography) : Label(parent, typography) {
+    Label::Label(ResourceId rid, Element *parent, const std::string &text, theme::Typography typography) : Label(rid, parent, typography) {
         set_text(text);
     }
 

@@ -15,19 +15,22 @@ namespace recompui {
     class Element;
     class Document;
     class ContextId {
-        Style* add_resource_impl(std::unique_ptr<Style>&& resource);
-    public:
+        ResourceId create_resource_impl(bool is_element);
+        Style* add_resource_impl(ResourceId rid, std::unique_ptr<Style>&& resource);
+        public:
         uint32_t slot_id;
         auto operator<=>(const ContextId& rhs) const = default;
 
         template <typename T, typename... Args>
         T* create_element(Args... args) {
-            return static_cast<T*>(add_resource_impl(std::make_unique<T>(std::forward<Args>(args)...)));
+            ResourceId rid = create_resource_impl(true);
+            return static_cast<T*>(add_resource_impl(rid, std::make_unique<T>(rid, std::forward<Args>(args)...)));
         }
         
         template <typename T>
         T* create_element(T&& element) {
-            return static_cast<T*>(add_resource_impl(std::make_unique<T>(std::move(element))));
+            ResourceId rid = create_resource_impl(true);
+            return static_cast<T*>(add_resource_impl(rid, std::make_unique<T>(rid, std::move(element))));
         }
 
         void add_loose_element(Element* element);

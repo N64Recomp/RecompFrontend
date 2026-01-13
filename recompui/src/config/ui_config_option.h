@@ -29,6 +29,7 @@ namespace recompui {
         std::string_view get_type_name() override { return "ConfigOptionElement"; }
     public:
         ConfigOptionElement(
+            ResourceId rid,
             Element *parent,
             std::string option_id,
             size_t option_index,
@@ -52,6 +53,7 @@ protected:
     std::string_view get_type_name() override { return "ConfigOptionEnum"; }
 public:
     ConfigOptionEnum(
+        ResourceId rid,
         Element *parent,
         std::string option_id,
         size_t option_index,
@@ -74,6 +76,7 @@ protected:
     std::string_view get_type_name() override { return "ConfigOptionNumber"; }
 public:
     ConfigOptionNumber(
+        ResourceId rid,
         Element *parent,
         std::string option_id,
         size_t option_index,
@@ -93,6 +96,7 @@ protected:
     std::string_view get_type_name() override { return "ConfigOptionString"; }
 public:
     ConfigOptionString(
+        ResourceId rid,
         Element *parent,
         std::string option_id,
         size_t option_index,
@@ -112,6 +116,7 @@ protected:
     std::string_view get_type_name() override { return "ConfigOptionBool"; }
 public:
     ConfigOptionBool(
+        ResourceId rid,
         Element *parent,
         std::string option_id,
         size_t option_index,

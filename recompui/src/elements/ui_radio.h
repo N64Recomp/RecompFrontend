@@ -17,7 +17,7 @@ namespace recompui {
         virtual void process_event(const Event &e) override;
         std::string_view get_type_name() override { return "LabelRadioOption"; }
     public:
-        RadioOption(Element *parent, std::string_view name, uint32_t index);
+        RadioOption(ResourceId rid, Element *parent, std::string_view name, uint32_t index);
         void set_pressed_callback(std::function<void(uint32_t)> callback);
         void set_focus_callback(std::function<void(bool)> callback);
         void set_selected_state(bool enable);
@@ -40,7 +40,7 @@ namespace recompui {
         std::string_view get_type_name() override { return "LabelRadio"; }
         void queue_child_focus() { child_focus_queued = true; queue_update(); }
     public:
-        Radio(Element *parent);
+        Radio(ResourceId rid, Element *parent);
         virtual ~Radio();
         void add_option(std::string_view name);
         void set_index(uint32_t index);

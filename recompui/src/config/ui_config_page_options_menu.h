@@ -33,6 +33,7 @@ namespace recompui {
         void set_description_text(const std::string &text);
     public:
         ConfigPageOptionsMenu(
+            ResourceId rid,
             Element *parent,
             recomp::config::Config *config,
             bool is_internal = false

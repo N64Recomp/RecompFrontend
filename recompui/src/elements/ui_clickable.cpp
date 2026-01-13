@@ -2,7 +2,7 @@
 
 namespace recompui {
 
-    Clickable::Clickable(Element *parent, bool draggable) : Element(parent, Events(EventType::Click, EventType::MouseButton, EventType::Hover, EventType::Enable, draggable ? EventType::Drag : EventType::None)) {
+    Clickable::Clickable(ResourceId rid, Element *parent, bool draggable) : Element(rid, parent, Events(EventType::Click, EventType::MouseButton, EventType::Hover, EventType::Enable, draggable ? EventType::Drag : EventType::None)) {
         set_cursor(Cursor::Pointer);
         if (draggable) {
             set_drag(Drag::Drag);

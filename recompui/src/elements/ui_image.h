@@ -8,7 +8,7 @@ namespace recompui {
     protected:
         std::string_view get_type_name() override { return "ImageView"; }
     public:
-        Image(Element *parent, std::string_view src);
+        Image(ResourceId rid, Element *parent, std::string_view src);
     };
 
 } // namespace recompui

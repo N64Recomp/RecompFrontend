@@ -27,7 +27,7 @@ namespace recompui {
         virtual void process_event(const Event &e) override;
         std::string_view get_type_name() override { return "BindingButton"; }
     public:
-        BindingButton(Element *parent, const std::string &mapped_binding);
+        BindingButton(ResourceId rid, Element *parent, const std::string &mapped_binding);
         void add_pressed_callback(std::function<void()> callback);
         void set_binding(const std::string &binding);
         void set_is_binding(bool is_binding);

@@ -9,8 +9,8 @@ namespace recompui {
     protected:
         std::string_view get_type_name() override { return "Span"; }
     public:
-        Span(Element *parent);
-        Span(Element *parent, const std::string &text);
+        Span(ResourceId rid, Element *parent);
+        Span(ResourceId rid, Element *parent, const std::string &text);
     };
 
 } // namespace recompui

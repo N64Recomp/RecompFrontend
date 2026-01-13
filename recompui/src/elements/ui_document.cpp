@@ -313,7 +313,7 @@ namespace recompui {
         }
     };
 
-    Document::Document(Rml::Element *base) : Element(base) {
+    Document::Document(ResourceId rid, Rml::Element *base) : Element(rid, base) {
         this->shim = false;
         set_width(100.0f, Unit::Percent);
         set_height(100.0f, Unit::Percent);

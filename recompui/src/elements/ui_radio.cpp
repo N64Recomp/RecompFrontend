@@ -6,7 +6,7 @@ namespace recompui {
 
     // RadioOption
 
-    RadioOption::RadioOption(Element *parent, std::string_view name, uint32_t index) : Element(parent, Events(EventType::MouseButton, EventType::Click, EventType::Focus, EventType::Hover, EventType::Enable, EventType::Update), "label", true) {
+    RadioOption::RadioOption(ResourceId rid, Element *parent, std::string_view name, uint32_t index) : Element(rid, parent, Events(EventType::MouseButton, EventType::Click, EventType::Focus, EventType::Hover, EventType::Enable, EventType::Update), "label", true) {
         this->index = index;
 
         enable_focus();
@@ -126,7 +126,7 @@ namespace recompui {
         }, val);
     }
 
-    Radio::Radio(Element *parent) : Container(parent, FlexDirection::Row, JustifyContent::FlexStart, Events(EventType::Focus, EventType::Update, EventType::Enable)) {
+    Radio::Radio(ResourceId rid, Element *parent) : Container(rid, parent, FlexDirection::Row, JustifyContent::FlexStart, Events(EventType::Focus, EventType::Update, EventType::Enable)) {
         set_gap(24.0f);
         set_align_items(AlignItems::FlexStart);
         // enable_focus();

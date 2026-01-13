@@ -16,7 +16,7 @@ namespace recompui {
         std::string_view get_type_name() override { return "GameOption"; }
         virtual void process_event(const Event& e) override;
     public:
-        GameOption(Element* parent, const std::string& title, std::function<void()> callback, GameOptionsMenuLayout layout);
+        GameOption(ResourceId rid, Element* parent, const std::string& title, std::function<void()> callback, GameOptionsMenuLayout layout);
         void set_title(const std::string& new_title);
         void set_callback(std::function<void()> new_callback);
         // These are public so you can modify them.

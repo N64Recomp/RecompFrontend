@@ -3,7 +3,7 @@
 
 namespace recompui {
 
-    PseudoBorder::PseudoBorder(Element *parent, bool inset, float border_width, float border_outset_distance) : Element(parent) {
+    PseudoBorder::PseudoBorder(ResourceId rid, Element *parent, bool inset, float border_width, float border_outset_distance) : Element(rid, parent) {
         if (border_width > 0) {
             set_border_width(border_width);
         } else {
@@ -20,7 +20,7 @@ namespace recompui {
         }
     }
 
-    FocusBorder::FocusBorder(Element *parent, bool extra_dist) : PseudoBorder(parent, false, theme::border::width * 2.0f, theme::border::width * 2.0f * (extra_dist ? 2.0f : 1.0f)) {
+    FocusBorder::FocusBorder(ResourceId rid, Element *parent, bool extra_dist) : PseudoBorder(rid, parent, false, theme::border::width * 2.0f, theme::border::width * 2.0f * (extra_dist ? 2.0f : 1.0f)) {
         set_border_color(theme::color::PrimaryL, 0);
     }
 

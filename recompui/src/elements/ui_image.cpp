@@ -4,7 +4,7 @@
 
 namespace recompui {
 
-    Image::Image(Element *parent, std::string_view src) : Element(parent, 0, "img") {
+    Image::Image(ResourceId rid, Element *parent, std::string_view src) : Element(rid, parent, 0, "img") {
         set_src(src);
     }
 

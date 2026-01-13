@@ -7,7 +7,7 @@
 namespace recompui {
     static const float padding = 8.0f;
 
-    BindingButton::BindingButton(Element *parent, const std::string &mapped_binding) : Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button") {
+    BindingButton::BindingButton(ResourceId rid, Element *parent, const std::string &mapped_binding) : Element(rid, parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button") {
         this->mapped_binding = mapped_binding;
 
         enable_focus();

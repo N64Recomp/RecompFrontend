@@ -12,7 +12,7 @@ namespace recompui {
         std::string_view get_type_name() override { return "Document"; }
         void process_event(const Event &e) override;
     public:
-        Document(Rml::Element *base);
+        Document(ResourceId rid, Rml::Element *base);
         // Signifies that a new element has gained focus, and the document should update it.
         // The currently focused element is not obtainable until the end of focus event processing,
         // so this queues an update to check what is currently in focus.

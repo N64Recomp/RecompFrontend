@@ -4,6 +4,7 @@ namespace recompui {
 
 constexpr float config_option_element_margin_vertical = 12.0f;
 ConfigOptionElement::ConfigOptionElement(
+    ResourceId rid,
     Element *parent,
     std::string option_id,
     size_t option_index,
@@ -11,7 +12,7 @@ ConfigOptionElement::ConfigOptionElement(
     set_option_value_t set_option_value,
     on_option_hover_t on_hover
 ) :
-    Element(parent, Events(EventType::Hover, EventType::Focus), "div", false),
+    Element(rid, parent, Events(EventType::Hover, EventType::Focus), "div", false),
     option_id(option_id),
     option_index(option_index),
     config(config),
@@ -98,13 +99,14 @@ void ConfigOptionElement::update_hidden() {
 
 // ConfigOptionEnum
 ConfigOptionEnum::ConfigOptionEnum(
+    ResourceId rid,
     Element *parent,
     std::string option_id,
     size_t option_index,
     const recomp::config::Config *config,
     set_option_value_t set_option_value,
     on_option_hover_t on_hover
-) : ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
+) : ConfigOptionElement(rid, parent, option_id, option_index, config, set_option_value, on_hover)
 {
     ContextId context = recompui::get_current_context();
     Element *wrapper = context.create_element<Element>(this, 0, "div", false);
@@ -184,13 +186,14 @@ void ConfigOptionEnum::update_enum_disabled() {
 
 // ConfigOptionNumber
 ConfigOptionNumber::ConfigOptionNumber(
+    ResourceId rid,
     Element *parent,
     std::string option_id,
     size_t option_index,
     const recomp::config::Config *config,
     set_option_value_t set_option_value,
     on_option_hover_t on_hover
-) : ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
+) : ConfigOptionElement(rid, parent, option_id, option_index, config, set_option_value, on_hover)
 {
     ContextId context = recompui::get_current_context();
     auto &num_opt = config->get_option_config<recomp::config::ConfigOptionNumber>(option_index);
@@ -228,13 +231,14 @@ void ConfigOptionNumber::update_disabled() {
 
 // ConfigOptionString
 ConfigOptionString::ConfigOptionString(
+    ResourceId rid,
     Element *parent,
     std::string option_id,
     size_t option_index,
     const recomp::config::Config *config,
     set_option_value_t set_option_value,
     on_option_hover_t on_hover
-) : ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
+) : ConfigOptionElement(rid, parent, option_id, option_index, config, set_option_value, on_hover)
 {
     // Negates the extra padding that text inputs automatically add.
     name_label->set_margin_bottom(4.0f);
@@ -266,13 +270,14 @@ void ConfigOptionString::update_disabled() {
 
 // ConfigOptionBool
 ConfigOptionBool::ConfigOptionBool(
+    ResourceId rid,
     Element *parent,
     std::string option_id,
     size_t option_index,
     const recomp::config::Config *config,
     set_option_value_t set_option_value,
     on_option_hover_t on_hover
-) : ConfigOptionElement(parent, option_id, option_index, config, set_option_value, on_hover)
+) : ConfigOptionElement(rid, parent, option_id, option_index, config, set_option_value, on_hover)
 {
     // Negates the extra padding that text inputs automatically add.
     name_label->set_margin_bottom(4.0f);

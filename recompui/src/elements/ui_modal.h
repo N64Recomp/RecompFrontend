@@ -67,7 +67,7 @@ namespace recompui {
 
     public:
         recompui::ContextId modal_root_context;
-        Modal(Document *parent, recompui::ContextId modal_root_context, ModalType modal_type);
+        Modal(ResourceId rid, Document *parent, recompui::ContextId modal_root_context, ModalType modal_type);
         static Modal *create_modal(ModalType modal_type = ModalType::Fullscreen);
         virtual ~Modal();
         virtual void open();
@@ -95,7 +95,7 @@ namespace recompui {
     public:
         virtual void open() override;
         virtual bool close() override;
-        TabbedModal(Document *parent, recompui::ContextId modal_root_context, ModalType modal_type);
+        TabbedModal(ResourceId rid, Document *parent, recompui::ContextId modal_root_context, ModalType modal_type);
         static TabbedModal *create_modal(ModalType modal_type = ModalType::Fullscreen);
         void add_tab(TabContext &&tab_context);
         void add_tab(

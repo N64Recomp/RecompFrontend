@@ -13,7 +13,7 @@ namespace recompui {
     protected:
         std::string_view get_type_name() override { return "ScrollContainer"; }
     public:
-        ScrollContainer(Element *parent, ScrollDirection direction);
+        ScrollContainer(ResourceId rid, Element *parent, ScrollDirection direction);
     };
 
 } // namespace recompui

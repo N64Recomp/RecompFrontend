@@ -94,7 +94,7 @@ namespace recompui {
 
 
 
-    Toggle::Toggle(Element *parent, ToggleSize size) : Element(parent, Events(EventType::Click, EventType::Focus, EventType::Hover, EventType::Enable), "button") {
+    Toggle::Toggle(ResourceId rid, Element *parent, ToggleSize size) : Element(rid, parent, Events(EventType::Click, EventType::Focus, EventType::Hover, EventType::Enable), "button") {
         this->size = size;
         const ToggleSizing &sizing = get_toggle_sizing(size);
         enable_focus();
@@ -298,11 +298,12 @@ namespace recompui {
     }
 
     IconToggle::IconToggle(
+        ResourceId rid,
         Element *parent,
         std::string_view icon_src_left,
         std::string_view icon_src_right,
         ToggleSize size
-    ) : Toggle(parent, size) {
+    ) : Toggle(rid, parent, size) {
         const ToggleSizing &sizing = get_toggle_sizing(size);
         set_toggle_colors(false);
         ContextId context = get_current_context();

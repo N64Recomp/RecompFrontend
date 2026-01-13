@@ -75,7 +75,7 @@ namespace recompui {
         }
         std::string_view get_type_name() override { return "GameModeOption"; }
     public:
-        GameModeOption(Element* parent, on_select_option_t on_select_option, const std::string &mode_id, const std::string &name, const std::string &thumbnail) : Element(parent, Events(EventType::Update, EventType::Click, EventType::Hover, EventType::Focus)) {
+        GameModeOption(ResourceId rid, Element* parent, on_select_option_t on_select_option, const std::string &mode_id, const std::string &name, const std::string &thumbnail) : Element(rid, parent, Events(EventType::Update, EventType::Click, EventType::Hover, EventType::Focus)) {
             ContextId context = get_current_context();
             this->on_select_option = on_select_option;
             this->mode_id = mode_id;
@@ -126,8 +126,9 @@ namespace recompui {
             add_style(&pulsing_style, { focus_state });
         };
 
-        GameModeOption(Element* parent, on_select_option_t on_select_option, const recomp::mods::ModDetails &details)
+        GameModeOption(ResourceId rid, Element* parent, on_select_option_t on_select_option, const recomp::mods::ModDetails &details)
             : GameModeOption(
+                rid,
                 parent,
                 on_select_option,
                 details.mod_id,
@@ -189,7 +190,7 @@ namespace recompui {
         }
         std::string_view get_type_name() override { return "GameModeMenu"; }
     public:
-        GameModeMenu(Element* parent) : Element(parent, 0, "div", false) {
+        GameModeMenu(ResourceId rid, Element* parent) : Element(rid, parent, 0, "div", false) {
             set_display(Display::Flex);
             set_align_items(AlignItems::Center);
             set_justify_content(JustifyContent::Center);
@@ -333,8 +334,8 @@ namespace recompui {
     };
 
     GameOptionsMenu::GameOptionsMenu(
-        Element* parent, std::u8string game_id, std::string mod_game_id, GameOptionsMenuLayout layout
-    ) : Element(parent, 0, "div", false),
+        ResourceId rid, Element* parent, std::u8string game_id, std::string mod_game_id, GameOptionsMenuLayout layout
+    ) : Element(rid, parent, 0, "div", false),
         game_id(game_id),
         mod_game_id(mod_game_id),
         layout(layout)
@@ -472,7 +473,7 @@ namespace recompui {
         });
     }
 
-    LauncherMenu::LauncherMenu(Document* parent, ContextId context) : Element(parent, 0, "div", false) {
+    LauncherMenu::LauncherMenu(ResourceId rid, Document* parent, ContextId context) : Element(rid, parent, 0, "div", false) {
         set_position(Position::Relative);
         set_width(100.0f, Unit::Percent);
         set_height(100.0f, Unit::Percent);

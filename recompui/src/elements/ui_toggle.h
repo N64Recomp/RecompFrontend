@@ -59,7 +59,7 @@ namespace recompui {
         virtual void process_event(const Event &e) override;
         std::string_view get_type_name() override { return "Toggle"; }
     public:
-        Toggle(Element *parent, ToggleSize size = ToggleSize::Default);
+        Toggle(ResourceId rid, Element *parent, ToggleSize size = ToggleSize::Default);
         void set_checked(bool checked);
         bool is_checked() const;
         void add_checked_callback(std::function<void(bool)> callback);
@@ -81,7 +81,7 @@ namespace recompui {
         // Element overrides.
         std::string_view get_type_name() override { return "IconToggle"; }
     public:
-        IconToggle(Element *parent, std::string_view icon_src_left, std::string_view icon_src_right, ToggleSize size = ToggleSize::Default);
+        IconToggle(ResourceId rid, Element *parent, std::string_view icon_src_left, std::string_view icon_src_right, ToggleSize size = ToggleSize::Default);
     };
 
 } // namespace recompui

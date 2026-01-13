@@ -133,7 +133,7 @@ namespace recompui {
         }
     }
 
-    Slider::Slider(Element *parent, SliderType type) : Element(parent, Events(EventType::Focus, EventType::Update, EventType::Navigate, EventType::Enable)) {
+    Slider::Slider(ResourceId rid, Element *parent, SliderType type) : Element(rid, parent, Events(EventType::Focus, EventType::Update, EventType::Navigate, EventType::Enable)) {
         this->type = type;
 
         set_cursor(Cursor::Pointer);

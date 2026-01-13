@@ -8,7 +8,7 @@
 
 namespace recompui {
 
-    Button::Button(Element *parent, const std::string &text, ButtonStyle style, ButtonSize size) : Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button", false) {
+    Button::Button(ResourceId rid, Element *parent, const std::string &text, ButtonStyle style, ButtonSize size) : Element(rid, parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button", false) {
         this->style = style;
         this->size = size;
         // Borders add width to the button, so this subtracts from the base size to bring it back to the expected size.

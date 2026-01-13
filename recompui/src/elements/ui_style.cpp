@@ -250,7 +250,7 @@ namespace recompui {
         }
     }
 
-    Style::Style() {
+    Style::Style(ResourceId rid) : resource_id(id) {
 
     }
 

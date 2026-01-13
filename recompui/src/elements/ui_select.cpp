@@ -5,8 +5,8 @@
 #include <cassert>
 
 namespace recompui {
-    Option::Option(Element *parent, const SelectOption &option) :
-        Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "option", false),
+    Option::Option(ResourceId rid, Element *parent, const SelectOption &option) :
+        Element(rid, parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "option", false),
         option(option)
     {
         set_input_text(option.value);
@@ -101,9 +101,10 @@ namespace recompui {
     constexpr float select_element_caret_size = 24.0f;
 
     Select::Select(
-        Element *parent, std::vector<SelectOption> options, std::string selected_option_value
+        ResourceId rid, Element *parent, std::vector<SelectOption> options, std::string selected_option_value
     ) :
         Element(
+            rid,
             parent,
             Events(EventType::Text, EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus),
             "select",
