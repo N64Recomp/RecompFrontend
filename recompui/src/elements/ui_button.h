@@ -36,7 +36,7 @@ namespace recompui {
         virtual void process_event(const Event &e) override;
         std::string_view get_type_name() override { return "Button"; }
     public:
-        Button(Element *parent, const std::string &text, ButtonStyle style, ButtonSize size = ButtonSize::Default);
+        Button(ResourceId rid, Element *parent, const std::string &text, ButtonStyle style, ButtonSize size = ButtonSize::Default);
         void add_pressed_callback(std::function<void()> callback);
         Style* get_hover_style() { return &hover_style; }
         Style* get_focus_style() { return &focus_style; }

@@ -4,10 +4,11 @@
 namespace recompui {
 
 ConfigPageOptionsMenu::ConfigPageOptionsMenu(
+    ResourceId rid,
     Element *parent,
     recomp::config::Config *config,
     bool is_internal
-) : ConfigPage(parent, Events(EventType::Hover, EventType::Update, EventType::MenuAction)),
+) : ConfigPage(rid, parent, Events(EventType::Hover, EventType::Update, EventType::MenuAction)),
     config(config),
     is_internal(is_internal)
 {

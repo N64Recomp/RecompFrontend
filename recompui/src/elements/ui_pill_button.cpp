@@ -10,7 +10,7 @@ namespace recompui {
     static constexpr float pill_padding_small_v = 4.0f;
     static constexpr float pill_padding_mini = 2.0f;
 
-    PillButton::PillButton(Element *parent, const std::string &text, const std::string &svg_src, ButtonStyle style, PillButtonSize size) : Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button") {
+    PillButton::PillButton(ResourceId rid, Element *parent, const std::string &text, const std::string &svg_src, ButtonStyle style, PillButtonSize size) : Element(rid, parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button") {
         this->style = style;
         this->size = size;
         // Borders add width to the button, so this subtracts from the base size to bring it back to the expected size.

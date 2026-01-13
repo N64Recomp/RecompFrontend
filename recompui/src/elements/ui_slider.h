@@ -41,7 +41,7 @@ namespace recompui {
         std::string_view get_type_name() override { return "Slider"; }
 
     public:
-        Slider(Element *parent, SliderType type);
+        Slider(ResourceId rid, Element *parent, SliderType type);
         virtual ~Slider();
         void set_value(double v);
         double get_value() const;

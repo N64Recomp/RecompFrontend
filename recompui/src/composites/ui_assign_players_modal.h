@@ -29,7 +29,7 @@ private:
     void set_fake_focus_enabled(bool enabled);
     void lock_focus(bool lock);
 public:
-    AssignPlayersModal(Document *parent);
+    AssignPlayersModal(ResourceId rid, Document *parent);
     virtual ~AssignPlayersModal();
     static void init();
     // Pass false to force player assignment.

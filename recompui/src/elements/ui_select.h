@@ -38,7 +38,7 @@ namespace recompui {
         virtual void process_event(const Event &e) override;
         std::string_view get_type_name() override { return "Option"; }
     public:
-        Option(Element *parent, const SelectOption &option);
+        Option(ResourceId rid, Element *parent, const SelectOption &option);
         void set_active(bool is_active);
     };
 
@@ -65,6 +65,7 @@ namespace recompui {
         std::string_view get_type_name() override { return "Select"; }
     public:
         Select(
+            ResourceId rid,
             Element *parent,
             std::vector<SelectOption> options = {},
             std::string selected_option_value = ""

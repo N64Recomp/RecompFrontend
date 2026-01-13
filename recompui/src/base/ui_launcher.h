@@ -24,7 +24,7 @@ namespace recompui {
 
         std::string_view get_type_name() override { return "GameOptionsMenu"; }
     public:
-        GameOptionsMenu(Element* parent, std::u8string game_id, std::string mod_game_id, GameOptionsMenuLayout layout = GameOptionsMenuLayout::Center);
+        GameOptionsMenu(ResourceId rid, Element* parent, std::u8string game_id, std::string mod_game_id, GameOptionsMenuLayout layout = GameOptionsMenuLayout::Center);
 
         GameOption *add_option(const std::string& title, std::function<void()> callback);
 
@@ -60,7 +60,7 @@ namespace recompui {
         GameOptionsMenu *game_options_menu = nullptr;
         GameModeMenu *game_mode_menu = nullptr;
     public:
-        LauncherMenu(Document* parent, ContextId context);
+        LauncherMenu(ResourceId rid, Document* parent, ContextId context);
         GameOptionsMenu *init_game_options_menu(std::u8string game_id, std::string mod_game_id, GameOptionsMenuLayout layout = GameOptionsMenuLayout::Center);
         GameOptionsMenu *get_game_options_menu() { return game_options_menu; }
         Element *get_background_wrapper() { return background_wrapper; }

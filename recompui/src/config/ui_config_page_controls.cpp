@@ -19,7 +19,7 @@ class ScrollBuffer : public Element {
 protected:
     std::string_view get_type_name() override { return "ScrollBuffer"; }
 public:
-    ScrollBuffer(Element *parent, float buffer_amount) : Element(parent, 0, "div", false) {
+    ScrollBuffer(ResourceId rid, Element *parent, float buffer_amount) : Element(rid, parent, 0, "div", false) {
         set_position(Position::Absolute);
         set_inset(-buffer_amount);
         set_pointer_events(PointerEvents::None);
@@ -27,12 +27,13 @@ public:
 };
 
 GameInputRow::GameInputRow(
+    ResourceId rid,
     Element *parent,
     const GameInputContext &input_ctx,
     std::function<void()> on_active_callback,
     on_bind_click_callback on_bind_click,
     on_clear_or_reset_callback on_clear_or_reset
-) : Element(parent, Events(EventType::Hover, EventType::Focus), "div", false) {
+) : Element(rid, parent, Events(EventType::Hover, EventType::Focus), "div", false) {
     this->input_id = input_ctx.input_id;
     this->on_active_callback = on_active_callback;
 
@@ -165,7 +166,7 @@ void GameInputRow::focus_on_first_binding() {
     }
 }
 
-ConfigPageControls::ConfigPageControls(Element *parent) : ConfigPage(parent) {
+ConfigPageControls::ConfigPageControls(ResourceId rid, Element *parent) : ConfigPage(rid, parent) {
     controls_page = this;
 
     multiplayer_enabled = recompinput::players::is_single_player_mode() == false;

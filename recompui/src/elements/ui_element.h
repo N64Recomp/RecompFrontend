@@ -108,10 +108,10 @@ protected:
     virtual std::string_view get_type_name() { return "Element"; }
 public:
     // Used for backwards compatibility with legacy UI elements.
-    Element(Rml::Element *base);
+    Element(ResourceId rid, Rml::Element *base);
 
     // Used to actually construct elements.
-    Element(Element* parent, uint32_t events_enabled = 0, Rml::String base_class = "div", bool can_set_text = false);
+    Element(ResourceId rid, Element* parent, uint32_t events_enabled = 0, Rml::String base_class = "div", bool can_set_text = false);
     virtual ~Element();
     void clear_children();
     bool remove_child(ResourceId child, bool remove_from_context = true);

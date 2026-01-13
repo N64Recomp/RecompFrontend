@@ -26,9 +26,10 @@ namespace recompui {
     protected:
         virtual void set_property(Rml::PropertyId property_id, const Rml::Property &property);
         virtual void remove_property(Rml::PropertyId property_id);
-        ResourceId resource_id = ResourceId::null();
     public:
-        Style();
+        ResourceId resource_id = ResourceId::null();
+        Style(ResourceId rid);
+        Style() : Style(ResourceId::null()) {}
         virtual ~Style();
         void set_visibility(Visibility visibility);
         void set_position(Position position);

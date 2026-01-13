@@ -17,7 +17,7 @@ protected:
     }
     std::string_view get_type_name() override { return "ModalOverlay"; }
 public:
-    ModalOverlay(Modal *parent) : Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "div", false) {
+    ModalOverlay(ResourceId rid, Modal *parent) : Element(rid, parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "div", false) {
         this->parent_modal = parent;
 
         set_display(Display::Block);
@@ -39,10 +39,11 @@ constexpr float modal_height = modal_page_base_height - (modal_page_padding * 2.
 constexpr float modal_width = modal_page_base_height * 16.0f / 9.0f;
 
 Modal::Modal(
+    ResourceId rid,
     Document *parent,
     recompui::ContextId modal_root_context,
     ModalType modal_type
-) : Element(parent, Events(EventType::MenuAction), "div", false)
+) : Element(rid, parent, Events(EventType::MenuAction), "div", false)
 {
     this->modal_root_context = modal_root_context;
     this->modal_type = modal_type;
@@ -185,10 +186,11 @@ Modal *Modal::create_modal(ModalType modal_type) {
 }
 
 TabbedModal::TabbedModal(
+    ResourceId rid,
     Document *parent,
     recompui::ContextId modal_root_context,
     ModalType modal_type
-) : Modal(parent, modal_root_context, modal_type)
+) : Modal(rid, parent, modal_root_context, modal_type)
 {
     set_menu_action_callback(MenuAction::Back, [this]() {
         if (this->tabs != nullptr) {

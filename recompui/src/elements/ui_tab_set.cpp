@@ -3,8 +3,8 @@
 
 namespace recompui {
 
-Tab::Tab(Element *parent, int tab_index, std::string_view text, on_change_tab_callback on_select_tab) :
-    Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button", false)
+Tab::Tab(ResourceId rid, Element *parent, int tab_index, std::string_view text, on_change_tab_callback on_select_tab) :
+    Element(rid, parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button", false)
 {
     this->tab_index = tab_index;
     this->on_select_tab = std::move(on_select_tab);
@@ -110,8 +110,8 @@ void Tab::set_selected(bool enable) {
     indicator->set_background_color(enable ? theme::color::BorderSolid : theme::color::Transparent);
 }
 
-TabSet::TabSet(Element *parent) :
-    Element(parent, 0, "div", false)
+TabSet::TabSet(ResourceId rid, Element *parent) :
+    Element(rid, parent, 0, "div", false)
 {
     set_display(Display::Flex);
     set_flex_direction(FlexDirection::Row);

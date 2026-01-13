@@ -9,7 +9,8 @@
 
 namespace recompui {
 
-Element::Element(Rml::Element *base) {
+Element::Element(ResourceId rid, Rml::Element *base) : Style(rid) {
+    assert(resource_id != ResourceId::null());
     assert(base != nullptr);
 
     this->base = base;
@@ -17,7 +18,8 @@ Element::Element(Rml::Element *base) {
     this->shim = true;
 }
 
-Element::Element(Element* parent, uint32_t events_enabled, Rml::String base_class, bool can_set_text) : can_set_text(can_set_text) {
+Element::Element(ResourceId rid, Element* parent, uint32_t events_enabled, Rml::String base_class, bool can_set_text) : Style(rid), can_set_text(can_set_text) {
+    assert(resource_id != ResourceId::null());
     ContextId context = get_current_context();
     base_owning = context.get_document()->CreateElement(base_class);
 
@@ -628,7 +630,8 @@ Element Element::get_element_with_tag_name(std::string_view tag_name) {
     for (int i = 0; i < base->GetNumChildren(true); i++) {
         Rml::Element* child = base->GetChild(i);
         if (child->GetTagName() == tag_name) {
-            return Element(child);
+            // These elements are only used for calling RmlUi setters, so a 0 resource ID is acceptable.
+            return Element(ResourceId{0}, child);
         }
     }
     throw std::runtime_error("Select element has no child with the specified tag name");

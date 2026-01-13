@@ -6,7 +6,7 @@ namespace recompui {
 
 extern const std::string mod_tab_id;
 
-ModDetailsPanel::ModDetailsPanel(Element *parent) : Element(parent) {
+ModDetailsPanel::ModDetailsPanel(ResourceId rid, Element *parent) : Element(rid, parent) {
     set_flex(1.0f, 1.0f, 200.0f);
     set_height(100.0f, Unit::Percent);
     set_display(Display::Flex);

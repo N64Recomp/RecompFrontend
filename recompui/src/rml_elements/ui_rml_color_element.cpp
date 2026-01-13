@@ -8,7 +8,9 @@ ElementColor::ElementColor(const Rml::String& tag) : Rml::Element(tag) {
 
 void ElementColor::check_color_attribute(const std::string &attr, const std::string &check, theme::color color) {
     if (attr == check) {
-        recompui::Element this_compat(this);
+        // Create a dummy element wrapper to call set_color on, which will propagate it to RmlUi.
+        // The element's resource ID doesn't matter here as it's only being used to call an RmlUi function.
+        recompui::Element this_compat(ResourceId{ 0 }, this);
         this_compat.set_color(color);
     }
 }

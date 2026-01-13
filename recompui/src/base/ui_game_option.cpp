@@ -3,11 +3,12 @@
 
 namespace recompui {
     GameOption::GameOption(
+        ResourceId rid,
         Element* parent,
         const std::string& title,
         std::function<void()> callback,
         GameOptionsMenuLayout layout
-    ) : Element(parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button", false),
+    ) : Element(rid, parent, Events(EventType::Click, EventType::Hover, EventType::Enable, EventType::Focus), "button", false),
         title(title),
         callback(callback)
     {

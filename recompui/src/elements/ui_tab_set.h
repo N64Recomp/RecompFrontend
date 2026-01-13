@@ -28,7 +28,7 @@ namespace recompui {
         std::string_view get_type_name() override { return "Tab"; }
         virtual void process_event(const Event &e) override;
     public:
-        Tab(Element *parent, int tab_index, std::string_view text, on_change_tab_callback on_select_tab);
+        Tab(ResourceId rid, Element *parent, int tab_index, std::string_view text, on_change_tab_callback on_select_tab);
         void set_selected(bool selected);
         void set_visible(bool is_visible);
         bool get_visible() { return visible; }
@@ -42,7 +42,7 @@ namespace recompui {
     protected:
         std::string_view get_type_name() override { return "TabSet"; }
     public:
-        TabSet(Element *parent);
+        TabSet(ResourceId rid, Element *parent);
         void set_change_tab_callback(on_change_tab_callback callback);
         int add_tab(std::string_view text);
         void set_active_tab(int tab_index, bool report_change = true);

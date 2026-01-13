@@ -12,7 +12,7 @@ namespace recompui {
 
         std::string_view get_type_name() override { return "ConfigHeaderFooter"; }
     public:
-        ConfigHeaderFooter(Element *parent, bool is_header);
+        ConfigHeaderFooter(ResourceId rid, Element *parent, bool is_header);
         Element *get_left() { return left; }
         Element *get_right() { return right; }
         void hide();
@@ -26,7 +26,7 @@ namespace recompui {
 
         std::string_view get_type_name() override { return "ConfigBody"; }
     public:
-        ConfigBody(Element *parent);
+        ConfigBody(ResourceId rid, Element *parent);
         Element *get_left() { return left; }
         Element *get_right() { return right; }
     };
@@ -40,7 +40,7 @@ namespace recompui {
 
         std::string_view get_type_name() override { return "ConfigPage"; }
     public:
-        ConfigPage(Element *parent, uint32_t events_enabled = 0);
+        ConfigPage(ResourceId rid, Element *parent, uint32_t events_enabled = 0);
         ConfigHeaderFooter *add_header();
         void hide_header();
         ConfigHeaderFooter *add_footer();

@@ -29,7 +29,7 @@ static void set_button_side_styles(Element *el) {
     el->set_gap(localstyles::gap::horizontal);
 }
 
-AssignPlayersModal::AssignPlayersModal(Document *parent) : Element(parent, Events(EventType::MenuAction), "div", false) {
+AssignPlayersModal::AssignPlayersModal(ResourceId rid, Document *parent) : Element(rid, parent, Events(EventType::MenuAction), "div", false) {
     assign_players_modal_instance = this;
     recompui::ContextId context = get_current_context();
     

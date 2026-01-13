@@ -29,7 +29,7 @@ namespace recompui {
         }
     }
     
-    TextInput::TextInput(Element *parent, bool text_visible) : Element(parent, Events(EventType::Text, EventType::Focus), "input") {
+    TextInput::TextInput(ResourceId rid, Element *parent, bool text_visible) : Element(rid, parent, Events(EventType::Text, EventType::Focus), "input") {
         if (!text_visible) {
             set_attribute("type", "password");
         }

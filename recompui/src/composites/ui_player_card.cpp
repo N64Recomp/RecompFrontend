@@ -7,10 +7,11 @@
 namespace recompui {
 
 PlayerCard::PlayerCard(
+    ResourceId rid,
     Element *parent,
     int player_index,
     bool is_assignment_card
-) : Element(parent, Events(EventType::Focus), "div", false),
+) : Element(rid, parent, Events(EventType::Focus), "div", false),
     player_index(player_index),
     is_assignment_card(is_assignment_card)
 {

@@ -47,7 +47,7 @@ private:
     void on_edit_profile();
     void create_add_multiplayer_pill();
 public:
-    PlayerCard(Element *parent, int player_index, bool is_assignment_card = false);
+    PlayerCard(ResourceId rid, Element *parent, int player_index, bool is_assignment_card = false);
     virtual ~PlayerCard();
     void update_assignment_player_card();
     void update_player_card_icon();
