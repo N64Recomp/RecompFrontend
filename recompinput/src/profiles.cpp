@@ -89,12 +89,16 @@ namespace recompinput {
         }
     }
 
+    static int get_mp_keyboard_profile_index(int player_index) {
+        return profiles::get_input_profile_by_key(profiles::get_mp_keyboard_profile_key(player_index));
+    }
+
     void profiles::reset_profile_bindings(int profile_index, InputDevice device) {
         // multiplayer keyboard profiles just get cleared completely because of overlapping key bindings.
         bool is_multiplayer_kb = false;
         if (device == InputDevice::Keyboard) {
             for (size_t i = 0; i < recompinput::players::get_number_of_assigned_players(); i++) {
-                if (profiles::get_mp_keyboard_profile_index(i) == profile_index) {
+                if (get_mp_keyboard_profile_index(i) == profile_index) {
                     is_multiplayer_kb = true;
                     break;
                 }
@@ -150,7 +154,6 @@ namespace recompinput {
 
         return index;
     }
-
 
     int profiles::get_input_profile_by_key(const std::string &key) {
         auto it = input_profile_key_index_map.find(key);
@@ -340,16 +343,6 @@ namespace recompinput {
         // Set Player 1 to the SP profiles by default.
         profiles::set_input_profile_for_player(0, keyboard_sp_profile_index, recompinput::InputDevice::Keyboard);
         profiles::set_input_profile_for_player(0, controller_sp_profile_index, recompinput::InputDevice::Controller);
-
-        for (int i = 0; i < recompinput::max_num_players_supported; i++) {
-            int profile_index = profiles::add_input_profile(
-                get_mp_keyboard_profile_key(i),
-                get_mp_keyboard_profile_name(i),
-                InputDevice::Keyboard,
-                false
-            );
-            clear_all_mappings(profile_index);
-        }
     }
 
     int profiles::get_sp_controller_profile_index() {
@@ -360,8 +353,18 @@ namespace recompinput {
         return keyboard_sp_profile_index;
     }
 
-    int profiles::get_mp_keyboard_profile_index(int player_index) {
-        return profiles::get_input_profile_by_key(profiles::get_mp_keyboard_profile_key(player_index));
+    int profiles::get_or_create_mp_keyboard_profile_index(int player_index) {
+        int profile_index = get_mp_keyboard_profile_index(player_index);
+        if (profile_index < 0) {
+            profile_index = profiles::add_input_profile(
+                get_mp_keyboard_profile_key(player_index),
+                get_mp_keyboard_profile_name(player_index),
+                InputDevice::Keyboard,
+                false
+            );
+            clear_all_mappings(profile_index);
+        }
+        return profile_index;
     }
 
     std::string profiles::get_string_from_controller_guid(ControllerGUID guid) {
@@ -393,13 +396,15 @@ namespace recompinput {
                 cur_x += recompinput::get_input_analog(player_index, mappings[(size_t)GameInput::X_AXIS_POS]) - recompinput::get_input_analog(player_index, mappings[(size_t)GameInput::X_AXIS_NEG]);
                 cur_y += recompinput::get_input_analog(player_index, mappings[(size_t)GameInput::Y_AXIS_POS]) - recompinput::get_input_analog(player_index, mappings[(size_t)GameInput::Y_AXIS_NEG]);
             };
+            
+            int profile_index_cont = players::is_single_player_mode() ? profiles::get_sp_controller_profile_index() : players_input_profile_indices[player_index].first;
+            int profile_index_kb = players::is_single_player_mode() ? profiles::get_sp_keyboard_profile_index() : players_input_profile_indices[player_index].second;
+            check_buttons(profile_index_cont);
+            check_buttons(profile_index_kb);
 
-            check_buttons(players_input_profile_indices[player_index].first);
-            check_buttons(players_input_profile_indices[player_index].second);
-
-            check_joystick(players_input_profile_indices[player_index].first);
+            check_joystick(profile_index_cont);
             recompinput::apply_joystick_deadzone(cur_x, cur_y, &cur_x, &cur_y);
-            check_joystick(players_input_profile_indices[player_index].second);
+            check_joystick(profile_index_kb);
         }
 
         *buttons_out = cur_buttons;
@@ -515,6 +520,8 @@ namespace recompinput {
 
         json config_json{};
         if (!recompinput::read_json_with_backups(path, config_json)) {
+            assign_all_mappings(profiles::get_sp_keyboard_profile_index(), InputDevice::Keyboard);
+            assign_all_mappings(profiles::get_sp_controller_profile_index(), InputDevice::Controller);
             return false;
         }
 

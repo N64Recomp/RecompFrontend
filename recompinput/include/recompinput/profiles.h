@@ -59,7 +59,7 @@ namespace recompinput {
         void initialize_input_bindings();
         int get_sp_controller_profile_index();
         int get_sp_keyboard_profile_index();
-        int get_mp_keyboard_profile_index(int player_index);
+        int get_or_create_mp_keyboard_profile_index(int player_index);
         std::string get_string_from_controller_guid(ControllerGUID guid);
         bool get_n64_input(int player_index, uint16_t* buttons_out, float* x_out, float* y_out);
 

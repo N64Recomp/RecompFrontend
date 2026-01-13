@@ -1,6 +1,7 @@
 #include "recompinput/recompinput.h"
 #include "recompinput/players.h"
 #include "recompinput/profiles.h"
+#include "recompinput/input_events.h"
 #include "ultramodern/ultramodern.hpp"
 #include "composites/ui_assign_players_modal.h"
 #include "config/ui_config_page_controls.h"
@@ -77,6 +78,10 @@ bool players::is_single_player_mode() {
 }
 
 void players::set_single_player_mode(bool single_player) {
+    if (!single_player && single_player != PlayerState.single_player_mode) {
+        purge_deferred_controller_profiles();
+    }
+
     PlayerState.single_player_mode = single_player;
 }
 
@@ -156,7 +161,7 @@ void playerassignment::commit_player_assignment() {
                 profiles::set_input_profile_for_player(i, cont_profile_index, InputDevice::Controller);
             }
         } else {
-            profiles::set_input_profile_for_player(i, profiles::get_mp_keyboard_profile_index(i), InputDevice::Keyboard);
+            profiles::set_input_profile_for_player(i, profiles::get_or_create_mp_keyboard_profile_index(i), InputDevice::Keyboard);
         }
     }
 }
