@@ -79,7 +79,7 @@ PlayerCard::PlayerCard(
 
         int device_profile_index = has_controller
             ? recompinput::profiles::get_controller_profile_index_from_sdl_controller(player.controller)
-            : recompinput::profiles::get_mp_keyboard_profile_index(player_index);
+            : recompinput::profiles::get_or_create_mp_keyboard_profile_index(player_index);
 
         if (device_profile_index >= 0) {
             options.emplace_back(

@@ -17,6 +17,27 @@ void queue_if_enabled(SDL_Event* event) {
     }
 }
 
+// Controllers plugged in while in single player mode will create profiles after switching to multiplayer.
+static std::unordered_map<uint64_t, ControllerGUID> deferred_controller_profiles;
+
+static int get_or_create_controller_profile_index(ControllerGUID guid) {
+    std::string default_profile_key = profiles::get_string_from_controller_guid(guid);
+    int profile_index = profiles::get_input_profile_by_key(default_profile_key);
+    if (profile_index < 0) {
+        profile_index = profiles::add_input_profile(default_profile_key, "Controller", InputDevice::Controller, false);
+        profiles::reset_profile_bindings(profile_index, InputDevice::Controller);
+    }
+    return profile_index;
+}
+
+void purge_deferred_controller_profiles() {
+    for (auto &guid_pair : deferred_controller_profiles) {
+        int profile_index = get_or_create_controller_profile_index(guid_pair.second);
+        profiles::add_controller(guid_pair.second, profile_index);
+    }
+    deferred_controller_profiles.clear();
+}
+
 bool sdl_event_filter(void* userdata, SDL_Event* event) {
     switch (event->type) {
     case SDL_EventType::SDL_KEYDOWN:
@@ -67,14 +88,12 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
         
         ControllerGUID guid = profiles::get_guid_from_sdl_controller(controller);
         if (profiles::get_controller_by_guid(guid) < 0) {
-            std::string default_profile_key = profiles::get_string_from_controller_guid(guid);
-            int profile_index = profiles::get_input_profile_by_key(default_profile_key);
-            if (profile_index < 0) {
-                profile_index = profiles::add_input_profile(default_profile_key, "Controller", InputDevice::Controller, false);
-                profiles::reset_profile_bindings(profile_index, InputDevice::Controller);
+            if (players::is_single_player_mode()) {
+                deferred_controller_profiles[guid.hash] = guid;
+            } else {
+                int profile_index = get_or_create_controller_profile_index(guid);
+                profiles::add_controller(guid, profile_index);
             }
-
-            profiles::add_controller(guid, profile_index);
         }
     }
     break;
