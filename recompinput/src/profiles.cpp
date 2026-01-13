@@ -130,7 +130,7 @@ namespace recompinput {
         }
 
         int index = (int)(input_profiles.size());
-        InputProfile profile;
+        InputProfile profile{};
         profile.key = key;
         profile.name = name;
         profile.device = device;
