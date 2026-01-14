@@ -524,6 +524,7 @@ namespace recompui {
         }
         auto context = get_current_context();
         game_options_menu = context.create_element<GameOptionsMenu>(menu_container, game_id, mod_game_id, layout);
+        recompui::update_game_mod_id(mod_game_id);
         return game_options_menu;
     }
 
