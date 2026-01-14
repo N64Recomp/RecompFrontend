@@ -1002,6 +1002,7 @@ void recompui::drop_files(const std::list<std::filesystem::path> &file_list) {
     }
 
     recompui::config::set_tab(recompui::config::mods::id);
+    recompui::hide_all_contexts();
     recompui::config::open();
 
     recompui::open_notification("Installing Mods", "Please Wait");
