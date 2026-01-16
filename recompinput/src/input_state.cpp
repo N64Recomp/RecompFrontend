@@ -72,20 +72,6 @@ void recompinput::set_rumble(int controller_num, bool on) {
     InputState.rumble_active[controller_num] = on;
 }
 
-ultramodern::input::connected_device_info_t recompinput::get_connected_device_info(int controller_num) {
-    if (recompinput::players::is_single_player_mode() || recompinput::players::get_player_input_device(controller_num) == InputDevice::Controller) {
-        return ultramodern::input::connected_device_info_t{
-            .connected_device = ultramodern::input::Device::Controller,
-            .connected_pak = ultramodern::input::Pak::RumblePak,
-        };
-    }
-
-    return ultramodern::input::connected_device_info_t{
-        .connected_device = ultramodern::input::Device::None,
-        .connected_pak = ultramodern::input::Pak::None,
-    };
-}
-
 static float smoothstep(float from, float to, float amount) {
     amount = (amount * amount) * (3.0f - 2.0f * amount);
     return std::lerp(from, to, amount);
