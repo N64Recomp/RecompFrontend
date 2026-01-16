@@ -29,7 +29,6 @@ namespace recompinput {
 
     void poll_inputs();
     void set_rumble(int controller_num, bool on);
-    ultramodern::input::connected_device_info_t get_connected_device_info(int controller_num);
     void update_rumble();
     bool should_override_keystate(SDL_Scancode key, SDL_Keymod mod);
     float get_input_analog(int controller_num, const InputField& field);
