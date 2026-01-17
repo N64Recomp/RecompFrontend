@@ -270,7 +270,6 @@ void ModEntrySpacer::set_active(bool active) {
 
 recompui::ModMenu* mod_menu = nullptr;
 static std::string current_game_mod_id = "";
-static bool queue_mod_list_rescan = false;
 
 
 // ModMenu
@@ -280,7 +279,8 @@ void ModMenu::refresh_mods(bool scan_mods) {
         recompui::release_image(thumbnail);
     }
 
-    if (scan_mods) {
+    // Prevent scanning mods after starting the game.
+    if (scan_mods && !ultramodern::is_game_started()) {
         recomp::mods::scan_mods();
     }
     mod_details = recomp::mods::get_all_mod_details(game_mod_id);
@@ -736,11 +736,11 @@ ModMenu::ModMenu(ResourceId rid, Element *parent) : Element(rid, parent) {
     mod_entry_floating_view->set_position(Position::Absolute);
     mod_entry_floating_view->set_selected(true);
 
-    refresh_mods(queue_mod_list_rescan);
-
     context.close();
     create_mod_config_modal();
     context.open();
+    
+    refresh_mods(false);
 }
 
 ModMenu::~ModMenu() {
@@ -759,33 +759,11 @@ void update_mod_list(bool scan_mods) {
         if (opened) {
             ui_context.close();
         }
-    } else {
-        // Queue when mod menu is opened next.
-        queue_mod_list_rescan = queue_mod_list_rescan || scan_mods;
     }
 }
 
 void update_game_mod_id(const std::string &game_mod_id) {
-    if (current_game_mod_id == game_mod_id) {
-        return;
-    }
-
     current_game_mod_id = game_mod_id;
-    if (mod_menu) {
-        recompui::ContextId ui_context = recompui::config::get_config_context_id();
-        bool opened = ui_context.open_if_not_already();
-
-        mod_menu->set_game_mod_id(game_mod_id);
-        mod_menu->set_mods_dirty(true);
-        mod_menu->queue_update();
-
-        if (opened) {
-            ui_context.close();
-        }
-    } else {
-        // Queue when mod menu is opened next.
-        queue_mod_list_rescan = true;
-    }
 }
 
 const std::string &get_game_mod_id() {
