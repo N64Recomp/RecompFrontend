@@ -1,5 +1,6 @@
 #include "librecomp/config.hpp"
 #include "recompui/config.h"
+#include "util/steam_deck.h"
 
 namespace recompui {
 
@@ -117,7 +118,7 @@ namespace config {
                 "<br />"
                 "<br />"
                 "<b>Note: This option does not allow mouse buttons to activate items. Mouse aiming is intended to be used with inputs that are mapped to mouse movement, such as gyro on Steam Deck.</b>",
-                config::graphics::is_device_steam_deck() ? 50.0 : 0.0 // steam deck overrides default to 50%
+                is_steam_deck() ? 50.0 : 0.0 // steam deck overrides default to 50%
             );
         }
 
