@@ -8,8 +8,6 @@ namespace recompui {
         static bool checked = false;
         static bool detected = false;
         if (!checked) {
-            checked = true;
-
             // Check if the board vendor is Valve.
             std::ifstream board_vendor_file("/sys/devices/virtual/dmi/id/board_vendor");
             std::string line;
@@ -23,6 +21,8 @@ namespace recompui {
                     detected = true;
                 }
             }
+
+            checked = true;
         }
 
         return detected;
