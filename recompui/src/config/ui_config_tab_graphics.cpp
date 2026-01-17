@@ -1,6 +1,7 @@
 #include "librecomp/config.hpp"
 #include "recompui/config.h"
 #include "recompui/renderer.h"
+#include "util/steam_deck.h"
 
 static bool created_graphics_config = false;
 
@@ -13,37 +14,9 @@ namespace recompui {
             return config::get_config(config::graphics::id);
         }
 
-        static bool is_steam_deck = false;
-
         static ultramodern::renderer::WindowMode wm_default() {
-            return is_steam_deck ? ultramodern::renderer::WindowMode::Fullscreen : ultramodern::renderer::WindowMode::Windowed;
+            return is_steam_deck() ? ultramodern::renderer::WindowMode::Fullscreen : ultramodern::renderer::WindowMode::Windowed;
         }
-
-        #ifdef __gnu_linux__
-        void graphics::detect_steam_deck() {
-            // Check if the board vendor is Valve.
-            std::ifstream board_vendor_file("/sys/devices/virtual/dmi/id/board_vendor");
-            std::string line;
-            if (std::getline(board_vendor_file, line).good() && line == "Valve") {
-                is_steam_deck = true;
-                return;
-            }
-
-            // Check if the SteamDeck variable is set to 1.
-            const char* steam_deck_env = getenv("SteamDeck");
-            if (steam_deck_env != nullptr && std::string{steam_deck_env} == "1") {
-                is_steam_deck = true;
-                return;
-            }
-
-            is_steam_deck = false;
-            return;
-        }
-        #else
-        void graphics::detect_steam_deck() { is_steam_deck = false; }
-        #endif
-
-        bool graphics::is_device_steam_deck() { return is_steam_deck; }
 
         using EnumOptionVector = const std::vector<recomp::config::ConfigOptionEnumOption>;
         static EnumOptionVector resolution_options = {
