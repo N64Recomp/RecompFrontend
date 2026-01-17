@@ -89,8 +89,8 @@
     - higher level (e.g. safe) way of queuing the config modal opening in general.
   - `ui_modal`
     - `MenuAction` events
-      - ability to show controls hints
-        - Tricky part: `MenuAction::Apply` handled elsewhere. maybe need special way of adding ctrl hints to root doc?
+      - Causes crash when setting text? Uncertain about cause - seems intermittent between builds and only when first opening the config modal and `element_ptr->base->SetInnerRML(text)` called when recompui updates elements in `to_set_text`
+      - `MenuAction::Apply` handled elsewhere. maybe need special way of adding ctrl hints to root doc?
   - `ui_state`
     - controller button repeats (should be in recompinput in the future)
       - Change to be directional inputs only

@@ -536,6 +536,21 @@ recompui::MenuAction recompui::menu_action_mapping::menu_action_from_rml_key(con
     return recompui::MenuAction::None;
 }
 
+recompinput::GameInput recompui::menu_action_mapping::game_input_from_menu_action(const MenuAction& action) {
+    for (auto &action_pair : recompui::menu_action_mapping::rml_key_to_action) {
+        if (action_pair.second.action == action) {
+            return action_pair.second.input;
+        }
+    }
+    return recompinput::GameInput::COUNT;
+}
+
+bool recompui::menu_action_mapping::is_sdl_input_fake_mapped(int32_t sdl_key) {
+    return sdl_key == static_cast<int32_t>(SDL_SCANCODE_F15) ||
+            sdl_key == static_cast<int32_t>(SDL_SCANCODE_F16) ||
+            sdl_key == static_cast<int32_t>(SDL_SCANCODE_F17);
+}
+
 // Extends RmlSDL::ConvertKey for some extra mapping slots
 Rml::Input::KeyIdentifier convert_sdl_to_rml(int sdl_key) {
     Rml::Input::KeyIdentifier identifier = RmlSDL::ConvertKey(sdl_key);

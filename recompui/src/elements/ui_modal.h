@@ -6,6 +6,8 @@
 #include "elements/ui_config_page.h"
 #include "elements/ui_tab_set.h"
 
+#include "recompinput/recompinput.h"
+
 namespace recompui {
 
     class Modal;
@@ -51,16 +53,26 @@ namespace recompui {
 
     class TabbedModal;
 
+    struct MenuActionCallback {
+        std::function<void()> callback;
+        std::string description;
+    };
+
     class Modal : public Element {
         friend class TabbedModal;
     protected:
         bool is_open = false;
         Element *modal_element = nullptr;
         ConfigHeaderFooter *header = nullptr;
+        Element *modal_overlay = nullptr;
         Element *body = nullptr;
+        Element *menu_actions_wrapper = nullptr;
         ModalType modal_type;
         std::function<void()> on_close_callback;
-        std::unordered_map<MenuAction, std::function<void()>> menu_action_callbacks;
+        std::unordered_map<MenuAction, MenuActionCallback> menu_action_callbacks;
+
+        recompinput::InputDevice last_input_device = recompinput::InputDevice::COUNT;
+        int last_input_profile = -1;
 
         virtual void process_event(const Event &e) override;
         std::string_view get_type_name() override { return "Modal"; }
@@ -78,7 +90,10 @@ namespace recompui {
         Element *get_body() { return body; }
 
         void set_on_close_callback(std::function<void()> callback);
-        void set_menu_action_callback(MenuAction action, std::function<void()> callback);
+        // Adds a callback for MenuAction events. Description is shown under the modal if provided.
+        void set_menu_action_callback(MenuAction action, std::function<void()> callback, std::string description = "");
+        void remove_menu_action_callback(MenuAction action);
+        void render_menu_actions();
     };
 
     class TabbedModal : public Modal {
