@@ -104,6 +104,7 @@ protected:
     bool single_player_show_keyboard_mappings = false;
 
     bool awaiting_binding = false;
+    bool awaiting_binding_for_menu_action_button = false;
 
     bool queue_first_game_input_row_focus = false;
     bool queue_selected_player_profile_edit_focus = false;

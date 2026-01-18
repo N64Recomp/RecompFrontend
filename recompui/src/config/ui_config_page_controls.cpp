@@ -7,6 +7,7 @@
 #include "elements/ui_binding_button.h"
 #include "elements/ui_select.h"
 #include "recompinput/profiles.h"
+#include "recompui/config.h"
 
 namespace recompui {
 
@@ -219,6 +220,10 @@ void ConfigPageControls::process_event(const Event &e) {
         if (awaiting_binding && !recompinput::binding::is_binding()) {
             awaiting_binding = false;
             update_control_mappings();
+
+            if (awaiting_binding_for_menu_action_button) {
+                config::get_config_modal()->render_menu_actions();
+            }
         }
         if (last_update_index != update_index) {
             last_update_index = update_index;
@@ -638,6 +643,7 @@ void ConfigPageControls::on_bind_click(recompinput::GameInput game_input, int in
 
     recompinput::binding::start_scanning(this->selected_player, game_input, input_index, device);
     awaiting_binding = true;
+    awaiting_binding_for_menu_action_button = get_game_input_is_menu(game_input);
 }
 
 void ConfigPageControls::on_clear_or_reset_game_input(recompinput::GameInput game_input, bool reset) {

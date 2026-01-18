@@ -70,13 +70,14 @@ bool get_game_input_clearable(GameInput input) {
 }
 
 bool get_game_input_is_menu(GameInput input) {
-#define DEFINE_INPUT(name, value, readable) GameInput::name,
+#define DEFINE_INPUT(name, value, readable) case GameInput::name: return true;
 
-    static const std::unordered_set<GameInput> menu_inputs = {
+    switch (input) {
         DEFINE_RECOMP_UI_INPUTS()
-    };
+    default:
+        return false;
+    }
 
-    return menu_inputs.find(input) != menu_inputs.end();
 #undef DEFINE_INPUT
 }
 
