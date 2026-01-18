@@ -192,7 +192,7 @@ public:
 
         samplerDesc.minFilter = plume::RenderFilter::LINEAR;
         samplerDesc.magFilter = plume::RenderFilter::LINEAR;
-        samplerDesc.mipLODBias = 0.25f;
+        samplerDesc.mipLODBias = -0.5f;
         linearSampler_ = device_->createSampler(samplerDesc);
 
         // Create the shaders
