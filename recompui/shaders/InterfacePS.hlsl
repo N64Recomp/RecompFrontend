@@ -7,5 +7,5 @@ void PSMain(
     out float4 oColor : SV_TARGET
 )
 {
-    oColor = gTexture.SampleLevel(gSampler, iUV, 0) * iColor;
+    oColor = gTexture.Sample(gSampler, iUV) * iColor;
 }
