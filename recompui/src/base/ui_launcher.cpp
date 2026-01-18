@@ -184,13 +184,20 @@ namespace recompui {
                     }
                 }
                 break;
+            case EventType::MenuAction: {
+                auto& action = std::get<EventMenuAction>(e.variant);
+                if (action.action == MenuAction::Toggle || action.action == MenuAction::Back) {
+                    get_launcher_menu()->hide_game_mode_menu();
+                }
+                break;
+            }
             default:
                 break;
             }
         }
         std::string_view get_type_name() override { return "GameModeMenu"; }
     public:
-        GameModeMenu(ResourceId rid, Element* parent) : Element(rid, parent, 0, "div", false) {
+        GameModeMenu(ResourceId rid, Element* parent) : Element(rid, parent, Events(EventType::MenuAction), "div", false) {
             set_display(Display::Flex);
             set_align_items(AlignItems::Center);
             set_justify_content(JustifyContent::Center);
@@ -262,7 +269,7 @@ namespace recompui {
                     );
                     back_button->set_width_auto();
                     back_button->set_white_space(WhiteSpace::Nowrap);
-                    back_button->add_pressed_callback([this]() {
+                    back_button->add_pressed_callback([]() {
                         get_launcher_menu()->hide_game_mode_menu();
                     });
                 }
