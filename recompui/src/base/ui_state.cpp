@@ -232,10 +232,10 @@ public:
         Rml::SetRenderInterface(render_interface.get_rml_interface());
         Rml::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
 
+        Rml::Initialise();
+
         recompui::register_custom_elements();
 
-        Rml::Initialise();
-    
         // Apply the hack to replace RmlUi's default color parser with one that conforms to HTML5 alpha parsing for SASS compatibility
         recompui::apply_color_hack();
 
