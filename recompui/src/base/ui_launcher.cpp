@@ -26,6 +26,10 @@ namespace Constants {
 // TODO: Store somewhere else and have base game register/initialize.
 extern std::vector<recomp::GameEntry> supported_games;
 
+static std::string generate_thumbnail_src_for_game(const std::string& game_id) {
+    return "?/game/" + game_id + "/thumb";
+}
+
 // TODO: Used in multiple places, should be combined.
 static std::string generate_thumbnail_src_for_mod(const std::string &mod_id) {
     return "?/mods/" + mod_id + "/thumb";
@@ -102,7 +106,6 @@ namespace recompui {
                 thumbnail_image->set_height(Constants::option_height_inner);
                 thumbnail_image->set_min_width(Constants::option_height_inner);
                 thumbnail_image->set_min_height(Constants::option_height_inner);
-                thumbnail_image->set_background_color(theme::color::BGOverlay);
 
                 body_container = context.create_element<Element>(this);
                 body_container->set_display(Display::Flex);
@@ -126,16 +129,6 @@ namespace recompui {
             add_style(&pulsing_style, { focus_state });
         };
 
-        GameModeOption(ResourceId rid, Element* parent, on_select_option_t on_select_option, const recomp::mods::ModDetails &details)
-            : GameModeOption(
-                rid,
-                parent,
-                on_select_option,
-                details.mod_id,
-                details.display_name,
-                generate_thumbnail_src_for_mod(details.mod_id)
-            ) {}
-
         const std::string& get_mode_id() const {
             return mode_id;
         }
@@ -157,7 +150,10 @@ namespace recompui {
         int queue_scroll_into_view = 0;
 
         std::u8string game_id;
+        std::string game_display_name = "";
+        std::span<const char> game_thumbnail;
         std::string cur_game_mode_id = "";
+        std::unordered_set<std::string> loaded_thumbnails;
 
         void process_event(const Event& e) override {
             switch (e.type) {
@@ -276,8 +272,21 @@ namespace recompui {
             }
         };
 
+        ~GameModeMenu() {
+            clear_loaded_thumbnails();
+        }
+
+        void clear_loaded_thumbnails() {
+            for (const std::string& thumbnail : loaded_thumbnails) {
+                recompui::release_image(thumbnail);
+            }
+
+            loaded_thumbnails.clear();
+        }
+
         void hide() {
             display_hide();
+            clear_loaded_thumbnails();
         }
 
         void on_select_game_mode(const std::string &game_mode_mod_id) {
@@ -292,6 +301,8 @@ namespace recompui {
         }
 
         void make_options() {
+            clear_loaded_thumbnails();
+
             auto context = get_current_context();
             on_select_option_t on_select_game_mode_cb = [this](const std::string &id) {
                 this->on_select_game_mode(id);
@@ -301,14 +312,28 @@ namespace recompui {
             std::string prev_game_mode_id = recomp::mods::get_latest_game_mode_id();
             bool found_previous = false;
 
-            auto normal_game_option = context.create_element<GameModeOption>(body, on_select_game_mode_cb, std::string{}, programconfig::get_program_name(), "Banjo.svg");
+            std::string game_thumbnail_name = generate_thumbnail_src_for_game((const char *)(this->game_id.c_str()));
+            if (!game_thumbnail.empty()) {
+                std::vector<char> game_thumbnail_bytes(this->game_thumbnail.data(), this->game_thumbnail.data() + this->game_thumbnail.size());
+                recompui::queue_image_from_bytes_file(game_thumbnail_name, game_thumbnail_bytes);
+                loaded_thumbnails.emplace(game_thumbnail_name);
+            }
+
+            auto normal_game_option = context.create_element<GameModeOption>(body, on_select_game_mode_cb, std::string{}, game_display_name, game_thumbnail_name);
             game_mode_options.push_back(normal_game_option);
             
             auto mod_id = get_game_mod_id();
             std::vector<recomp::mods::ModDetails> mods = recomp::mods::get_all_mod_details(mod_id);
             for (const auto &mod : mods) {
                 if (mod.custom_gamemode && (recomp::mods::is_mod_enabled(mod.mod_id) || recomp::mods::is_mod_auto_enabled(mod.mod_id))) {
-                    GameModeOption *mod_game_option = context.create_element<GameModeOption>(body, on_select_game_mode_cb, mod);
+                    const std::vector<char>& mod_thumbnail = recomp::mods::get_mod_thumbnail(mod.mod_id);
+                    std::string mod_thumbnail_name = generate_thumbnail_src_for_mod(mod.mod_id);
+                    if (!mod_thumbnail.empty()) {
+                        recompui::queue_image_from_bytes_file(mod_thumbnail_name, mod_thumbnail);
+                        loaded_thumbnails.emplace(mod_thumbnail_name);
+                    }
+
+                    GameModeOption *mod_game_option = context.create_element<GameModeOption>(body, on_select_game_mode_cb, mod.mod_id, mod.display_name, mod_thumbnail_name);
                     game_mode_options.push_back(mod_game_option);
                     if (mod.mod_id == prev_game_mode_id) {
                         found_previous = true;
@@ -327,8 +352,11 @@ namespace recompui {
             }
         }
 
-        void show(const std::u8string &game_id) {
+        void show(const std::u8string &game_id, const std::string &game_display_name, std::span<const char> game_thumbnail) {
             this->game_id = game_id;
+            this->game_display_name = game_display_name;
+            this->game_thumbnail = game_thumbnail;
+
             display_show();
 
             body->clear_children();
@@ -341,10 +369,12 @@ namespace recompui {
     };
 
     GameOptionsMenu::GameOptionsMenu(
-        ResourceId rid, Element* parent, std::u8string game_id, std::string mod_game_id, GameOptionsMenuLayout layout
+        ResourceId rid, Element* parent, std::u8string game_id, std::string mod_game_id, std::string game_display_name, std::span<const char> game_thumbnail, GameOptionsMenuLayout layout
     ) : Element(rid, parent, 0, "div", false),
         game_id(game_id),
         mod_game_id(mod_game_id),
+        game_display_name(game_display_name),
+        game_thumbnail(game_thumbnail),
         layout(layout)
     {
         rom_valid = recomp::is_rom_valid(game_id);
@@ -428,7 +458,7 @@ namespace recompui {
             if (this->rom_valid) {
                 recompui::update_game_mod_id(this->mod_game_id);
                 if (recomp::mods::game_mode_count(this->mod_game_id, false) > 0) {
-                    get_launcher_menu()->show_game_mode_menu(this->game_id);
+                    get_launcher_menu()->show_game_mode_menu(this->game_id, this->game_display_name, this->game_thumbnail);
                 } else {
                     recomp::start_game(this->game_id, {});
                     recompui::hide_all_contexts();
@@ -525,12 +555,12 @@ namespace recompui {
         }
     }
 
-    GameOptionsMenu *LauncherMenu::init_game_options_menu(std::u8string game_id, std::string mod_game_id, GameOptionsMenuLayout layout) {
+    GameOptionsMenu *LauncherMenu::init_game_options_menu(std::u8string game_id, std::string mod_game_id, std::string game_display_name, std::span<const char> game_thumbnail, GameOptionsMenuLayout layout) {
         if (game_options_menu != nullptr) {
             menu_container->remove_child(game_options_menu, false);
         }
         auto context = get_current_context();
-        game_options_menu = context.create_element<GameOptionsMenu>(menu_container, game_id, mod_game_id, layout);
+        game_options_menu = context.create_element<GameOptionsMenu>(menu_container, game_id, mod_game_id, game_display_name, game_thumbnail, layout);
         recompui::update_game_mod_id(mod_game_id);
         return game_options_menu;
     }
@@ -551,13 +581,13 @@ namespace recompui {
         return background_svg;
     }
 
-    void LauncherMenu::show_game_mode_menu(std::u8string game_id) {
+    void LauncherMenu::show_game_mode_menu(std::u8string game_id, std::string game_display_name, std::span<const char> game_thumbnail) {
         game_options_menu->display_hide();
         auto context = get_current_context();
         if (game_mode_menu == nullptr) {
             game_mode_menu = context.create_element<GameModeMenu>(this);
         }
-        game_mode_menu->show(game_id);
+        game_mode_menu->show(game_id, game_display_name, game_thumbnail);
     }
 
     void LauncherMenu::hide_game_mode_menu() {
@@ -594,7 +624,7 @@ namespace recompui {
     }
 
     void default_launcher_init_callback(LauncherMenu *menu) {
-        auto game_options_menu = menu->init_game_options_menu(supported_games[0].game_id, supported_games[0].mod_game_id, GameOptionsMenuLayout::Center);
+        auto game_options_menu = menu->init_game_options_menu(supported_games[0].game_id, supported_games[0].mod_game_id, supported_games[0].display_name, supported_games[0].thumbnail_bytes, GameOptionsMenuLayout::Center);
         recompui::update_game_mod_id(supported_games[0].mod_game_id);
         game_options_menu->add_default_options();
     }
