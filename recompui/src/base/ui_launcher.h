@@ -31,7 +31,7 @@ namespace recompui {
         GameOption *add_option(const std::string& title, std::function<void()> callback);
 
         GameOption *add_start_game_or_load_rom_option(const std::string& load_rom_title = "Load ROM", const std::string& start_game_title = "Start Game");
-        GameOption *add_setup_controls_option(const std::string& title = "Setup controls");
+        GameOption *add_setup_controls_option(const std::string& title = "Controls");
         GameOption *add_settings_option(const std::string& title = "Settings");
         GameOption *add_mods_option(const std::string& title = "Mods");
         GameOption *add_exit_option(const std::string& title = "Exit");
