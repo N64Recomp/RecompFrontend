@@ -19,6 +19,7 @@ namespace recompui {
         GameOption(ResourceId rid, Element* parent, const std::string& title, std::function<void()> callback, GameOptionsMenuLayout layout);
         void set_title(const std::string& new_title);
         void set_callback(std::function<void()> new_callback);
+        Label* get_label() { return label; }
         // These are public so you can modify them.
         Style hover_style;
         Style focus_style;
