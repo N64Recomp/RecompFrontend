@@ -390,9 +390,12 @@ public:
 
         document->PullToFront();
         document->Show();
-        recompui::Element* default_element = context.get_autofocus_element();
-        if (default_element) {
-            default_element->focus();
+
+        if (!mouse_is_active) {
+            recompui::Element* default_element = context.get_autofocus_element();
+            if (default_element != nullptr) {
+                default_element->focus();
+            }
         }
     }
 
@@ -737,13 +740,18 @@ void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer*
                 break;
             }
             case SDL_EventType::SDL_KEYDOWN:
-                non_mouse_interacted = true;
-                kb_interacted = true;
-                if (cur_event.key.keysym.scancode == SDL_Scancode::SDL_SCANCODE_F8) {
-                    if (recompui::config::general::get_debug_mode_enabled()) {
-                        Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
+                // Exclude the ESC key from triggering keyboard mode.
+                if (cur_event.key.keysym.scancode != SDL_Scancode::SDL_SCANCODE_ESCAPE) {
+                    non_mouse_interacted = true;
+                    kb_interacted = true;
+
+                    if (cur_event.key.keysym.scancode == SDL_Scancode::SDL_SCANCODE_F8) {
+                        if (recompui::config::general::get_debug_mode_enabled()) {
+                            Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
+                        }
                     }
                 }
+
                 break;
             case SDL_EventType::SDL_USEREVENT:
                 if (cur_event.user.code == SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTY) {
