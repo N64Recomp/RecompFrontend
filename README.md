@@ -1,140 +1,17 @@
-# Building
+# Recomp Frontend
 
-## Refactor TODO
+RecompFrontend is a library for use with N64: Recompiled projects that provides input handling (recompinput) and a menu API (recompui).
 
-- `recompui`
-  - `include/recompui/recompui.h`
-    - audit exposed funcs, potentially only include functions a base project might need? then the rest could go somewhere else
-  - assets
-    - need to provide default assets with ability to override
-  - `base_rcss`
-    - scrollbar settings should be configurable
-  - `ui_state`
-    - When the primary control method changes between mouse and non-mouse input (kb or cont) there is some awkward UX
-      - Current issue is that RML events are firing though you can't see where the UI's focus is, or where the mouse is
-      - Intention with swapping to non-mouse is this
-        - Try to focus on the last hovered element that is focusable
-        - Try to focus on an autofocus element
-        - Focus on anything
-      - Intention with swapping to mouse is this:
-        - Focus blurred
-        - Clicks are a noop
-      - When changing to non-mouse, should skip non-mouse events being sent to rmlui
-        - this make sure that last hover or autofocus is actually used, if there are no applicable elements, passing the rml events through may reactivate focus
-        - alternatively, could just find another method of insuring focus when controller first activates
-      - When changing to mouse
-        - similar to above, a click registering without being able to see the cursor is a little awkward and can result in clicking something unintentionally
-    - Too much input handling, a lot of code should be within `recompinput`
-      - `check_menu_button_pressed` identity crisis. makes more sense in `profiles.cpp`, can just be `check_mapped_game_input_press` or something similar
-      - `cont_button_to_key`
-      - `cont_axis_to_key`
-      - `draw_hook` is a lot.
-      - controller button repeats
-    - bit of a dumping ground of helper/exposed funcs that could be better categorized
-  - `ui_element`
-    - Improve `Element::scroll_into_view`
-      - Currently uses RmlUI's `ScrollIntoView` method
-      - That method has issues with not particularly handling interrupted scrolls well.
-      - It doesn't allow for a buffer amount, for example if you wanted 16px of space above or below when scrolling. Right now this has to be handled by making the element extend further with padding, or if that isn't possible, then by using an absolutely positioned child element that extends past its parent's boundaries and calling scroll_into_view on that element (See `ScrollBuffer` class).
-  - `ui_config_page`
-    - Needs WAY better naming. It is just a commonly reused layout of header/body/footer where you can assign elements to the left and right
-- `recompinput`
-  - `input_state`
-    - Refactor. Handles too much, for example:
-      - polling inputs
-      - updating rumble
-      - game -> recompinput API funcs for controllers, including input, rumble, special controls like gyro
-  - `input_events`
-    - a lot of binding handling in general. could be moved to a function in `input_binding.cpp`? would need to be able to report if it is stealing inputs. `input_events` handles controller connection as well, so maybe there should be a smarter way to hook anything up to `sdl_event_filter`, like a vector of callbacks
-  - `players`
-    - concept of players and profiles are disjointed, maybe thats okay?
+## recompinput
 
-## changes needed
+recompinput is a module that uses [SDL2](https://github.com/libsdl-org/SDL/tree/SDL2) to implement controller, keyboard, and mouse input handling for N64: Recompiled projects. It integrates with recompui, which uses it to allow the previously mentioned input devices to navigate any menus built using the library.
 
-- structure
-  - remove hardcoded path to parent repo libraries
-  - add necessary included libraries
-  - handle anything with `TODO: Forced game includes`
-    - `ui_api_events` -> `patches/ui_funcs.h`
-    - `ui_renderer` -> headers for InterfaceVS/InterfacePS
-- `recompui`
-  - semitransparent button background ugliness
-    - too bright (could be less transparent)
-    - new color defs
-      - tertiary theme colors? stop usage of white20 etc
-      - maybe word as if they are elevations? or layers? may have been BGOverlay before refactor
-    - examples
-      - `ui_button`
-        - tertiary background too bright (maybe Basic?)
-        - find "Open Mods Folder"
-      - `ui_icon_button`
-        - tertiary & basic
-        - Basic is config menu top right
-      - `GameInputRow`
-        - when hovering or focusing within, better than the others but could be more subtle
-      - `ui_game_option`
-        - could follow the same definitions as the others, though brightness is decent
-  - `ui_document` + `ui_context` + ?
-    - hits runtime error: std::runtime_error "This should never ever ever happen. Element not found in its parent's nav children."
-    - there seems to be a chance that `ContextId::get_focused_element` returns an element that isn't actually focusable.
-    - can not replicate, once instance where this occurred
-      - `original_focused_element` is an svg, `("src", STRING: "icons/RecordBorder.svg")`
-      - i had just pressed escape from recording i think
-      - the svg isnt visible
-      - doesn't seem to be focusable at all, so rml reporting it in `get_focused_element` is weird
-      - nav parent is a `GameInputRow`
-      - I was on the first slot, A, for keyboard
-    - Ran into issue again and can't replicate. Left assignment modal and tried to navigate down. The currently focused element was the "Assign players" button's label. Potential idea for fixing this could be in `Element::build_navigation`, recurse under a focusable element (`child->is_focusable() == CanFocus::Yes`), and somehow report that the current focusable should change to this. Or, report if the current focusable was added anywhere and if it isn't then do this after `Element::build_navigation` - maybe by finding the first `is_focusable()==Yes` above it or the first nav parent above it. that would avoid complexity in `Element::build_navigation`
-  - `ui_config`
-    - higher level (e.g. safe) way of queuing the config modal opening in general.
-  - `ui_modal`
-    - `MenuAction` events
-      - Causes crash when setting text? Uncertain about cause - seems intermittent between builds and only when first opening the config modal and `element_ptr->base->SetInnerRML(text)` called when recompui updates elements in `to_set_text`
-      - `MenuAction::Apply` handled elsewhere. maybe need special way of adding ctrl hints to root doc?
-  - `ui_state`
-    - controller button repeats (should be in recompinput in the future)
-      - Change to be directional inputs only
-      - Bug where repeats don't stop
-        - May be due to sudden change in direction after repeats start? If so, each direction could be its own tracked repeat
-      - Per controller?
-  - `ui_assign_players_modal`
-    - should probably open and instantiate in a more integrated way. has risk of not being in a valid context
-    - expose mod/patch c API for opening
-    - Add help text to explain how to assign controller/keyboard players
-    - softlock when hitting escape?
-  - `ui_config_page_controls`
-    - Player cards "new" profile (based on current in dropdown?)
-    - While a profile is open, be able to edit/change the name of a (non-default?) profile
-- `recompinput`
-  - `input_types`
-    - Review default descriptions.
-    - should be able to add new non n64 inputs
-  - `input_events`
-    - toggle menu's binding cancel only considers inputs from profile "0". should be the specific controller's player's profile (or single player mode check)
-  - `players`
-    - controller reconnects should attempt to preserve the last player's profile
-    - pressing escape stops the assignment process and creates a softlock
+The recompinput module also handles controller mapping, multiplayer device binding, and multiplayer controller profiles. Controller profiles and player device selection for multiplayer use device GUIDs to restore settings for controllers between play sessions.
 
-## before public wishlist
+## recompui
 
-- New config types
-  - Enum sub-variant: dropdown (`ui_select` component)
-  - Color picker
-    - important cus a lot of people are using hex which means it doesn't have controller support
-- Mod recompui: expose functionality
-  - new nav system (very important)
-    - Document api usage.
-  - new button styles `ButtonStyle` + `ButtonSize`
-  - new components
-    - `IconButton`
-    - `Select`
-    - `Modal`
-      - `TabbedModal` maybe?
-      - open/close functions
-      - expose `Modal::create_modal`
-      - expose getting `Modal::modal_root_context`
-    - `PillButton` (not very important)
-  - expose Typography enum
-  - expose more Style methods
-    - `Style::set_typography`
-    - TODO: list methods to expose
+recompui is a comprehensive UI API built on [RmlUi](https://github.com/mikke89/RmlUi). It provides basic UI elements, such as buttons and labels, as well as high-level components like the config menus, mod menu, multiplayer menu, and more.
+
+Rendering is performed by interfacing with [RT64](https://github.com/rt64/rt64) to build [plume](https://github.com/renderbag/plume) command lists for the UI elements.
+
+The recompui library also provides an API for N64: Recompiled mods to build their own UI for in-game use. The API definition can be found in the `recompui.h` header in a given project's mod template.
