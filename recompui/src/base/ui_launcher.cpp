@@ -467,7 +467,13 @@ namespace recompui {
                 select_rom([this, option, start_game_title](bool success) {
                     if (success) {
                         this->rom_valid = true;
+
+                        recompui::ContextId ui_context = recompui::get_launcher_context_id();
+                        bool opened = ui_context.open_if_not_already();
                         option->set_title(start_game_title);
+                        if (opened) {
+                            ui_context.close();
+                        }
                     }
                 });
             }
