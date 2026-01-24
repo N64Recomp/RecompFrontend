@@ -92,6 +92,7 @@ target_include_directories(recompui PUBLIC
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/thirdparty
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/thirdparty/concurrentqueue
     ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/thirdparty/miniz
+    ${RECOMP_FRONTEND_N64MODERNRUNTIME_PATH}/thirdparty/sse2neon
     ${CMAKE_BINARY_DIR}/shaders
 )
 
