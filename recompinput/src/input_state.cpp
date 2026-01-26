@@ -309,9 +309,7 @@ void recompinput::get_mouse_deltas(float* x, float* y) {
     *y = cur_mouse_delta[1] * sensitivity;
 }
 
-void recompinput::apply_joystick_deadzone(float x_in, float y_in, float* x_out, float* y_out) {
-    float deadzone = (float)recompui::config::general::get_joystick_deadzone() / 100.0f;
-    
+void recompinput::apply_joystick_deadzone_range(float x_in, float y_in, float* x_out, float* y_out, double deadzone, double range) {
     float magnitude = sqrtf(x_in * x_in + y_in * y_in);
 
     if (magnitude <= deadzone || magnitude <= 0.0f) {
@@ -324,18 +322,22 @@ void recompinput::apply_joystick_deadzone(float x_in, float y_in, float* x_out, 
     if (scaled_magnitude > 1.0f) scaled_magnitude = 1.0f;
 
     float ratio = scaled_magnitude / magnitude;
-    *x_out = x_in * ratio;
-    *y_out = y_in * ratio;
+    *x_out = x_in * ratio * range;
+    *y_out = y_in * ratio * range;
 }
 
 void recompinput::get_right_analog(int controller_num, float* x, float* y) {
+    double deadzone = (float)recompui::config::general::get_joystick_deadzone_r() / 100.0f;
+    double range = (float)recompui::config::general::get_joystick_range_r() / 100.0f;
+
     float x_val =
         controller_axis_state(controller_num, (SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX + 1), false) -
         controller_axis_state(controller_num, -(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX + 1), false);
     float y_val =
         controller_axis_state(controller_num, (SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTY + 1), false) -
         controller_axis_state(controller_num, -(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTY + 1), false);
-    apply_joystick_deadzone(x_val, y_val, x, y);
+
+    apply_joystick_deadzone_range(x_val, y_val, x, y, deadzone, range);
 }
 
 void recompinput::set_right_analog_suppressed(bool suppressed) {
