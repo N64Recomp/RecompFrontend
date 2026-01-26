@@ -310,38 +310,22 @@ void recompinput::get_mouse_deltas(float* x, float* y) {
 }
 
 void recompinput::apply_joystick_deadzone(float x_in, float y_in, float* x_out, float* y_out) {
-    float joystick_deadzone = (float)recompui::config::general::get_joystick_deadzone() / 100.0f;
+    float deadzone = (float)recompui::config::general::get_joystick_deadzone() / 100.0f;
+    
+    float magnitude = sqrtf(x_in * x_in + y_in * y_in);
 
-    if (fabsf(x_in) < joystick_deadzone) {
-        x_in = 0.0f;
-    }
-    else {
-        if (x_in > 0.0f) {
-            x_in -= joystick_deadzone;
-        }
-        else {
-            x_in += joystick_deadzone;
-        }
-
-        x_in /= (1.0f - joystick_deadzone);
+    if (magnitude <= deadzone || magnitude <= 0.0f) {
+        *x_out = 0.0f;
+        *y_out = 0.0f;
+        return;
     }
 
-    if (fabsf(y_in) < joystick_deadzone) {
-        y_in = 0.0f;
-    }
-    else {
-        if (y_in > 0.0f) {
-            y_in -= joystick_deadzone;
-        }
-        else {
-            y_in += joystick_deadzone;
-        }
+    float scaled_magnitude = (magnitude - deadzone) / (1.0f - deadzone);
+    if (scaled_magnitude > 1.0f) scaled_magnitude = 1.0f;
 
-        y_in /= (1.0f - joystick_deadzone);
-    }
-
-    *x_out = x_in;
-    *y_out = y_in;
+    float ratio = scaled_magnitude / magnitude;
+    *x_out = x_in * ratio;
+    *y_out = y_in * ratio;
 }
 
 void recompinput::get_right_analog(int controller_num, float* x, float* y) {
