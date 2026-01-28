@@ -178,19 +178,23 @@ float controller_axis_state(int controller_num, int32_t input_id, bool allow_sup
                     (axis == SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX || axis == SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTY)) {
                     cur_val = 0;
                 }
-                ret += std::clamp(cur_val, 0.0f, 1.0f);
+
+                return std::clamp(cur_val, 0.0f, 1.0f);
             };
 
             std::lock_guard lock{ InputState.controllers_mutex };
             if (recompinput::players::is_single_player_mode()) {
                 for (SDL_GameController *controller : InputState.detected_controllers) {
-                    gather_axis_state(controller);
+                    float controller_state = gather_axis_state(controller);
+                    if (fabsf(controller_state) > fabsf(ret)) {
+                        ret = controller_state;
+                    }
                 }
             }
             else {
                 auto &player = recompinput::players::get_player(controller_num);
                 if (player.controller != nullptr) {
-                    gather_axis_state(player.controller);
+                    ret = gather_axis_state(player.controller);
                 }
             }
         }
