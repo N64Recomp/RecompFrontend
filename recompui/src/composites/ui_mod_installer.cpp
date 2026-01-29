@@ -61,8 +61,8 @@ namespace recompui {
             }
         }
 
-        recomp::mods::DeprecationStatus deprecation_status = recomp::mods::get_mod_deprecation_status(installation.mod_id);
-        if (deprecation_status != recomp::mods::DeprecationStatus::Unknown) {
+        if (recomp::mods::is_mod_deprecated(installation.mod_id, installation.mod_version)) {
+            recomp::mods::DeprecationStatus deprecation_status = recomp::mods::get_mod_deprecation_status(installation.mod_id);
             result.error_messages.emplace_back("Ignoring " + file_path.filename().string() + " for installation. " + recomp::mods::deprecation_status_to_message(deprecation_status));
             return;
         }
@@ -179,8 +179,8 @@ namespace recompui {
                 }
 
                 bool skip_mod = false;
-                recomp::mods::DeprecationStatus deprecation_status = recomp::mods::get_mod_deprecation_status(installation.mod_id);
-                if (deprecation_status != recomp::mods::DeprecationStatus::Unknown) {
+                if (recomp::mods::is_mod_deprecated(installation.mod_id, installation.mod_version)) {
+                    recomp::mods::DeprecationStatus deprecation_status = recomp::mods::get_mod_deprecation_status(installation.mod_id);
                     result.error_messages.emplace_back("Ignoring " + target_path.filename().string() + " for installation. " + recomp::mods::deprecation_status_to_message(deprecation_status));
                     skip_mod = true;
                 }

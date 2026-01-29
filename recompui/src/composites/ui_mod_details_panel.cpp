@@ -105,7 +105,7 @@ void ModDetailsPanel::set_mod_details(const recomp::mods::ModDetails& details, c
     configure_button->set_enabled(configure_enabled);
     enable_label->set_display(toggle_label_visible ? Display::Block : Display::None);
 
-    if (deprecation_status != recomp::mods::DeprecationStatus::Unknown) {
+    if (toggle_label_visible && (deprecation_status != recomp::mods::DeprecationStatus::Unknown)) {
         enable_label->set_text(recomp::mods::deprecation_status_to_message(deprecation_status));
     }
     else if (toggle_label_visible) {
