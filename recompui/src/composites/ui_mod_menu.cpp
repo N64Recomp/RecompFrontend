@@ -340,9 +340,11 @@ void ModMenu::mod_selected(uint32_t mod_index) {
         const recomp::config::ConfigSchema &config_schema = recomp::mods::get_mod_config_schema(mod_details[active_mod_index].mod_id);
         bool toggle_checked = is_mod_enabled_or_auto(mod_details[mod_index].mod_id);
         bool auto_enabled = recomp::mods::is_mod_auto_enabled(mod_details[mod_index].mod_id);
-        bool toggle_enabled = !auto_enabled && (mod_details[mod_index].runtime_toggleable || !ultramodern::is_game_started());
+        recomp::mods::DeprecationStatus deprecation_status = recomp::mods::get_mod_deprecation_status(mod_details[mod_index].mod_id);
+        bool deprecated = (deprecation_status != recomp::mods::DeprecationStatus::Unknown);
+        bool toggle_enabled = !auto_enabled && !deprecated && (mod_details[mod_index].runtime_toggleable || !ultramodern::is_game_started());
         bool configure_enabled = !config_schema.options.empty();
-        mod_details_panel->set_mod_details(mod_details[mod_index], thumbnail_src, toggle_checked, toggle_enabled, auto_enabled, configure_enabled);
+        mod_details_panel->set_mod_details(mod_details[mod_index], thumbnail_src, toggle_checked, toggle_enabled, auto_enabled || deprecated, configure_enabled, deprecation_status);
         mod_entry_buttons[active_mod_index]->set_selected(true);
     }
 }
@@ -643,7 +645,8 @@ void ModMenu::process_event(const Event &e) {
         }
         if (active_mod_index != -1) {        
             bool auto_enabled = recomp::mods::is_mod_auto_enabled(mod_details[active_mod_index].mod_id);
-            bool toggle_enabled = !auto_enabled && (mod_details[active_mod_index].runtime_toggleable || !ultramodern::is_game_started());
+            bool deprecated = recomp::mods::is_mod_deprecated(mod_details[active_mod_index].mod_id);
+            bool toggle_enabled = !auto_enabled && !deprecated && (mod_details[active_mod_index].runtime_toggleable || !ultramodern::is_game_started());
             if (!toggle_enabled) {
                 mod_details_panel->disable_toggle();
             }

@@ -67,7 +67,7 @@ ModDetailsPanel::ModDetailsPanel(ResourceId rid, Element *parent) : Element(rid,
             enable_toggle = context.create_element<Toggle>(enable_container);
             enable_toggle->add_checked_callback([this](bool checked){ enable_toggle_checked(checked); });
 
-            enable_label = context.create_element<Label>(enable_container, "A currently enabled mod requires this mod", LabelStyle::Annotation);
+            enable_label = context.create_element<Label>(enable_container, "", LabelStyle::Annotation);
             enable_label->set_color(theme::color::Primary);
         }
 
@@ -83,7 +83,7 @@ void ModDetailsPanel::disable_toggle() {
     enable_toggle->set_enabled(false);
 }
 
-void ModDetailsPanel::set_mod_details(const recomp::mods::ModDetails& details, const std::string &thumbnail, bool toggle_checked, bool toggle_enabled, bool toggle_label_visible, bool configure_enabled) {
+void ModDetailsPanel::set_mod_details(const recomp::mods::ModDetails& details, const std::string &thumbnail, bool toggle_checked, bool toggle_enabled, bool toggle_label_visible, bool configure_enabled, recomp::mods::DeprecationStatus deprecation_status) {
     cur_details = details;
 
     thumbnail_image->set_src(thumbnail);
@@ -104,6 +104,13 @@ void ModDetailsPanel::set_mod_details(const recomp::mods::ModDetails& details, c
     enable_toggle->set_enabled(toggle_enabled);
     configure_button->set_enabled(configure_enabled);
     enable_label->set_display(toggle_label_visible ? Display::Block : Display::None);
+
+    if (deprecation_status != recomp::mods::DeprecationStatus::Unknown) {
+        enable_label->set_text(recomp::mods::deprecation_status_to_message(deprecation_status));
+    }
+    else if (toggle_label_visible) {
+        enable_label->set_text("A currently enabled mod requires this mod");
+    }
 }
 
 void ModDetailsPanel::set_mod_toggled_callback(std::function<void(bool)> callback) {

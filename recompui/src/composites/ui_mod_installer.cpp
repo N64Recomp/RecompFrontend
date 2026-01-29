@@ -61,6 +61,12 @@ namespace recompui {
             }
         }
 
+        recomp::mods::DeprecationStatus deprecation_status = recomp::mods::get_mod_deprecation_status(installation.mod_id);
+        if (deprecation_status != recomp::mods::DeprecationStatus::Unknown) {
+            result.error_messages.emplace_back("Ignoring " + file_path.filename().string() + " for installation. " + recomp::mods::deprecation_status_to_message(deprecation_status));
+            return;
+        }
+
         std::error_code ec;
         if (exists) {
             std::filesystem::copy(file_path, target_write_path, ec);
@@ -78,6 +84,7 @@ namespace recompui {
         if (std::filesystem::exists(installation.mod_file, ec)) {
             installation.needs_overwrite_confirmation = true;
         }
+
         if (!installation.needs_overwrite_confirmation) {
             // This check isn't really needed as additional_files will be empty for a single mod installation,
             // but it's good to have in case this logic ever changes.
@@ -171,8 +178,19 @@ namespace recompui {
                     }
                 }
 
+                bool skip_mod = false;
+                recomp::mods::DeprecationStatus deprecation_status = recomp::mods::get_mod_deprecation_status(installation.mod_id);
+                if (deprecation_status != recomp::mods::DeprecationStatus::Unknown) {
+                    result.error_messages.emplace_back("Ignoring " + target_path.filename().string() + " for installation. " + recomp::mods::deprecation_status_to_message(deprecation_status));
+                    skip_mod = true;
+                }
+
                 if (!exists) {
                     result.error_messages.emplace_back("Invalid mod (" + target_path.filename().string() + ") in " + path.filename().string() + ".");
+                    skip_mod = true;
+                }
+
+                if (skip_mod) {
                     extracted_file_handle.reset();
                     std::filesystem::remove(target_write_path, ec);
                     continue;
@@ -181,6 +199,7 @@ namespace recompui {
                 if (std::filesystem::exists(installation.mod_file, ec)) {
                     installation.needs_overwrite_confirmation = true;
                 }
+
                 if (!installation.needs_overwrite_confirmation) {
                     // This check isn't really needed as additional_files will be empty at this point,
                     // but it's good to have in case this logic ever changes.
