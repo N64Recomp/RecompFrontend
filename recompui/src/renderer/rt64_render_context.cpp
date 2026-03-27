@@ -399,6 +399,7 @@ void renderer::RT64Context::enable_instant_present() {
 
 void renderer::RT64Context::set_post_blend_negative_dither_noise(bool enabled) {
     app->emulatorConfig.dither.postBlendNoiseNegative = enabled;
+    app->updateEmulatorConfig();
 }
 
 uint32_t renderer::RT64Context::get_display_framerate() const {
