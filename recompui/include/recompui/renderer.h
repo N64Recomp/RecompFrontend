@@ -26,6 +26,7 @@ namespace recompui {
             bool update_config(const ultramodern::renderer::GraphicsConfig &old_config, const ultramodern::renderer::GraphicsConfig &new_config) override;
 
             void enable_instant_present() override;
+            void set_post_blend_negative_dither_noise(bool enabled);
             void send_dl(const OSTask *task) override;
             void send_dummy_workload(uint32_t fb_address) override;
             void update_screen() override;
@@ -43,7 +44,7 @@ namespace recompui {
             void check_refresh_rate_changes();
         };
 
-        std::unique_ptr<ultramodern::renderer::RendererContext> create_render_context(uint8_t *rdram, ultramodern::renderer::WindowHandle window_handle, ultramodern::renderer::PresentationMode presentation_mode, bool developer_mode);
+        std::unique_ptr<RT64Context> create_render_context(uint8_t *rdram, ultramodern::renderer::WindowHandle window_handle, ultramodern::renderer::PresentationMode presentation_mode, bool developer_mode);
 
         RT64::UserConfiguration::Antialiasing RT64MaxMSAA();
         bool RT64SamplePositionsSupported();

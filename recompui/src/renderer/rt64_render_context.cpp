@@ -397,6 +397,10 @@ void renderer::RT64Context::enable_instant_present() {
     app->updateEnhancementConfig();
 }
 
+void renderer::RT64Context::set_post_blend_negative_dither_noise(bool enabled) {
+    app->emulatorConfig.dither.postBlendNoiseNegative = enabled;
+}
+
 uint32_t renderer::RT64Context::get_display_framerate() const {
     return app->presentQueue->ext.sharedResources->swapChainRate;
 }
@@ -494,7 +498,7 @@ RT64::UserConfiguration::Antialiasing renderer::RT64MaxMSAA() {
     return device_max_msaa;
 }
 
-std::unique_ptr<ultramodern::renderer::RendererContext> renderer::create_render_context(uint8_t* rdram, ultramodern::renderer::WindowHandle window_handle, ultramodern::renderer::PresentationMode presentation_mode, bool developer_mode) {
+std::unique_ptr<renderer::RT64Context> renderer::create_render_context(uint8_t* rdram, ultramodern::renderer::WindowHandle window_handle, ultramodern::renderer::PresentationMode presentation_mode, bool developer_mode) {
     return std::make_unique<renderer::RT64Context>(rdram, window_handle, presentation_mode, developer_mode);
 }
 
