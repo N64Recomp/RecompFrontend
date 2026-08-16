@@ -16,7 +16,10 @@ namespace recompui {
                 inline const std::string rumble_strength = "rumble_strength";
                 inline const std::string gyro_sensitivity = "gyro_sensitivity";
                 inline const std::string mouse_sensitivity = "mouse_sensitivity";
-                inline const std::string joystick_deadzone = "joystick_deadzone";
+                inline const std::string joystick_deadzone_l = "joystick_deadzone_l";
+                inline const std::string joystick_deadzone_r = "joystick_deadzone_r";
+                inline const std::string joystick_range_l = "joystick_range_l";
+                inline const std::string joystick_range_r = "joystick_range_r";
                 inline const std::string background_input_mode = "background_input_mode";
         
                 inline const std::string debug_mode = "debug_mode";
@@ -28,7 +31,10 @@ namespace recompui {
             double get_gyro_sensitivity();
             bool has_mouse_sensitivity_option();
             double get_mouse_sensitivity();
-            double get_joystick_deadzone();
+            double get_joystick_range_l();
+            double get_joystick_range_r();
+            double get_joystick_deadzone_l();
+            double get_joystick_deadzone_r();
             bool get_background_input_mode_enabled();
             bool get_debug_mode_enabled();
         }

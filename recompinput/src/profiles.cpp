@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <string>
 #include "recompinput/profiles.h"
+#include "recompui/config.h"
 #include "./json.h"
 #include "xxHash/xxh3.h"
 
@@ -403,7 +404,10 @@ namespace recompinput {
             check_buttons(profile_index_kb);
 
             check_joystick(profile_index_cont);
-            recompinput::apply_joystick_deadzone(cur_x, cur_y, &cur_x, &cur_y);
+
+            double deadzone = (float)recompui::config::general::get_joystick_deadzone_l() / 100.0f;
+            double range = (float)recompui::config::general::get_joystick_range_l() / 100.0f;
+            recompinput::apply_joystick_deadzone_range(cur_x, cur_y, &cur_x, &cur_y, deadzone, range);
             check_joystick(profile_index_kb);
         }
 
