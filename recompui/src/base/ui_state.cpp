@@ -843,6 +843,17 @@ void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer*
         }
     } // end dequeue event loop
 
+        // In game when the player count isn't sufficient, open the assign player process
+    if (
+        !recompui::is_context_shown(recompui::config::get_config_context_id()) &&
+        ultramodern::is_game_started() &&
+        !recompinput::players::has_enough_players_assigned() &&
+        !recompui::AssignPlayersModal::check_is_open()
+    ) {
+        recompinput::playerassignment::start();
+        recompui::AssignPlayersModal::open();
+    }
+
     // Handle controller key repeats.
     if (latest_controller_key_pressed != SDLK_UNKNOWN) {
         clock::time_point now = clock::now();

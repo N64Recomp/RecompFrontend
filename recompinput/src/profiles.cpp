@@ -20,6 +20,7 @@ struct InputProfile {
 
 static std::vector<InputProfile> input_profiles{};
 static std::array<std::pair<int, int>, recompinput::max_num_players_supported> players_input_profile_indices{};
+static std::array<uint16_t, recompinput::max_num_players_supported> players_input_currently_pressed_buttons_mask{};
 static std::unordered_map<std::string, int> input_profile_key_index_map{};
 static std::vector<int> input_profile_custom_indices[static_cast<size_t>(recompinput::InputDevice::COUNT)]{};
 
@@ -223,6 +224,10 @@ namespace recompinput {
             assert(false && "Unknown input device.");
             return -1;
         }
+    }
+    
+    void profiles::mask_currently_pressed_buttons_for_all_players() {
+        players_input_currently_pressed_buttons_mask.fill(0xFFFFU);
     }
 
     int profiles::add_controller(ControllerGUID guid, int profile_index) {

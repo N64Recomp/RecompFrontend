@@ -47,6 +47,7 @@ namespace recompinput {
         const std::vector<int> get_indices_for_custom_profiles(InputDevice device);
         void set_input_profile_for_player(int player_index, int profile_index, InputDevice device);
         int get_input_profile_for_player(int player_index, InputDevice device);
+        void mask_currently_pressed_buttons_for_all_players();
         int add_controller(ControllerGUID guid, int profile_index);
         const ControllerGUID &get_controller_guid(int controller_index);
         int get_controller_profile_index(int controller_index);
