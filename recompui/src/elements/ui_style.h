@@ -18,6 +18,50 @@ namespace recompui {
     private:
         std::map<Rml::PropertyId, Rml::Property> property_map;
         Rml::TransformPtr get_existing_transform();
+        Rml::DecoratorsPtr get_existing_decorators();
+
+        // Various ways of applying effects to containers. These are built
+        // into RmlUI but some require custom implementations.
+        // It isn't worth exposing all at once, so instead we'll have methods.
+        // See: https://mikke89.github.io/RmlUiDoc/pages/rcss/decorators.html
+        enum class DecoratorType {
+            TiledHorizontal,
+            TiledVertical,
+            TiledBox,
+            Image,
+            NinePatch,
+            // (deprecated, use horizontal-gradient or vertical-gradient)
+            Gradient,
+            HorizontalGradient,
+            VerticalGradient,
+            // Custom shader, see DecoratorShader and https://mikke89.github.io/RmlUiDoc/pages/rcss/decorators/shader.html
+            // Requires implementation in recompui renderer. Currently not supported in recompui.
+            Shader,
+            // Not supported: needs implementation in recompui renderer
+            LinearGradient,
+            // Not supported: needs implementation in recompui renderer
+            RepeatingLinearGradient,
+            // Not supported: needs implementation in recompui renderer
+            RadialGradient,
+            // Not supported: needs implementation in recompui renderer
+            RepeatingRadialGradient,
+            // Not supported: needs implementation in recompui renderer
+            ConicGradient,
+            // Not supported: needs implementation in recompui renderer
+            RepeatingConicGradient,
+        };
+        static const std::unordered_map<Style::DecoratorType, const std::string> decorator_type_names;
+        Rml::DecoratorInstancer* get_decorator_instancer(Style::DecoratorType decorator_type);
+        // Helper to create decorator properties since decorator properties are unique to each decorator type.
+        // Note: `props_to_set` is a list of property name to rml property pairs, with each pair like:
+        // `{ "start-color", Rml::Property(Rml::Colourb(r, g, b, a), Rml::Unit::COLOUR) }`
+        Rml::PropertyDictionary create_decorator_properties(
+            Style::DecoratorType decorator_type,
+            std::initializer_list<std::pair<const Rml::String, Rml::Property>> props_to_set,
+            bool set_defaults = true
+        );
+        void set_decorator(DecoratorType decorator_type, Rml::PropertyDictionary properties);
+
         void set_or_add_transformation(const Rml::TransformPrimitive& primitive);
 
         // Used with display_hide and display_show to restore the intended display value if wanting to
@@ -141,6 +185,12 @@ namespace recompui {
         void set_pointer_events(PointerEvents pointer_events);
         virtual bool is_element() { return false; }
         ResourceId get_resource_id() { return resource_id; }
+
+        void set_decorator_horizontal_gradient(const Color &color_left, const Color &color_right);
+        void set_decorator_horizontal_gradient(recompui::theme::color color_left, recompui::theme::color color_right, int opacity_left = ThemeDefaultOpacity, int opacity_right = ThemeDefaultOpacity);
+
+        void set_decorator_vertical_gradient(const Color &color_top, const Color &color_bottom);
+        void set_decorator_vertical_gradient(recompui::theme::color color_top, recompui::theme::color color_bottom, int opacity_left = ThemeDefaultOpacity, int opacity_right = ThemeDefaultOpacity);
     };
 
 } // namespace recompui
