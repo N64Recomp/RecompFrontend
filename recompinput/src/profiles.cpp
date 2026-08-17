@@ -412,7 +412,8 @@ namespace recompinput {
             check_joystick(profile_index_kb);
         }
 
-        *buttons_out = cur_buttons;
+        *buttons_out = cur_buttons & (~players_input_currently_pressed_buttons_mask[player_index]);
+        players_input_currently_pressed_buttons_mask[player_index] &= cur_buttons;
         *x_out = std::clamp(cur_x, -1.0f, 1.0f);
         *y_out = std::clamp(cur_y, -1.0f, 1.0f);
 

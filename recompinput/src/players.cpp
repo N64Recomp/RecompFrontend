@@ -153,6 +153,7 @@ void playerassignment::stop_and_close_modal() {
 }
 
 void playerassignment::commit_player_assignment() {
+    profiles::mask_currently_pressed_buttons_for_all_players();
     stop_and_close_modal();
 
     PlayerState.players = PlayerState.temp_players;
