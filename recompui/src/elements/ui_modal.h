@@ -67,15 +67,22 @@ namespace recompui {
         Element *modal_overlay = nullptr;
         Element *body = nullptr;
         Element *menu_actions_wrapper = nullptr;
+        Label *battery_label = nullptr;
         ModalType modal_type;
         std::function<void()> on_close_callback;
         std::unordered_map<MenuAction, MenuActionCallback> menu_action_callbacks;
+
+        bool show_battery_status = false;
+        int displayed_battery_percentage = -1;
+        uint64_t next_battery_status_update = 0;
 
         recompinput::InputDevice last_input_device = recompinput::InputDevice::COUNT;
         int last_input_profile = -1;
 
         virtual void process_event(const Event &e) override;
         std::string_view get_type_name() override { return "Modal"; }
+        void render_battery_status();
+        void update_battery_status();
 
     public:
         recompui::ContextId modal_root_context;

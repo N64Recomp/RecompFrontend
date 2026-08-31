@@ -4,6 +4,8 @@
 #include "recompinput/recompinput.h"
 #include "recompinput/profiles.h"
 
+#include <SDL.h>
+
 namespace recompui {
 
 class ModalOverlay : public Element {
@@ -184,6 +186,10 @@ void Modal::process_event(const Event &e) {
                 if (current_device != last_input_device || current_profile != last_input_profile) {
                     render_menu_actions();
                 }
+
+                if (show_battery_status && SDL_GetTicks64() >= next_battery_status_update) {
+                    update_battery_status();
+                }
             }
             queue_update();
             break;
@@ -208,6 +214,46 @@ void Modal::set_menu_action_callback(MenuAction action, std::function<void()> ca
 void Modal::remove_menu_action_callback(MenuAction action) {
     menu_action_callbacks.erase(action);
     render_menu_actions();
+}
+
+void Modal::render_battery_status() {
+    if (!show_battery_status) {
+        return;
+    }
+
+    ContextId context = get_current_context();
+    battery_label = context.create_element<Label>(menu_actions_wrapper, theme::Typography::LabelSM);
+    battery_label->set_margin_left_auto();
+    battery_label->set_color(theme::color::TextA80);
+    battery_label->set_display(Display::None);
+    displayed_battery_percentage = -1;
+    update_battery_status();
+}
+
+void Modal::update_battery_status() {
+    if (battery_label == nullptr) {
+        return;
+    }
+
+    int percentage = -1;
+    SDL_PowerState power_state = SDL_GetPowerInfo(nullptr, &percentage);
+    bool battery_available = power_state != SDL_POWERSTATE_UNKNOWN &&
+        power_state != SDL_POWERSTATE_NO_BATTERY && percentage >= 0;
+
+    if (battery_available) {
+        if (displayed_battery_percentage < 0) {
+            battery_label->set_display(Display::Block);
+        }
+        if (percentage != displayed_battery_percentage) {
+            battery_label->set_text("Battery: " + std::to_string(percentage) + "%");
+            displayed_battery_percentage = percentage;
+        }
+    } else if (displayed_battery_percentage >= 0) {
+        battery_label->set_display(Display::None);
+        displayed_battery_percentage = -1;
+    }
+
+    next_battery_status_update = SDL_GetTicks64() + 1000;
 }
 
 void Modal::render_menu_actions() {
@@ -238,6 +284,7 @@ void Modal::render_menu_actions() {
         menu_actions_wrapper->set_gap(32.0f);
     } else {
         menu_actions_wrapper->clear_children();
+        battery_label = nullptr;
     }
 
     auto [current_device, current_profile] = get_last_input_info();
@@ -245,6 +292,7 @@ void Modal::render_menu_actions() {
     last_input_profile = current_profile;
 
     if (last_input_device == recompinput::InputDevice::COUNT) {
+        render_battery_status();
         return;
     }
     
@@ -297,6 +345,8 @@ void Modal::render_menu_actions() {
             binding_label->set_font_weight(400);;
         }
     }
+
+    render_battery_status();
 }
 
 void Modal::set_on_close_callback(std::function<void()> callback) {
@@ -318,6 +368,8 @@ TabbedModal::TabbedModal(
     ModalType modal_type
 ) : Modal(rid, parent, modal_root_context, modal_type)
 {
+    show_battery_status = true;
+
     set_menu_action_callback(MenuAction::Back, [this]() {
         if (this->tabs != nullptr) {
             this->tabs->focus_on_active_tab();
