@@ -96,8 +96,8 @@ private:
     void ProcessEvent(Rml::Event &event) override final;
 
     Element *get_nav_parent();
-    void get_all_focusable_children(Element *nav_parent);
     void build_navigation(Element *nav_parent, Element *cur_focus_element);
+    bool is_distant_parent_of(Element *el);
 protected:
     // Use of this method in inherited classes is discouraged unless it's necessary.
     void set_attribute(const Rml::String &attribute_key, const Rml::String &attribute_value);
