@@ -102,6 +102,7 @@ namespace recompui {
         TabSet *tabs = nullptr;
         int previous_tab_index = -1;
         int current_tab_index = -1;
+        bool refresh_tab = false;
         virtual void process_event(const Event &e) override;
         std::string_view get_type_name() override { return "TabbedModal"; }
         void on_tab_change(int tab_index);

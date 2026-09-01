@@ -766,6 +766,9 @@ void update_mod_list(bool scan_mods) {
 }
 
 void update_game_mod_id(const std::string &game_mod_id) {
+    if (current_game_mod_id != "" && game_mod_id != current_game_mod_id && mod_menu) {
+        mod_menu->set_mods_dirty(false);
+    }
     current_game_mod_id = game_mod_id;
 }
 
