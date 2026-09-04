@@ -129,7 +129,6 @@ void TabbedModal::open() {
         tabs->focus_on_active_tab();
         on_tab_change(tabs->get_active_tab());
         refresh_tab = true;
-        queue_update();
     }
 }
 
