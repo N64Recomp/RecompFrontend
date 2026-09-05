@@ -128,6 +128,7 @@ void TabbedModal::open() {
     if (tabs != nullptr) {
         tabs->focus_on_active_tab();
         on_tab_change(tabs->get_active_tab());
+        refresh_tab = true;
     }
 }
 
@@ -334,12 +335,13 @@ TabbedModal::TabbedModal(
 void TabbedModal::process_event(const Event &e) {
     switch (e.type) {
         case EventType::Update: {
-            if (previous_tab_index != current_tab_index) {
+            if (refresh_tab || previous_tab_index != current_tab_index) {
                 body->clear_children();
                 if (current_tab_index >= 0 && current_tab_index < tab_contexts.size()) {
                     tab_contexts[current_tab_index].create_contents(modal_root_context, body);
                 }
                 previous_tab_index = current_tab_index;
+                refresh_tab = false;
             }
             queue_update();
             break;

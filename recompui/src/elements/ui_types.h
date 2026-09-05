@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <variant>
 
+#include "RmlUi/Core.h"
+
 namespace recompui {
 
     constexpr std::string_view checked_state = "checked";
@@ -17,6 +19,10 @@ namespace recompui {
         uint8_t g = 255;
         uint8_t b = 255;
         uint8_t a = 255;
+
+        Rml::Property to_rml_property() const {
+            return Rml::Property(Rml::Colourb(r, g, b, a), Rml::Unit::COLOUR);
+        }
     };
 
     enum class Cursor {

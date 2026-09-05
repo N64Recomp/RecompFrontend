@@ -44,7 +44,7 @@ static const std::string keyboard_mp_profile_key = "keyboard_mp_player_"; // + p
 static const std::string keyboard_mp_profile_name = "Keyboard "; // + "(player number)"
 
 // Make the button value array, which maps a button index to its bit field.
-#define DEFINE_INPUT(name, value, readable) uint16_t(value##u),
+#define DEFINE_INPUT(name, value, readable, description) uint16_t(value##u),
 static const std::array n64_button_values = {
     DEFINE_N64_BUTTON_INPUTS()
 };

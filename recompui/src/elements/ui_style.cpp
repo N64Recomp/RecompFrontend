@@ -795,6 +795,135 @@ namespace recompui {
         set_property(Rml::PropertyId::Focus, focusable ? Rml::Style::Focus::Auto : Rml::Style::Focus::None);
     }
 
+    const std::unordered_map<Style::DecoratorType, const std::string> Style::decorator_type_names = {
+        {Style::DecoratorType::TiledHorizontal , "tiled-horizontal"},
+        {Style::DecoratorType::TiledVertical , "tiled-vertical"},
+        {Style::DecoratorType::TiledBox , "tiled-box"},
+        {Style::DecoratorType::Image , "image"},
+        {Style::DecoratorType::NinePatch , "ninepatch"},
+        {Style::DecoratorType::Gradient , "gradient"},
+        {Style::DecoratorType::HorizontalGradient , "horizontal-gradient"},
+        {Style::DecoratorType::VerticalGradient , "vertical-gradient"},
+        {Style::DecoratorType::Shader , "shader"},
+        {Style::DecoratorType::LinearGradient , "linear-gradient"},
+        {Style::DecoratorType::RepeatingLinearGradient , "repeating-linear-gradient"},
+        {Style::DecoratorType::RadialGradient , "radial-gradient"},
+        {Style::DecoratorType::RepeatingRadialGradient , "repeating-radial-gradient"},
+        {Style::DecoratorType::ConicGradient , "conic-gradient"},
+        {Style::DecoratorType::RepeatingConicGradient , "repeating-conic-gradient"},
+    };
+
+    Rml::DecoratorsPtr Style::get_existing_decorators() {
+        if (property_map.find(Rml::PropertyId::Decorator) != property_map.end()) {
+            auto cur_decorators = property_map[Rml::PropertyId::Decorator].Get<Rml::DecoratorsPtr>();
+            if (cur_decorators != nullptr) {
+                return cur_decorators;
+            }
+        }
+
+        return nullptr;
+    }
+
+    Rml::DecoratorInstancer* Style::get_decorator_instancer(DecoratorType decorator_type) {
+        std::string decorator_type_name = decorator_type_names.at(decorator_type);
+        return Rml::Factory::GetDecoratorInstancer(decorator_type_name);
+    }
+
+    void Style::set_decorator(DecoratorType decorator_type, Rml::PropertyDictionary properties) {
+        Rml::DecoratorDeclarationList decorators;
+        Rml::DecoratorsPtr existing_decorator = get_existing_decorators();
+        bool found_existing = false;
+        std::string decorator_type_name = decorator_type_names.at(decorator_type);
+
+        // BoxArea::Padding is rmlui default but we default containers to Border, so matching for now.
+        Rml::BoxArea paint_area = Rml::BoxArea::Border;
+
+        Rml::DecoratorInstancer* instancer = Rml::Factory::GetDecoratorInstancer(decorator_type_name);
+
+        if (existing_decorator != nullptr) {
+            auto& existing_decorators = existing_decorator->list;
+            for (int i = 0; i < existing_decorators.size(); i++) {
+                if (existing_decorators[i].type == decorator_type_name) {
+                    decorators.list.emplace_back(Rml::DecoratorDeclaration{
+                        existing_decorators[i].type,
+                        existing_decorators[i].instancer,
+                        std::move(properties),
+                        paint_area
+                    });
+                    found_existing = true;
+                } else {
+                    decorators.list.emplace_back(existing_decorators[i]);
+                }
+            }
+        }
+
+        if (!found_existing) {
+            const Rml::PropertySpecification& specification = instancer->GetPropertySpecification();
+            specification.SetPropertyDefaults(properties);
+            decorators.list.emplace_back(Rml::DecoratorDeclaration{
+                decorator_type_name,
+                instancer,
+                std::move(properties),
+                paint_area
+            });
+        }
+
+        set_property(
+            Rml::PropertyId::Decorator,
+            Rml::Property(
+                Rml::Variant(Rml::MakeShared<Rml::DecoratorDeclarationList>((std::move(decorators)))),
+                Rml::Unit::DECORATOR
+            )
+        );
+    }
+
+    Rml::PropertyDictionary Style::create_decorator_properties(
+        Style::DecoratorType decorator_type,
+        std::initializer_list<std::pair<const Rml::String, Rml::Property>> props_to_set,
+        bool set_defaults
+    ) {
+        Rml::PropertyDictionary properties;
+        Rml::DecoratorInstancer* instancer = get_decorator_instancer(decorator_type);
+        const Rml::PropertySpecification &prop_spec = instancer->GetPropertySpecification();
+        for (const auto& prop : props_to_set) {
+            properties.SetProperty(prop_spec.GetProperty(prop.first)->GetId(), prop.second);
+        }
+        if (set_defaults) {
+            prop_spec.SetPropertyDefaults(properties);
+        }
+        return properties;
+    }
+
+    void Style::set_decorator_horizontal_gradient(const Color &color_left, const Color &color_right) {
+        Rml::PropertyDictionary properties = create_decorator_properties(DecoratorType::HorizontalGradient, {
+            { "start-color", color_left.to_rml_property() },
+            { "stop-color", color_right.to_rml_property() }
+        });
+
+        set_decorator(DecoratorType::HorizontalGradient, properties);
+    }
+    void Style::set_decorator_horizontal_gradient(recompui::theme::color color_left, recompui::theme::color color_right, int opacity_left, int opacity_right) {
+        set_decorator_horizontal_gradient(
+            get_theme_color_with_opacity(color_left, opacity_left),
+            get_theme_color_with_opacity(color_right, opacity_right)
+        );
+    }
+
+    void Style::set_decorator_vertical_gradient(const Color &color_top, const Color &color_bottom) {
+        Rml::PropertyDictionary properties = create_decorator_properties(DecoratorType::VerticalGradient, {
+            { "start-color", color_top.to_rml_property() },
+            { "stop-color", color_bottom.to_rml_property() }
+        });
+
+        set_decorator(DecoratorType::VerticalGradient, properties);
+    }
+    void Style::set_decorator_vertical_gradient(recompui::theme::color color_top, recompui::theme::color color_bottom, int opacity_left, int opacity_right) {
+        set_decorator_vertical_gradient(
+            get_theme_color_with_opacity(color_top, opacity_left),
+            get_theme_color_with_opacity(color_bottom, opacity_right)
+        );
+    }
+
     Rml::TransformPtr Style::get_existing_transform() {
         if (property_map.find(Rml::PropertyId::Transform) != property_map.end()) {
             auto curTransform = property_map[Rml::PropertyId::Transform].Get<Rml::TransformPtr>();
