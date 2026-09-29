@@ -110,6 +110,9 @@ bool players::get_player_is_assigned(int player_index, bool temp_player) {
 }
 
 bool players::has_enough_players_assigned() {
+    if (players::is_single_player_mode()) {
+        return true;
+    }
     return PlayerState.players.get_count() >= PlayerState.min_players;
 }
 
@@ -150,6 +153,7 @@ void playerassignment::stop_and_close_modal() {
 }
 
 void playerassignment::commit_player_assignment() {
+    profiles::mask_currently_pressed_buttons_for_all_players();
     stop_and_close_modal();
 
     PlayerState.players = PlayerState.temp_players;

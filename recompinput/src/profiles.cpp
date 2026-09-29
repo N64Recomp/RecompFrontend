@@ -20,6 +20,7 @@ struct InputProfile {
 
 static std::vector<InputProfile> input_profiles{};
 static std::array<std::pair<int, int>, recompinput::max_num_players_supported> players_input_profile_indices{};
+static std::array<uint16_t, recompinput::max_num_players_supported> players_input_currently_pressed_buttons_mask{};
 static std::unordered_map<std::string, int> input_profile_key_index_map{};
 static std::vector<int> input_profile_custom_indices[static_cast<size_t>(recompinput::InputDevice::COUNT)]{};
 
@@ -224,6 +225,10 @@ namespace recompinput {
             return -1;
         }
     }
+    
+    void profiles::mask_currently_pressed_buttons_for_all_players() {
+        players_input_currently_pressed_buttons_mask.fill(0xFFFFU);
+    }
 
     int profiles::add_controller(ControllerGUID guid, int profile_index) {
         auto it = controller_hash_index_map.find(guid.hash);
@@ -407,7 +412,8 @@ namespace recompinput {
             check_joystick(profile_index_kb);
         }
 
-        *buttons_out = cur_buttons;
+        *buttons_out = cur_buttons & (~players_input_currently_pressed_buttons_mask[player_index]);
+        players_input_currently_pressed_buttons_mask[player_index] &= cur_buttons;
         *x_out = std::clamp(cur_x, -1.0f, 1.0f);
         *y_out = std::clamp(cur_y, -1.0f, 1.0f);
 
