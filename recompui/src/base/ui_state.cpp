@@ -679,6 +679,8 @@ void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer*
     constexpr clock::duration repeat_rate = std::chrono::milliseconds{50};
     static clock::time_point next_repeat_time = {};
     static int latest_controller_key_pressed = SDLK_UNKNOWN;
+    // Remember which stick axis started the repeat, independently of its direction.
+    static int latest_controller_axis_pressed = SDL_CONTROLLER_AXIS_INVALID;
 
     bool all_input_is_disabled = recompinput::all_input_disabled();
 
@@ -689,7 +691,7 @@ void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer*
         // Handle up button events even when input is disabled to avoid missing them during binding.
         if (cur_event.type == SDL_EventType::SDL_CONTROLLERBUTTONUP) {
             int sdl_key = cont_button_to_key(cur_event.cbutton);
-            if (sdl_key == latest_controller_key_pressed) {
+            if (latest_controller_axis_pressed == SDL_CONTROLLER_AXIS_INVALID && sdl_key == latest_controller_key_pressed) {
                 latest_controller_key_pressed = SDLK_UNKNOWN;
             }
         }
@@ -733,6 +735,7 @@ void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer*
                 if (context_capturing_input && sdl_key) {
                     ui_state->context->ProcessKeyDown(convert_sdl_to_rml(sdl_key), 0);
                     latest_controller_key_pressed = sdl_key;
+                    latest_controller_axis_pressed = SDL_CONTROLLER_AXIS_INVALID;
                     next_repeat_time = clock::now() + start_repeat_delay;
                 }
                 non_mouse_interacted = true;
@@ -778,6 +781,7 @@ void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer*
                         if (context_capturing_input && sdl_key) {
                             ui_state->context->ProcessKeyDown(convert_sdl_to_rml(sdl_key), 0);
                             latest_controller_key_pressed = sdl_key;
+                            latest_controller_axis_pressed = axis_event->axis;
                             next_repeat_time = clock::now() + start_repeat_delay;
                         }
                     }
@@ -786,10 +790,10 @@ void draw_hook(plume::RenderCommandList* command_list, plume::RenderFramebuffer*
                 }
                 else if (*await_stick_return && fabsf(axis_value) < 0.15f) {
                     *await_stick_return = false;
-                    // Stop pressing the current key if the axis that was released was the one triggering key presses.
-                    int sdl_key = cont_axis_to_key(cur_event.caxis, axis_value);
-                    if (sdl_key == latest_controller_key_pressed) {
+                    // Stop repeating when the active stick axis returns to center.
+                    if (axis_event->axis == latest_controller_axis_pressed) {
                         latest_controller_key_pressed = SDLK_UNKNOWN;
+                        latest_controller_axis_pressed = SDL_CONTROLLER_AXIS_INVALID;
                     }
                 }
                 break;
