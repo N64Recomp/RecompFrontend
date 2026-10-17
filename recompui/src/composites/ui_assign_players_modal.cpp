@@ -342,4 +342,12 @@ void AssignPlayersModal::init() {
     assign_players_modal_context.close();
 }
 
+bool AssignPlayersModal::check_is_open() {
+    if (assign_players_modal_instance == nullptr || !recompui::is_context_shown(assign_players_modal_context)) {
+        return false;
+    }
+
+    return assign_players_modal_instance->is_open;
+}
+
 } // namespace recompui

@@ -35,6 +35,7 @@ public:
     // Pass false to force player assignment.
     static void open();
     static void close();
+    static bool check_is_open();
 };
 
 } // namespace recompui
