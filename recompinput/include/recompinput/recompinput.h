@@ -2,6 +2,7 @@
 
 #include "SDL.h"
 #include "chrono"
+#include <string>
 
 namespace recompinput {
     constexpr size_t max_num_players_supported = 128;

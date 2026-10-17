@@ -8,41 +8,41 @@
 
 namespace recompinput {
     #define DEFINE_N64_BUTTON_INPUTS() \
-        DEFINE_INPUT(A, 0x8000, "A") \
-        DEFINE_INPUT(B, 0x4000, "B") \
-        DEFINE_INPUT(Z, 0x2000, "Z") \
-        DEFINE_INPUT(L, 0x0020, "L") \
-        DEFINE_INPUT(R, 0x0010, "R") \
-        DEFINE_INPUT(START, 0x1000, "Start") \
-        DEFINE_INPUT(C_UP, 0x0008, "C Up") \
-        DEFINE_INPUT(C_DOWN, 0x0004, "C Down") \
-        DEFINE_INPUT(C_LEFT, 0x0002, "C Left") \
-        DEFINE_INPUT(C_RIGHT, 0x0001, "C Right") \
-        DEFINE_INPUT(DPAD_UP, 0x0800, "D-Pad Up") \
-        DEFINE_INPUT(DPAD_DOWN, 0x0400, "D-Pad Down") \
-        DEFINE_INPUT(DPAD_LEFT, 0x0200, "D-Pad Left") \
-        DEFINE_INPUT(DPAD_RIGHT, 0x0100, "D-Pad Right")
+        DEFINE_INPUT(A, 0x8000, "A", "") \
+        DEFINE_INPUT(B, 0x4000, "B", "") \
+        DEFINE_INPUT(Z, 0x2000, "Z", "") \
+        DEFINE_INPUT(L, 0x0020, "L", "") \
+        DEFINE_INPUT(R, 0x0010, "R", "") \
+        DEFINE_INPUT(START, 0x1000, "Start", "") \
+        DEFINE_INPUT(C_UP, 0x0008, "C Up", "") \
+        DEFINE_INPUT(C_DOWN, 0x0004, "C Down", "") \
+        DEFINE_INPUT(C_LEFT, 0x0002, "C Left", "") \
+        DEFINE_INPUT(C_RIGHT, 0x0001, "C Right", "") \
+        DEFINE_INPUT(DPAD_UP, 0x0800, "D-Pad Up", "") \
+        DEFINE_INPUT(DPAD_DOWN, 0x0400, "D-Pad Down", "") \
+        DEFINE_INPUT(DPAD_LEFT, 0x0200, "D-Pad Left", "") \
+        DEFINE_INPUT(DPAD_RIGHT, 0x0100, "D-Pad Right", "")
 
     #define DEFINE_N64_AXIS_INPUTS() \
-        DEFINE_INPUT(Y_AXIS_POS, 0, "Up") \
-        DEFINE_INPUT(Y_AXIS_NEG, 0, "Down") \
-        DEFINE_INPUT(X_AXIS_NEG, 0, "Left") \
-        DEFINE_INPUT(X_AXIS_POS, 0, "Right") \
+        DEFINE_INPUT(Y_AXIS_POS, 0, "Up", "") \
+        DEFINE_INPUT(Y_AXIS_NEG, 0, "Down", "") \
+        DEFINE_INPUT(X_AXIS_NEG, 0, "Left", "") \
+        DEFINE_INPUT(X_AXIS_POS, 0, "Right", "") \
 
     #define DEFINE_RECOMP_UI_INPUTS() \
-        DEFINE_INPUT(TOGGLE_MENU, 0, "Toggle Menu") \
-        DEFINE_INPUT(ACCEPT_MENU, 0, "Accept (Menu)") \
-        DEFINE_INPUT(BACK_MENU, 0, "Back (Menu)") \
-        DEFINE_INPUT(APPLY_MENU, 0, "Apply (Menu)") \
-        DEFINE_INPUT(TAB_LEFT_MENU, 0, "Tab Left (Menu)") \
-        DEFINE_INPUT(TAB_RIGHT_MENU, 0, "Tab Right (Menu)")
+        DEFINE_INPUT(TOGGLE_MENU, 0, "Toggle Menu",         "Open or close this configuration menu from in game.") \
+        DEFINE_INPUT(ACCEPT_MENU, 0, "Accept (Menu)",       "In the recomp interface, performs the action for the currently highlighted item. Like pressing a button, or toggling a switch.") \
+        DEFINE_INPUT(BACK_MENU, 0, "Back (Menu)",           "In the recomp interface, returns to the header or backs out to a previous menu.") \
+        DEFINE_INPUT(APPLY_MENU, 0, "Apply (Menu)",         "In the recomp interface, if changes are made to a configuration that requires applying your settings, this will apply the current changes.") \
+        DEFINE_INPUT(TAB_LEFT_MENU, 0, "Tab Left (Menu)",   "In the recomp interface, switches the active tab to the one on the left of the current tab.") \
+        DEFINE_INPUT(TAB_RIGHT_MENU, 0, "Tab Right (Menu)", "In the recomp interface, switches the active tab to the one on the right of the current tab.")
 
     #define DEFINE_ALL_INPUTS() \
         DEFINE_N64_AXIS_INPUTS() \
         DEFINE_N64_BUTTON_INPUTS() \
         DEFINE_RECOMP_UI_INPUTS()
 
-    #define DEFINE_INPUT(name, value, readable) name,
+    #define DEFINE_INPUT(name, value, readable, description) name,
     // - Enum containing every recomp input.
     // - Includes inputs that are specific to menu navigation.
     // - This represents what any controller/keyboard can bind to.

@@ -63,6 +63,13 @@ namespace recompui {
     }
 
     void GameOption::process_event(const Event &e) {
+        if (event_callback != nullptr) {
+            bool cancel = event_callback(e);
+            if (cancel) {
+                return;
+            }
+        }
+
         switch (e.type) {
         case EventType::Click:
             if (is_enabled()) {
@@ -115,5 +122,9 @@ namespace recompui {
 
     void GameOption::set_callback(std::function<void()> new_callback) {
         callback = new_callback;
+    }
+
+    void GameOption::set_event_callback(std::function<bool(const Event& e)> new_callback) {
+        event_callback = new_callback;
     }
 }

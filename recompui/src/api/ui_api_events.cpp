@@ -23,8 +23,7 @@
 #include "librecomp/overlays.hpp"
 #include "librecomp/helpers.hpp"
 
-// TODO: Forced game includes
-#include "../../../../../patches/ui_funcs.h"
+#include "event_structs.h"
 
 struct QueuedCallback {
     recompui::ResourceId resource;

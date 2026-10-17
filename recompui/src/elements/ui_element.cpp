@@ -671,11 +671,6 @@ Element *Element::get_nav_parent() {
 void Element::set_as_navigation_container(NavigationType nav_type) {
     is_nav_container = true;
     this->nav_type = nav_type;
-
-    Element *parent_nav = get_nav_parent();
-    if (parent_nav != nullptr) {
-        parent_nav->nav_children.push_back(this);
-    }
 }
 
 void Element::set_nav_wrapping(bool wrapping) {
@@ -710,53 +705,72 @@ Element::CanFocus Element::is_focusable() {
     return CanFocus::No;
 }
 
-void Element::get_all_focusable_children(Element *nav_parent) {
-    for (auto child : children) {
-        CanFocus res = child->is_focusable();
-        if (res == CanFocus::Yes) {
-            nav_parent->nav_children.push_back(child);
-        } else if (res == CanFocus::NoAndNoChildren) {
-            continue; // Skip this child, it has no focusable children.
-        } else {
-            child->get_all_focusable_children(nav_parent);
-        }
+
+bool Element::is_distant_parent_of(Element *el) {
+    if (el == nullptr) {
+        return false;
     }
+    Element *cur_parent = el->parent;
+    while (cur_parent != nullptr) {
+        if (this == cur_parent) {
+            return true;
+        }
+        cur_parent = cur_parent->parent;
+    }
+    return false;
 }
 
-// Dive into the hierarchy to build a list of focusable elements and navigation containers.
+/**
+ * - Element should be visible in order for it or any of its children to be considered for navigation.
+ * - The current focused element is always treated as a valid element. No need to dive into it. If it was focused,
+ *   it is not a nav container.
+ * - The document calls this function with nav_parent being itself
+ * - Nav containers' nav_children dont need to be direct descendants, but once you hit a child that:
+ *      - isnt visible 
+ *      - focus is NoAndNoChildren
+ *      - is either focusable OR a nav container
+ *   then you stop/continue. if focusable or a nav container, push it to the nav_parent's children
+ * - One exception, if this element is a parent or distant parent (like mine), then continue diving into that tree.
+ */
 void Element::build_navigation(Element *nav_parent, Element *cur_focus_element) {
-    if (!base->IsVisible()) {
-        return;
+    bool is_visible = base->IsVisible();
+    bool is_current_focus = cur_focus_element ? this->id == cur_focus_element->id : false;
+    bool is_doc = this->get_type_name() == "Document";
+
+    if (nav_children.size() > 0) {
+        nav_children.clear();
     }
 
-    for (auto &child : children) {
-        if (child == cur_focus_element) {
-            nav_parent->nav_children.push_back(child);
-            continue;
+    Element::CanFocus can_focus = Element::CanFocus::No;
+    if (!is_doc) {
+        // Current focused element doesn't need to be visible or
+        // focusable, it could have changed either way.
+        if (is_current_focus) {
+            nav_parent->nav_children.push_back(this);
+            return;
         }
-        if (!child->base->IsVisible() || !child->enabled) {
-            continue;
+        can_focus = is_focusable();
+        // All other elements that aren't visible should be skipped.
+        if (can_focus == Element::CanFocus::NoAndNoChildren && !is_distant_parent_of(cur_focus_element)) {
+            return;
         }
+    }
 
-        if ((child->is_focusable() == CanFocus::Yes) || child->is_nav_container) {
-            nav_parent->nav_children.push_back(child);
+    if (can_focus == Element::CanFocus::Yes) {
+        nav_parent->nav_children.push_back(this);
+    } else if (is_nav_container) {
+        // Add nav children recursively to self.
+        for (auto &child : children) {
+            child->build_navigation(this, cur_focus_element);
         }
-
-        if (child->is_nav_container) {
-            child->nav_children.clear();
-            child->build_navigation(child, cur_focus_element);
-
-            // didn't find any nav children, check for focus elements
-            if (child->nav_children.size() == 0) {
-                child->get_all_focusable_children(child);
-            }
-
-            // didn't find any focus elements
-            if (child->nav_children.size() == 0) {
-                nav_parent->nav_children.pop_back();
-            }
+        // Only give the nav parent this nav container if it has any focusable elements.
+        if (nav_children.size() > 0) {
+            nav_parent->nav_children.push_back(this);
         }
-        else {
+    } else {
+        // This isn't focusable or a nav container, so iter children recursively from the
+        // current nav_parent.
+        for (auto &child : children) {
             child->build_navigation(nav_parent, cur_focus_element);
         }
     }

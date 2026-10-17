@@ -10,6 +10,7 @@ namespace recompui {
     private:
         std::string title;
         std::function<void()> callback;
+        std::function<bool(const Event& e)> event_callback = nullptr;
     protected:
         Label *label;
         void set_styles();
@@ -19,6 +20,7 @@ namespace recompui {
         GameOption(ResourceId rid, Element* parent, const std::string& title, std::function<void()> callback, GameOptionsMenuLayout layout);
         void set_title(const std::string& new_title);
         void set_callback(std::function<void()> new_callback);
+        void set_event_callback(std::function<bool(const Event& e)> new_callback);
         Label* get_label() { return label; }
         // These are public so you can modify them.
         Style hover_style;
