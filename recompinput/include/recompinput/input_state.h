@@ -38,7 +38,7 @@ namespace recompinput {
     void get_gyro_deltas(int controller_num, float* x, float* y);
     void get_mouse_deltas(float* x, float* y);
     void get_right_analog(int controller_num, float* x, float* y);
-    void apply_joystick_deadzone(float x_in, float y_in, float* x_out, float* y_out);
+    void apply_joystick_deadzone_range(float x_in, float y_in, float* x_out, float* y_out, double deadzone, double range);
     void set_right_analog_suppressed(bool suppressed);
     bool game_input_disabled();
     bool all_input_disabled();

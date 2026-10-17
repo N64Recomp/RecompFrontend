@@ -62,9 +62,21 @@ namespace config {
     double general::get_mouse_sensitivity() {
         return get_general_config_number_value<double>(general::options::mouse_sensitivity);
     }
+
+    double general::get_joystick_range_l() {
+        return get_general_config_number_value<double>(general::options::joystick_range_l);
+    }
+
+    double general::get_joystick_range_r() {
+        return get_general_config_number_value<double>(general::options::joystick_range_r);
+    }
     
-    double general::get_joystick_deadzone() {
-        return get_general_config_number_value<double>(general::options::joystick_deadzone);
+    double general::get_joystick_deadzone_l() {
+        return get_general_config_number_value<double>(general::options::joystick_deadzone_l);
+    }
+
+    double general::get_joystick_deadzone_r() {
+        return get_general_config_number_value<double>(general::options::joystick_deadzone_r);
     }
     
     bool general::get_background_input_mode_enabled() {
@@ -123,9 +135,38 @@ namespace config {
         }
 
         config.add_percent_number_option(
-            general::options::joystick_deadzone,
-            "Joystick Deadzone",
-            "Applies a deadzone to joystick inputs.",
+            general::options::joystick_range_l,
+            "Left Joystick Range",
+            "Controls the max output range percent for the left joystick."
+            "<br/>"
+            "The default min/max range of an ideal N64 gamepad is -85 to +85"
+            "<br/>"
+            "The default value is 66% (170 units / 255 units)",
+            66.0
+        );
+
+        config.add_percent_number_option(
+            general::options::joystick_range_r,
+            "Right Joystick Range",
+            "Controls the max output range percent for the right joystick."
+            "<br/>"
+            "The default min/max range of an ideal N64 gamepad is -85 to +85"
+            "<br/>"
+            "The default value is 66% (170 units / 255 units)",
+            66.0
+        );
+
+        config.add_percent_number_option(
+            general::options::joystick_deadzone_l,
+            "Left Joystick Deadzone",
+            "Applies a deadzone to the left joystick input.",
+            5.0
+        );
+
+        config.add_percent_number_option(
+            general::options::joystick_deadzone_r,
+            "Right Joystick Deadzone",
+            "Applies a deadzone to the right joystick input.",
             5.0
         );
 
