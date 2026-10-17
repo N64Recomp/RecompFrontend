@@ -102,6 +102,9 @@ target_include_directories(recompui PUBLIC
 build_vertex_shader(recompui "shaders/InterfaceVS.hlsl" "shaders/InterfaceVS.hlsl")
 build_pixel_shader(recompui "shaders/InterfacePS.hlsl" "shaders/InterfacePS.hlsl")
 
+# Find curl package from vcpkg
+find_package(CURL REQUIRED)
+
 target_include_directories(recompui PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/recompui")
 
 if (WIN32)
@@ -123,4 +126,5 @@ target_link_libraries(recompui PUBLIC
     RmlUi::Debugger
     lunasvg
     miniz
+    CURL::libcurl
 )

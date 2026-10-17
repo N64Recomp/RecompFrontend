@@ -81,7 +81,12 @@ namespace recompui {
 
         namespace mods {
             inline const std::string id = "mods";
-            inline const std::string tab_name = "Mods";
+            inline const std::string tab_name = "Manage Mods";
+        }
+
+        namespace mod_discovery {
+            inline const std::string id = "mod_discovery";
+            inline const std::string tab_name = "Find Mods";
         }
 
         /**

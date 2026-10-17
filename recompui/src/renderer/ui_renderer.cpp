@@ -156,6 +156,7 @@ class RmlRenderInterface_RT64_impl : public Rml::RenderInterfaceCompatibility {
     std::vector<std::unique_ptr<plume::RenderBuffer>> stale_buffers_{};
     moodycamel::ConcurrentQueue<ImageFromBytes> image_from_bytes_queue;
     std::unordered_map<std::string, ImageFromBytes> image_from_bytes_map;
+    std::unordered_map<std::string, Rml::TextureHandle> pending_texture_sources_;
 public:
     RmlRenderInterface_RT64_impl(plume::RenderInterface* interface, plume::RenderDevice* device) {
         interface_ = interface;
@@ -426,10 +427,14 @@ public:
 
         auto it = image_from_bytes_map.find(source);
         if (it == image_from_bytes_map.end()) {
-            // Return a transparent texture if the image can't be found.
-            texture_handle = 1;
+            // Assign a unique handle with a transparent placeholder texture.
+            // Record the source name so the texture can be replaced when real data arrives.
+            texture_handle = texture_count_++;
             texture_dimensions.x = 1;
             texture_dimensions.y = 1;
+            Rml::byte transparent_pixel[] = { 0, 0, 0, 0 };
+            create_texture(texture_handle, transparent_pixel, Rml::Vector2i{ 1, 1 });
+            pending_texture_sources_[source] = texture_handle;
             return true;
         }
         
@@ -611,6 +616,9 @@ public:
         projection_mtx_ = Rml::Matrix4f::ProjectOrtho(0.0f, float(image_width), float(image_height), 0.0f, -10000, 10000);
         recalculate_mvp();
 
+        // Flush any pending image data so placeholder textures get replaced.
+        flush_image_from_bytes_queue();
+
         // The following code assumes command lists aren't double buffered.
         // Clear out any stale buffers from the last command list.
         stale_buffers_.clear();
@@ -676,10 +684,53 @@ public:
     void flush_image_from_bytes_queue() {
         ImageFromBytes image_from_bytes;
         while (image_from_bytes_queue.try_dequeue(image_from_bytes)) {
-            // We can move the name into the map since the name in the actual entry is no longer needed.
-            // After that, move the entry itself into the map.
+            // Check if this source already has a placeholder texture handle that needs replacing.
+            auto pending_it = pending_texture_sources_.find(image_from_bytes.name);
+            if (pending_it != pending_texture_sources_.end()) {
+                Rml::TextureHandle handle = pending_it->second;
+                pending_texture_sources_.erase(pending_it);
+                replace_pending_texture(handle, image_from_bytes);
+            }
             image_from_bytes_map.emplace(std::move(image_from_bytes.name), std::move(image_from_bytes));
         }
+    }
+
+    // Replaces a placeholder texture with real image data behind the same handle.
+    void replace_pending_texture(Rml::TextureHandle handle, const ImageFromBytes &img) {
+        RT64::Texture* texture = nullptr;
+        std::unique_ptr<plume::RenderBuffer> texture_buffer;
+        copy_command_list_->begin();
+
+        switch (img.type) {
+            case ImageType::RGBA32:
+                {
+                    uint32_t rowPitch = img.width * 4;
+                    size_t byteCount = img.height * rowPitch;
+                    texture = new RT64::Texture();
+                    RT64::TextureCache::setRGBA32(texture, device_, copy_command_list_.get(), reinterpret_cast<const uint8_t*>(img.bytes.data()), byteCount, img.width, img.height, rowPitch, texture_buffer, nullptr);
+                }
+                break;
+            case ImageType::File:
+                {
+                    std::vector<uint8_t> data_copy(img.bytes.data(), img.bytes.data() + img.bytes.size());
+                    texture = RT64::TextureCache::loadTextureFromBytes(device_, copy_command_list_.get(), data_copy, texture_buffer);
+                }
+                break;
+        }
+
+        copy_command_list_->end();
+        copy_command_queue_->executeCommandLists(copy_command_list_.get(), copy_command_fence_.get());
+        copy_command_queue_->waitForCommandFence(copy_command_fence_.get());
+
+        if (texture == nullptr) {
+            return;
+        }
+
+        // Replace the existing placeholder texture with the real one.
+        std::unique_ptr<plume::RenderDescriptorSet> set = texture_set_builder_->create(device_);
+        set->setTexture(gTexture_descriptor_index, texture->texture.get(), plume::RenderTextureLayout::SHADER_READ);
+        textures_[handle] = TextureHandle{ std::move(texture->texture), std::move(set), false };
+        delete texture;
     }
 };
 } // namespace recompui
