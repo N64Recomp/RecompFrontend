@@ -32,6 +32,7 @@ namespace recompui {
             void shutdown() override;
             uint32_t get_display_framerate() const override;
             float get_resolution_scale() const override;
+            void check_interrupts();
 
         private:
             std::unique_ptr<RT64::Application> app;

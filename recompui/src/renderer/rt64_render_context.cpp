@@ -47,6 +47,8 @@ using TexturePackAction = std::variant<TexturePackEnableAction, TexturePackDisab
 
 static moodycamel::ConcurrentQueue<TexturePackAction> texture_pack_action_queue;
 
+#define MI_INTR_SP 0x01
+#define MI_INTR_DP 0x20
 unsigned int MI_INTR_REG = 0;
 
 unsigned int DPC_START_REG = 0;
@@ -58,7 +60,13 @@ unsigned int DPC_BUFBUSY_REG = 0;
 unsigned int DPC_PIPEBUSY_REG = 0;
 unsigned int DPC_TMEM_REG = 0;
 
-void dummy_check_interrupts() {}
+static renderer::RT64Context* rt64_context = nullptr;
+
+void check_interrupts() {
+    if (rt64_context != nullptr) {
+        rt64_context->check_interrupts();
+    }
+}
 
 RT64::UserConfiguration::Antialiasing compute_max_supported_aa(plume::RenderSampleCounts bits) {
     if (bits & plume::RenderSampleCount::Bits::COUNT_2) {
@@ -232,7 +240,8 @@ renderer::RT64Context::RT64Context(uint8_t* rdram, ultramodern::renderer::Window
     appCore.window.view = window_handle.view;
 #endif
 
-    appCore.checkInterrupts = dummy_check_interrupts;
+    rt64_context = this;
+    appCore.checkInterrupts = ::check_interrupts;
 
     appCore.HEADER = dummy_rom_header;
     appCore.RDRAM = rdram;
@@ -335,7 +344,21 @@ renderer::RT64Context::RT64Context(uint8_t* rdram, ultramodern::renderer::Window
     high_precision_fb_enabled = app->shaderLibrary->usesHDR;
 }
 
-renderer::RT64Context::~RT64Context() = default;
+renderer::RT64Context::~RT64Context() {
+    if (rt64_context == this) {
+        rt64_context = nullptr;
+    }
+}
+
+void renderer::RT64Context::check_interrupts() {
+    if (MI_INTR_REG & MI_INTR_DP) {
+        mips_interrupts.dp = true;
+    }
+    if (MI_INTR_REG & MI_INTR_SP) {
+        mips_interrupts.sp = true;
+    }
+    MI_INTR_REG &= ~(MI_INTR_DP | MI_INTR_SP);
+}
 
 void renderer::RT64Context::send_dl(const OSTask* task) {
     check_texture_pack_actions();
