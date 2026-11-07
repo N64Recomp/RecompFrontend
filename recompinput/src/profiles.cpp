@@ -78,8 +78,42 @@ namespace recompinput {
         }
     }
 
+    static int get_mp_keyboard_profile_index(int player_index);
+
+    // The player whose multiplayer keyboard profile this is, or -1.
+    static int get_mp_keyboard_profile_player(int profile_index) {
+        for (int player_index = 0; player_index < (int)recompinput::max_num_players_supported; player_index++) {
+            if (get_mp_keyboard_profile_index(player_index) == profile_index) {
+                return player_index;
+            }
+        }
+        return -1;
+    }
+
+    // Fills a multiplayer keyboard profile with the game's default mapping for that player, if the game set one.
+    static bool assign_player_keyboard_defaults(int profile_index, int player_index) {
+        if (recompinput::get_default_mapping_for_player_keyboard(player_index, static_cast<GameInput>(0)) == nullptr) {
+            return false;
+        }
+        for (size_t i = 0; i < recompinput::num_game_inputs; i++) {
+            GameInput input = static_cast<GameInput>(i);
+            const std::vector<InputField> &new_mappings = *recompinput::get_default_mapping_for_player_keyboard(player_index, input);
+            for (size_t binding_index = 0; binding_index < recompinput::num_bindings_per_input; binding_index++) {
+                profiles::set_input_binding(profile_index, input, binding_index, binding_index < new_mappings.size() ? new_mappings[binding_index] : InputField{});
+            }
+        }
+        return true;
+    }
+
     void profiles::reset_input_binding(int profile_index, InputDevice device, GameInput input) {
-        std::vector<InputField> new_mappings = recompinput::get_default_mapping_for_input(device, input);
+        const std::vector<InputField> *player_mappings = nullptr;
+        if (device == InputDevice::Keyboard) {
+            int player_index = get_mp_keyboard_profile_player(profile_index);
+            if (player_index >= 0) {
+                player_mappings = recompinput::get_default_mapping_for_player_keyboard(player_index, input);
+            }
+        }
+        std::vector<InputField> new_mappings = player_mappings != nullptr ? *player_mappings : recompinput::get_default_mapping_for_input(device, input);
         for (size_t binding_index = 0; binding_index < recompinput::num_bindings_per_input; binding_index++) {
             if (binding_index >= new_mappings.size()) {
                 profiles::set_input_binding(profile_index, input, binding_index, InputField{});
@@ -100,6 +134,10 @@ namespace recompinput {
             for (size_t i = 0; i < recompinput::players::get_number_of_assigned_players(); i++) {
                 if (get_mp_keyboard_profile_index(i) == profile_index) {
                     is_multiplayer_kb = true;
+                    // Unless the game set this player's own default keys.
+                    if (assign_player_keyboard_defaults(profile_index, (int)i)) {
+                        return;
+                    }
                     break;
                 }
             }
@@ -363,6 +401,7 @@ namespace recompinput {
                 false
             );
             clear_all_mappings(profile_index);
+            assign_player_keyboard_defaults(profile_index, player_index);
         }
         return profile_index;
     }

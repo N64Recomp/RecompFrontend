@@ -96,4 +96,20 @@ namespace recompinput {
         }
         default_n64_mappings_keyboard[input] = fields;
     }
+
+    static std::unordered_map<int, default_game_input_device_mapping> default_player_keyboard_mappings;
+
+    void set_default_mapping_for_player_keyboard(int player_index, GameInput input, const std::vector<InputField>& fields) {
+        default_player_keyboard_mappings[player_index][input] = fields;
+    }
+
+    const std::vector<InputField>* get_default_mapping_for_player_keyboard(int player_index, GameInput input) {
+        static const std::vector<InputField> empty_input_field{};
+        auto player_it = default_player_keyboard_mappings.find(player_index);
+        if (player_it == default_player_keyboard_mappings.end()) {
+            return nullptr;
+        }
+        auto it = player_it->second.find(input);
+        return it != player_it->second.end() ? &it->second : &empty_input_field;
+    }
 }

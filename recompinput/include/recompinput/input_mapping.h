@@ -58,6 +58,19 @@ namespace recompinput {
 ```
     */
     void set_default_mapping_for_keyboard(GameInput input, const std::vector<InputField>& fields);
+
+    /**
+     * Sets the default mapping of one player's multiplayer keyboard profile ("Keyboard (Player N)", `player_index` from 0), for games where
+     * several players share one keyboard and each needs keys of their own. Used when that profile is created, by "Reset to defaults" and by
+     * resetting a single input. A player with no default mapping set keeps the previous behavior: the profile starts empty and a reset clears it.
+     */
+    void set_default_mapping_for_player_keyboard(int player_index, GameInput input, const std::vector<InputField>& fields);
+
+    // The default mapping set for this player's keyboard profile and input (empty if the player has defaults but none for this input),
+    // or nullptr when no default mapping was set for this player.
+    const std::vector<InputField>* get_default_mapping_for_player_keyboard(int player_index, GameInput input);
 }
+
+#define RECOMPINPUT_HAS_PLAYER_KEYBOARD_DEFAULTS 1
 
 #endif
